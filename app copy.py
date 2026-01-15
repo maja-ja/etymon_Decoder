@@ -134,7 +134,6 @@ if st.sidebar.button("提交願望"):
             st.sidebar.error("同步失敗，請檢查 Token 設定。")
 
 # --- 主介面邏輯 ---
-
 if mode == "🔍 導覽解碼":
     def show_search():
         query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...")
@@ -163,36 +162,14 @@ elif mode == "⚙️ 數據管理":
         # --- 格式範本展示區 ---
         with st.expander("📌 查看標準輸入格式範本", expanded=True):
             example_format = """「（名稱1）」類
-                                -字根a-（解釋1/解釋2)
-                                單詞1(字根1)(解釋)+(字根2)(解釋)+(字根3)(解釋)+(字根4)(解釋)+(字根5)(解釋)+(字根6)(解釋)+(字根7)(解釋)=總義
-                                「（名稱2）」類
-                                -字根b-(解釋1/解釋2)單詞2(字根1)(解釋)+(字根2)(解釋)=總義"""
+-字根a-（解釋1/解釋2)
+單詞1（（詞素1）（解釋）+（詞素2）（解釋）=總義）
+
+「（名稱2）」類
+-字根b-（解釋1/解釋2)
+單詞2（（詞素1）（解釋）+（詞素2）（解釋）=總義）"""
             st.code(example_format, language="text")
             st.caption("⚠️ 系統會自動將全形括號轉換，請安心輸入。")
-
-        # --- 數據輸入區 ---
-        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
-        
-        c_name = st.text_input("貢獻者暱稱", placeholder="用於內部記錄")
-        is_anon = st.checkbox("我希望匿名貢獻")
-
-        # 這裡就是第 201 行左右，確保與 c_name 垂直對齊
-        if st.button("🚀 提交至 GitHub 隔離區"):
-            if raw_input.strip() == "":
-                st.warning("請輸入內容後再提交。")
-            else:
-                parsed = parse_text_to_json(raw_input)
-                if parsed:
-                    if save_to_github(parsed, PENDING_FILE, is_json=True):
-                        st.success("✅ 數據已成功送達 GitHub！")
-                        st.balloons()
-                    else:
-                        st.error("❌ 同步失敗，請檢查 Secrets 設定。")
-                else:
-                    st.error("❌ 解析失敗！請檢查格式。")
-
-    # 這裡確保 render_section 與 def show_factory() 垂直對齊
-    render_section("數據工廠：詞根解碼投稿", show_factory)
 
         # --- 數據輸入區 ---
         raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
@@ -203,44 +180,78 @@ elif mode == "⚙️ 數據管理":
         with col2:
             is_anon = st.checkbox("我希望匿名貢獻")
 
-        if st.button("📤 提交至 GitHub 隔離區"):
-            if raw_input.strip() == "":
+        if st.button("🚀 提交至 GitHub 隔離區"):
+            if not raw_input.strip():
                 st.warning("請輸入內容後再提交。")
             else:
                 parsed = parse_text_to_json(raw_input)
                 if parsed:
-                    # 調用 GitHub 同步函式 (假設你之前的 save_to_github 已寫好)
+                    # 1. 同步數據至 PENDING_FILE
                     if save_to_github(parsed, PENDING_FILE, is_json=True):
+                        # 2. 同步貢獻者名單
+                        contrib_entry = [{
+                            "name": "Anonymous" if is_anon else (c_name if c_name else "Anonymous"),
+                            "date": datetime.now().strftime('%Y-%m-%d'),
+                            "type": "Data Contribution"
+                        }]
+                        save_to_github(contrib_entry, CONTRIB_FILE, is_json=True)
+                        
                         st.success("✅ 數據已成功送達 GitHub！感謝你的貢獻。")
                         st.balloons()
                     else:
-                        st.error("❌ 同步失敗，請聯繫作者。")
+                        st.error("❌ GitHub 同步失敗，請檢查 Secrets 設定。")
                 else:
                     st.error("❌ 解析失敗！請檢查類別標籤「」或字根標記 - - 是否正確。")
 
     render_section("數據工廠：詞根解碼投稿", show_factory)
-        if st.button("🚀 提交至 GitHub 隔離區"):
-            if raw_input:
-                parsed = parse_text_to_json(raw_input)
-                if parsed:
-                    # 1. 同步數據至 GitHub
-                    if save_to_github(parsed, PENDING_FILE, is_json=True):
-                        # 2. 同步貢獻者名單至 GitHub
-                        contrib_entry = [{
-                            "name": "Anonymous" if is_c_anon else (c_name if c_name else "Anonymous"),
-                            "deed": c_deed,
-                            "date": datetime.now().strftime('%Y-%m-%d')
-                        }]
-                        save_to_github(contrib_entry, CONTRIB_FILE, is_json=True)
-                        
-                        st.success("✅ 數據已成功寫回 GitHub 檔案！")
-                        st.balloons()
-                    else:
-                        st.error("❌ GitHub 寫入失敗，請確認 Secrets。")
-                else:
-                    st.error("❌ 解析失敗，請檢查格式。")
-    render_section("數據工廠與隔離區", show_factory)
 
+elif mode == "✍️ 學習測驗":
+    all_words = []
+    for cat in data:
+        for group in cat['root_groups']:
+            for v in group['vocabulary']:
+                all_words.append({**v, "root_meaning": group['meaning']})
+
+    if not all_words:
+        st.warning("資料庫暫無內容。")
+    else:
+        if 'q' not in st.session_state:
+            st.session_state.q = random.choice(all_words)
+            st.session_state.show = False
+        
+        q = st.session_state.q
+        st.subheader(f"挑戰單字：:blue[{q['word']}]")
+        st.caption(f"提示：詞根含義為 「{q['root_meaning']}」")
+        
+        # 增加一個答案輸入框，實現你說的「自由對題」
+        user_ans = st.text_input("在此寫下你的答案（自由輸入）：", placeholder="例如：sub(下) + way(路)...")
+        
+        ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"])
+        if st.button("查看正確答案"): 
+            st.session_state.show = True
+        
+        if st.session_state.show:
+            st.success(f"參考答案：{q['definition'] if ans_type == '中文含義' else q['breakdown']}")
+            if st.button("下一題"):
+                st.session_state.q = random.choice(all_words)
+                st.session_state.show = False
+                st.rerun()
+
+elif mode == "🤝 合作招募":
+    def show_recruit():
+        st.info("我們正在尋找以下夥伴：")
+        st.markdown("""
+        1. **📊 SQLite 小幫手**：協助架構優化。
+        2. **🧹 整理資料的小幫手**：協助內容校對。
+        3. **✍️ 社群文案小幫手**：Threads/IG 內容經營。
+        
+        **(適合對特殊選材、學習歷程有需求的同學參與！)**
+        """)
+        st.write("📩 聯繫方式：私訊 Instagram/Threads 或寄信至 `kadowsella@gmail.com`")
+    
+    render_section("合作招募中心", show_recruit)
+
+st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
 elif mode == "✍️ 學習測驗":
     all_words = []
     for cat in data:
