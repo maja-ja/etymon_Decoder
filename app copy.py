@@ -158,26 +158,46 @@ if mode == "🔍 導覽解碼":
 
 elif mode == "⚙️ 數據管理":
     def show_factory():
-        st.info("📦 此處提交的數據將直接更新在GitHub，然後作者會在小改版上傳。")
-        with st.expander("📌 查看標準輸入格式提示", expanded=False):
-            st.code("格式「（名稱1）」類
-	-字根a-（解釋1/解釋2)
-		單詞1（（字根1）（解釋）+（字根2）（解釋）+（字根3）（解釋）+（字根4）（解釋）+（字根5）（解釋）+（字根6）（解釋）+（字根7）（解釋）
-	-字根b-（解釋1/解釋2)
-		單詞2（（字根1）（解釋）+（字根2）（解釋）+（字根3）（解釋）+（字根4）（解釋）+（字根5）（解釋）+（字根6）（解釋）+（字根7）（解釋）
-		單詞3（（字根1）（解釋）+（字根2）（解釋）+（字根3）（解釋）+（字根4）（解釋）+（字根5）（解釋）+（字根6）（解釋）+（字根7）（解釋）
-格式「（名稱2）」類
-	-字根a-（解釋1/解釋2)
-		單詞1（（字根1）（解釋）+（字根2）（解釋）+（字根3）（解釋）+（字根4）（解釋）+（字根5）（解釋）+（字根6）（解釋）+（字根7）（解釋）
-	-字根b-（解釋1/解釋2)
-		單詞2（（字根1）（解釋）+（字根2）（解釋）+（字根3）（解釋）+（字根4）（解釋）+（字根5）（解釋）+（字根6）（解釋）+（字根7）（解釋）
-		單詞3（（字根1）（解釋）+（字根2）（解釋）+（字根3）（解釋）+（字根4）（解釋）+（字根5）（解釋）+（字根6）（解釋）+（字根7）（解釋）", language="text")
+        st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
+        
+        # --- 格式範本展示區 ---
+        with st.expander("📌 查看標準輸入格式範本 (請嚴格遵守)", expanded=True):
+            example_format = """「（類別名稱）」類
+-字根A-（含義1/含義2)
+單詞1（（詞素1）（解釋）+（詞素2）（解釋）+（詞素3）（解釋）=單詞總義）
+單詞2（（詞素1）（解釋）+（詞素2）（解釋）=單詞總義）
 
-        raw_input = st.text_area("數據貼上區", height=300)
-        c_name = st.text_input("貢獻者名稱")
-        c_deed = st.text_input("本次事蹟")
-        is_c_anon = st.checkbox("匿名貢獻")
+「（類別名稱2）」類
+-字根B-（含義)
+單詞3（（詞素1）（解釋）+（詞素2）（解釋）=單詞總義）"""
+            st.code(example_format, language="text")
+            st.caption("⚠️ 注意：括號請使用全形「（）」或半形「()」皆可，系統會自動轉換。")
 
+        # --- 數據輸入區 ---
+        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            c_name = st.text_input("貢獻者暱稱", placeholder="用於內部記錄")
+        with col2:
+            is_anon = st.checkbox("我希望匿名貢獻")
+
+        if st.button("📤 提交至 GitHub 隔離區"):
+            if raw_input.strip() == "":
+                st.warning("請輸入內容後再提交。")
+            else:
+                parsed = parse_text_to_json(raw_input)
+                if parsed:
+                    # 調用 GitHub 同步函式 (假設你之前的 save_to_github 已寫好)
+                    if save_to_github(parsed, PENDING_FILE, is_json=True):
+                        st.success("✅ 數據已成功送達 GitHub！感謝你的貢獻。")
+                        st.balloons()
+                    else:
+                        st.error("❌ 同步失敗，請聯繫作者。")
+                else:
+                    st.error("❌ 解析失敗！請檢查類別標籤「」或字根標記 - - 是否正確。")
+
+    render_section("數據工廠：詞根解碼投稿", show_factory)
         if st.button("🚀 提交至 GitHub 隔離區"):
             if raw_input:
                 parsed = parse_text_to_json(raw_input)
