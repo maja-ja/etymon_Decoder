@@ -158,7 +158,7 @@ elif mode == "⚙️ 數據管理":
     def show_factory():
         st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
         
-        with st.expander("📌 查看標準輸入格式範本", expanded=True):
+        with st.expander("📌 格式範本（建議直接貼上AI然後跟他要字根跟五個單字）", expanded=True):
             example_format = """「（名稱1）」類
 -字根a-（解釋1/解釋2)
 單詞1（（詞素1）（解釋）+（詞素2）（解釋）=總義）
