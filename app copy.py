@@ -8,7 +8,7 @@ import re
 DB_FILE = 'etymon_database.json'
 
 # --- 1. 密碼檢查功能 ---
-def check_password():
+'''def check_password():
     if "password_correct" not in st.session_state:
         st.session_state["password_correct"] = False
     if st.session_state["password_correct"]:
@@ -24,7 +24,7 @@ def check_password():
     return False
 
 if not check_password():
-    st.stop()
+    st.stop()'''
 
 # --- 2. 數據處理與解析引擎 ---
 def load_data():
