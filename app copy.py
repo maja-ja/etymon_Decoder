@@ -239,7 +239,7 @@ elif mode == "🤝 合作招募":
         2. **🧹 數據整理員**：校對詞根含義。
         3. **✍️ 社群文案策劃**：推廣詞根宇宙。
         
-        **(適合特殊選材、學習歷程需求！)**
+        **(適合特殊選材（應該）、學習歷程需求！)**
         """)
         st.write("📩 聯繫方式：私訊 Instagram/Threads 或寄信至 `kadowsella@gmail.com`")
     render_section("合作招募中心", show_recruit)
