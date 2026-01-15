@@ -8,24 +8,6 @@ import re
 DB_FILE = 'etymon_database.json'
 
 # --- 1. 密碼檢查功能 ---
-'''def check_password():
-    if "password_correct" not in st.session_state:
-        st.session_state["password_correct"] = False
-    if st.session_state["password_correct"]:
-        return True
-    st.title("🔐 歡迎來到詞根宇宙")
-    password = st.text_input("訪問密碼：", type="password")
-    if st.button("登入"):
-        if password == "8888":
-            st.session_state["password_correct"] = True
-            st.rerun()
-        else:
-            st.error("❌ 密碼錯誤")
-    return False
-
-if not check_password():
-    st.stop()'''
-
 # --- 2. 數據處理與解析引擎 ---
 def load_data():
     if os.path.exists(DB_FILE):
