@@ -21,5 +21,28 @@
                 ]
             }
         ]
+    },
+    {
+        "category": "皮膚(Integumentary)",
+        "root_groups": [
+            {
+                "roots": [
+                    "derm"
+                ],
+                "meaning": "皮膚",
+                "vocabulary": [
+                    {
+                        "word": "Dermatitis",
+                        "breakdown": "derma[皮膚] + itis[發炎]",
+                        "definition": "皮膚炎"
+                    },
+                    {
+                        "word": "Hypodermic",
+                        "breakdown": "hypo[在...之下] + derm[皮膚] + ic[形容詞字尾]",
+                        "definition": "皮下組織的 / 皮下注射的"
+                    }
+                ]
+            }
+        ]
     }
 ]
