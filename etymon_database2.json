@@ -1,0 +1,827 @@
+[
+    {
+        "category": "五感與行為",
+        "root_groups": [
+            {
+                "roots": [
+                    "dict"
+                ],
+                "meaning": "說",
+                "vocabulary": [
+                    {
+                        "word": "Contradict",
+                        "breakdown": "Contra 相反 + dict 說",
+                        "definition": "矛盾/反駁"
+                    },
+                    {
+                        "word": "Predict",
+                        "breakdown": "Pre 預先 + dict 說",
+                        "definition": "預測/預言"
+                    },
+                    {
+                        "word": "Verdict",
+                        "breakdown": "Ver 真實 + dict 說",
+                        "definition": "判決/定論"
+                    },
+                    {
+                        "word": "Dictator",
+                        "breakdown": "Dict 說 + ator 人",
+                        "definition": "獨裁者/發號施令者"
+                    },
+                    {
+                        "word": "Indict",
+                        "breakdown": "In 進入 + dict 說",
+                        "definition": "起訴/控告"
+                    },
+                    {
+                        "word": "Dialogue",
+                        "breakdown": "Dia 穿過/兩者之間 + log 說",
+                        "definition": "對話"
+                    },
+                    {
+                        "word": "Apology",
+                        "breakdown": "Apo 遠離/辯解 + log 說",
+                        "definition": "道歉/辯白"
+                    },
+                    {
+                        "word": "Eloquent",
+                        "breakdown": "E 出來 + loqu 說",
+                        "definition": "雄辯的/口才流利的"
+                    },
+                    {
+                        "word": "Loquacious",
+                        "breakdown": "Loqu 說 + acious 多...的",
+                        "definition": "滔滔不絕的/多話的"
+                    },
+                    {
+                        "word": "Monologue",
+                        "breakdown": "Mono 單一 + log 說",
+                        "definition": "獨白"
+                    },
+                    {
+                        "word": "Exclaim",
+                        "breakdown": "Ex 出去 + claim 喊",
+                        "definition": "驚叫/呼喊"
+                    },
+                    {
+                        "word": "Proclaim",
+                        "breakdown": "Pro 向前 + claim 喊",
+                        "definition": "宣布/公告"
+                    },
+                    {
+                        "word": "Reclaim",
+                        "breakdown": "Re 回來 + claim 喊",
+                        "definition": "拿回/開墾"
+                    },
+                    {
+                        "word": "Advocate",
+                        "breakdown": "Ad 往 + voc 說/聲",
+                        "definition": "擁護/提倡"
+                    },
+                    {
+                        "word": "Provoke",
+                        "breakdown": "Pro 向前 + vok 呼喚",
+                        "definition": "激怒/挑釁"
+                    },
+                    {
+                        "word": "Equivocal",
+                        "breakdown": "Equi 平等 + voc 聲",
+                        "definition": "模稜兩可的/雙關的"
+                    },
+                    {
+                        "word": "Tele-scope",
+                        "breakdown": "Tele 遠 + scope 觀察",
+                        "definition": "望遠鏡"
+                    },
+                    {
+                        "word": "In-vis-ible",
+                        "breakdown": "In 不 + vis 見",
+                        "definition": "看不見的"
+                    },
+                    {
+                        "word": "Evident",
+                        "breakdown": "E 出來 + vid 看",
+                        "definition": "顯而易見的"
+                    },
+                    {
+                        "word": "Prospect",
+                        "breakdown": "Pro 前 + spect 看",
+                        "definition": "前景"
+                    },
+                    {
+                        "word": "Conspicuous",
+                        "breakdown": "Con 加強 + spic 看",
+                        "definition": "顯眼的，大家都在看"
+                    },
+                    {
+                        "word": "Audition",
+                        "breakdown": "Aud 聽 + ition 名詞尾",
+                        "definition": "試鏡/聽力"
+                    },
+                    {
+                        "word": "Inaudible",
+                        "breakdown": "In 不 + aud 聽",
+                        "definition": "聽不見的"
+                    },
+                    {
+                        "word": "Auditorium",
+                        "breakdown": "Audit 聽 + orium 場所",
+                        "definition": "禮堂/聽眾席"
+                    },
+                    {
+                        "word": "Auditory",
+                        "breakdown": "Audit 聽 + ory 形容詞尾",
+                        "definition": "聽覺的"
+                    },
+                    {
+                        "word": "Audience",
+                        "breakdown": "Audi 聽 + ence 名詞尾",
+                        "definition": "觀眾/聽眾"
+                    },
+                    {
+                        "word": "Symphony",
+                        "breakdown": "Sym 共同 + phon 聲音",
+                        "definition": "交響樂/和聲"
+                    },
+                    {
+                        "word": "Cacophony",
+                        "breakdown": "Caco 惡劣 + phon 聲音",
+                        "definition": "雜音/刺耳的聲音"
+                    },
+                    {
+                        "word": "Microphone",
+                        "breakdown": "Micro 微小 + phon 聲音",
+                        "definition": "麥克風/擴音器"
+                    },
+                    {
+                        "word": "Phonetic",
+                        "breakdown": "Phon 聲音 + etic 形容詞尾",
+                        "definition": "語音的/發音的"
+                    },
+                    {
+                        "word": "Homophone",
+                        "breakdown": "Homo 相同 + phon 聲音",
+                        "definition": "同音字"
+                    },
+                    {
+                        "word": "Resonate",
+                        "breakdown": "Re 再/加強 + son 聲音 + ate",
+                        "definition": "共鳴/迴響"
+                    },
+                    {
+                        "word": "Sonic",
+                        "breakdown": "Son 聲音 + ic 形容詞尾",
+                        "definition": "音速的/聲音的"
+                    },
+                    {
+                        "word": "Unison",
+                        "breakdown": "Uni 一 + son 聲音",
+                        "definition": "一致/齊唱"
+                    },
+                    {
+                        "word": "Consonant",
+                        "breakdown": "Con 共同 + son 聲音 + ant",
+                        "definition": "子音/和諧的"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "移動與空間",
+        "root_groups": [
+            {
+                "roots": [
+                    "port"
+                ],
+                "meaning": "拿/運/港口",
+                "vocabulary": [
+                    {
+                        "word": "Import",
+                        "breakdown": "Im 往內 + port 運",
+                        "definition": "進口"
+                    },
+                    {
+                        "word": "Export",
+                        "breakdown": "Ex 往外 + port 運",
+                        "definition": "出口"
+                    },
+                    {
+                        "word": "Portable",
+                        "breakdown": "Port 拿 + able 可...的",
+                        "definition": "手提式的/輕便的"
+                    },
+                    {
+                        "word": "Transport",
+                        "breakdown": "Trans 跨越 + port 運",
+                        "definition": "運輸/運送"
+                    },
+                    {
+                        "word": "Portfolio",
+                        "breakdown": "Port 拿 + folio 紙張",
+                        "definition": "檔案夾/作品集/投資組合"
+                    },
+                    {
+                        "word": "Support",
+                        "breakdown": "Sup 在下面 + port 撐",
+                        "definition": "支持/支撐"
+                    },
+                    {
+                        "word": "Attract",
+                        "breakdown": "At 靠近 + tract 拉",
+                        "definition": "吸引"
+                    },
+                    {
+                        "word": "Extract",
+                        "breakdown": "Ex 往外 + tract 拉",
+                        "definition": "抽出/提煉/萃取"
+                    },
+                    {
+                        "word": "Distract",
+                        "breakdown": "Dis 分散 + tract 拉",
+                        "definition": "使分心"
+                    },
+                    {
+                        "word": "Contract",
+                        "breakdown": "Con 共同 + tract 拉",
+                        "definition": "契約/收縮 —— 雙方拉到一起簽約"
+                    },
+                    {
+                        "word": "Abstract",
+                        "breakdown": "Ab 離開 + tract 拉",
+                        "definition": "抽象的/摘要 —— 從具體中拉出重點"
+                    },
+                    {
+                        "word": "Retract",
+                        "breakdown": "Re 往回 + tract 拉",
+                        "definition": "縮回/撤回言論"
+                    },
+                    {
+                        "word": "Excess",
+                        "breakdown": "Ex 超出 + cess 走",
+                        "definition": "過度/過剩"
+                    },
+                    {
+                        "word": "Precede",
+                        "breakdown": "Pre 預先 + cede 走",
+                        "definition": "在...之前發生"
+                    },
+                    {
+                        "word": "Proceed",
+                        "breakdown": "Pro 向前 + ceed 走",
+                        "definition": "繼續進行"
+                    },
+                    {
+                        "word": "Recession",
+                        "breakdown": "Re 往回 + cess 走",
+                        "definition": "經濟衰退/後退"
+                    },
+                    {
+                        "word": "Concede",
+                        "breakdown": "Con 全部 + cede 走",
+                        "definition": "讓步/承認輸了 —— 全退一步"
+                    },
+                    {
+                        "word": "Access",
+                        "breakdown": "Ac 往 + cess 走",
+                        "definition": "管道/進入的權利"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "心理與生命",
+        "root_groups": [
+            {
+                "roots": [
+                    "viv- ",
+                    " -vit"
+                ],
+                "meaning": "活/生命",
+                "vocabulary": [
+                    {
+                        "word": "Vivid",
+                        "breakdown": "Viv 活 + id 形容詞尾",
+                        "definition": "活生生的/鮮艷的"
+                    },
+                    {
+                        "word": "Sur-vive",
+                        "breakdown": "Sur 超過 + vive 活",
+                        "definition": "倖存/活下來"
+                    },
+                    {
+                        "word": "Vitality",
+                        "breakdown": "Vit 生命 + ality 名詞尾",
+                        "definition": "活力/生命力"
+                    },
+                    {
+                        "word": "Antipathy",
+                        "breakdown": "Anti 反 + pathy 感受",
+                        "definition": "反感"
+                    },
+                    {
+                        "word": "Empathy",
+                        "breakdown": "Em 進入 + pathy 感受",
+                        "definition": "同理心"
+                    },
+                    {
+                        "word": "Sympathy",
+                        "breakdown": "Sym 共同 + pathy 感受",
+                        "definition": "同情心"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "動作與修飾",
+        "root_groups": [
+            {
+                "roots": [
+                    "fac- ",
+                    " -fec- ",
+                    " -fic"
+                ],
+                "meaning": "做/製作",
+                "vocabulary": [
+                    {
+                        "word": "Factory",
+                        "breakdown": "Fac 做 + tory 場所",
+                        "definition": "工廠"
+                    },
+                    {
+                        "word": "Efficient",
+                        "breakdown": "Ex 出來 + fic 做",
+                        "definition": "效率高的 —— 能做出成果的"
+                    },
+                    {
+                        "word": "Deficit",
+                        "breakdown": "De 不足 + fic 做",
+                        "definition": "赤字/不足額"
+                    },
+                    {
+                        "word": "Magnificent",
+                        "breakdown": "Magni 大 + fic 做",
+                        "definition": "宏偉的/極好的"
+                    },
+                    {
+                        "word": "Capture",
+                        "breakdown": "Capt 拿 + ure 名詞尾",
+                        "definition": "捕獲/捕捉"
+                    },
+                    {
+                        "word": "Accept",
+                        "breakdown": "Ac 朝向 + cept 拿",
+                        "definition": "接受"
+                    },
+                    {
+                        "word": "Conceive",
+                        "breakdown": "Con 共同/完全 + ceive 拿",
+                        "definition": "構思/懷孕"
+                    },
+                    {
+                        "word": "Deceptive",
+                        "breakdown": "De 錯誤 + cept 拿",
+                        "definition": "欺騙性的 —— 誤導你的認知"
+                    },
+                    {
+                        "word": "Expel",
+                        "breakdown": "Ex 往外 + pel 推",
+                        "definition": "開除/驅逐"
+                    },
+                    {
+                        "word": "Propel",
+                        "breakdown": "Pro 向前 + pel 推",
+                        "definition": "推進/驅動"
+                    },
+                    {
+                        "word": "Compel",
+                        "breakdown": "Con 加強 + pel 推",
+                        "definition": "強迫"
+                    },
+                    {
+                        "word": "Impulse",
+                        "breakdown": "Im 往內 + pulse 推",
+                        "definition": "衝動/脈衝"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "時間與順序",
+        "root_groups": [
+            {
+                "roots": [
+                    "chron"
+                ],
+                "meaning": "時間",
+                "vocabulary": [
+                    {
+                        "word": "Chronic",
+                        "breakdown": "Chron 時間 + ic 形容詞尾",
+                        "definition": "慢性的/長期的"
+                    },
+                    {
+                        "word": "Synchronize",
+                        "breakdown": "Syn 同時 + chron 時間 + ize 動詞尾",
+                        "definition": "同步"
+                    },
+                    {
+                        "word": "Chronology",
+                        "breakdown": "Chron 時間 + ology 學問",
+                        "definition": "年表/年代學"
+                    },
+                    {
+                        "word": "Temporary",
+                        "breakdown": "Temp 時間 + orary 形容詞尾",
+                        "definition": "暫時的"
+                    },
+                    {
+                        "word": "Contemporary",
+                        "breakdown": "Con 共同 + temp 時間",
+                        "definition": "當代的/同時代的人"
+                    },
+                    {
+                        "word": "Preview",
+                        "breakdown": "Pre 前 + view 看",
+                        "definition": "預覽"
+                    },
+                    {
+                        "word": "Foresee",
+                        "breakdown": "Fore 前 + see 看",
+                        "definition": "預見"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "社會、統治與人際",
+        "root_groups": [
+            {
+                "roots": [
+                    "popul- ",
+                    " -dem"
+                ],
+                "meaning": "人民",
+                "vocabulary": [
+                    {
+                        "word": "Population",
+                        "breakdown": "Popul 人民 + ation 名詞尾",
+                        "definition": "人口"
+                    },
+                    {
+                        "word": "Democracy",
+                        "breakdown": "Demo 人民 + cracy 統治",
+                        "definition": "民主"
+                    },
+                    {
+                        "word": "Epidemic",
+                        "breakdown": "Epi 在...之間 + dem 人民",
+                        "definition": "流行病"
+                    },
+                    {
+                        "word": "Regulate",
+                        "breakdown": "Reg 管轄 + ulate 動詞尾",
+                        "definition": "管理/規範"
+                    },
+                    {
+                        "word": "Rectangle",
+                        "breakdown": "Rect 正/直 + angle 角",
+                        "definition": "長方形"
+                    },
+                    {
+                        "word": "Society",
+                        "breakdown": "Soci 夥伴 + ety 名詞尾",
+                        "definition": "社會"
+                    },
+                    {
+                        "word": "Associate",
+                        "breakdown": "As 往 + soci 夥伴",
+                        "definition": "聯想/合夥人"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "自然與科學基礎",
+        "root_groups": [
+            {
+                "roots": [
+                    "bio"
+                ],
+                "meaning": "生命",
+                "vocabulary": [
+                    {
+                        "word": "Biology",
+                        "breakdown": "Bio 生命 + logy 學問",
+                        "definition": "生物學"
+                    },
+                    {
+                        "word": "Antibiotic",
+                        "breakdown": "Anti 反 + bio 生命",
+                        "definition": "抗生素"
+                    },
+                    {
+                        "word": "Geography",
+                        "breakdown": "Geo 地 + graphy 寫/畫",
+                        "definition": "地理"
+                    },
+                    {
+                        "word": "Geometry",
+                        "breakdown": "Geo 地 + metry 測量",
+                        "definition": "幾何學"
+                    },
+                    {
+                        "word": "Hydrant",
+                        "breakdown": "Hydr 水 + ant 物質",
+                        "definition": "消防栓"
+                    },
+                    {
+                        "word": "Dehydrate",
+                        "breakdown": "De 除去 + hydr 水",
+                        "definition": "脫水"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "份量、程度與否定",
+        "root_groups": [
+            {
+                "roots": [
+                    "magni- ",
+                    " -max"
+                ],
+                "meaning": "大",
+                "vocabulary": [
+                    {
+                        "word": "Magnify",
+                        "breakdown": "Magni 大 + fy 使",
+                        "definition": "放大"
+                    },
+                    {
+                        "word": "Maximum",
+                        "breakdown": "Max 最大 + imum",
+                        "definition": "最大值"
+                    },
+                    {
+                        "word": "Minimize",
+                        "breakdown": "Mini 小 + ize 使",
+                        "definition": "使最小化"
+                    },
+                    {
+                        "word": "Minority",
+                        "breakdown": "Minor 較小 + ity 名詞尾",
+                        "definition": "少數"
+                    },
+                    {
+                        "word": "Inability",
+                        "breakdown": "In 不 + ability 能力",
+                        "definition": "無能力"
+                    },
+                    {
+                        "word": "Disadvantage",
+                        "breakdown": "Dis 不 + advantage 優勢",
+                        "definition": "劣勢"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "數量與數字",
+        "root_groups": [
+            {
+                "roots": [
+                    "uni- ",
+                    " -mon"
+                ],
+                "meaning": "一",
+                "vocabulary": [
+                    {
+                        "word": "Uniform",
+                        "breakdown": "Uni 一 + form 形狀",
+                        "definition": "統一的/制服"
+                    },
+                    {
+                        "word": "Monomial",
+                        "breakdown": "Mono 單一 + mial 項",
+                        "definition": "單項式"
+                    },
+                    {
+                        "word": "Binary",
+                        "breakdown": "Bin 二 + ary",
+                        "definition": "二進制的"
+                    },
+                    {
+                        "word": "Duplicate",
+                        "breakdown": "Du 二 + plic 摺疊",
+                        "definition": "複製/兩份"
+                    },
+                    {
+                        "word": "Dilemma",
+                        "breakdown": "Di 二 + lemma 題目",
+                        "definition": "進退兩難"
+                    },
+                    {
+                        "word": "Triangle",
+                        "breakdown": "Tri 三 + angle 角",
+                        "definition": "三角形"
+                    },
+                    {
+                        "word": "Trigonometry",
+                        "breakdown": "Tri 三 + gon 角 + metry 測量",
+                        "definition": "三角學"
+                    },
+                    {
+                        "word": "Quadrant",
+                        "breakdown": "Quadr 四 + ant",
+                        "definition": "象限/四分之一圓"
+                    },
+                    {
+                        "word": "Quadrilateral",
+                        "breakdown": "Quadr 四 + latus 邊",
+                        "definition": "四邊形"
+                    },
+                    {
+                        "word": "Polygon",
+                        "breakdown": "Poly 多 + gon 角",
+                        "definition": "多邊形"
+                    },
+                    {
+                        "word": "Polynomial",
+                        "breakdown": "Poly 多 + nial 項",
+                        "definition": "多項式"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "形狀、位置與測量",
+        "root_groups": [
+            {
+                "roots": [
+                    "metr- ",
+                    " -meter"
+                ],
+                "meaning": "測量",
+                "vocabulary": [
+                    {
+                        "word": "Symmetry",
+                        "breakdown": "Sym 共同 + metry 測量",
+                        "definition": "對稱"
+                    },
+                    {
+                        "word": "Perimeter",
+                        "breakdown": "Peri 周圍 + meter 測量",
+                        "definition": "周長"
+                    },
+                    {
+                        "word": "Diameter",
+                        "breakdown": "Dia 穿過 + meter 測量",
+                        "definition": "直徑"
+                    },
+                    {
+                        "word": "Pentagon",
+                        "breakdown": "Penta 五 + gon 角",
+                        "definition": "五邊形"
+                    },
+                    {
+                        "word": "Diagonal",
+                        "breakdown": "Dia 穿過 + gon 角",
+                        "definition": "對角線"
+                    },
+                    {
+                        "word": "Equation",
+                        "breakdown": "Equ 相等 + ation 名詞尾",
+                        "definition": "等式/方程式"
+                    },
+                    {
+                        "word": "Equivalent",
+                        "breakdown": "Equi 相等 + valent 價值",
+                        "definition": "等值的"
+                    },
+                    {
+                        "word": "Equilateral",
+                        "breakdown": "Equi 相等 + lateral 邊",
+                        "definition": "等邊的"
+                    },
+                    {
+                        "word": "Fraction",
+                        "breakdown": "Fract 碎片段",
+                        "definition": "分數"
+                    },
+                    {
+                        "word": "Fragment",
+                        "breakdown": "Frag 碎塊",
+                        "definition": "碎片"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "category": "邏輯與運算",
+        "root_groups": [
+            {
+                "roots": [
+                    "log"
+                ],
+                "meaning": "比例/推理",
+                "vocabulary": [
+                    {
+                        "word": "Logarithm",
+                        "breakdown": "Log 比例 + arithm 數字",
+                        "definition": "對數"
+                    },
+                    {
+                        "word": "Analogy",
+                        "breakdown": "Ana 根據 + log 比例",
+                        "definition": "類比/類推"
+                    },
+                    {
+                        "word": "Addition",
+                        "breakdown": "Add 加",
+                        "definition": "加法"
+                    },
+                    {
+                        "word": "Summation",
+                        "breakdown": "Sum 總和 + ation",
+                        "definition": "加總/求和"
+                    },
+                    {
+                        "word": "Multiply",
+                        "breakdown": "Multi 多 + ply 摺疊",
+                        "definition": "乘法/增加 —— 原意是摺疊多次"
+                    },
+                    {
+                        "word": "Variable",
+                        "breakdown": "Vari 改變 + able",
+                        "definition": "變數"
+                    },
+                    {
+                        "word": "Variance",
+                        "breakdown": "Vari 改變 + ance",
+                        "definition": "方差/變異數"
+                    },
+                    {
+                        "word": "Accept",
+                        "breakdown": "Ac 朝向 + cept 拿",
+                        "definition": "接受"
+                    },
+                    {
+                        "word": "Capture",
+                        "breakdown": "Capt 拿 + ure",
+                        "definition": "捕獲"
+                    },
+                    {
+                        "word": "Capital",
+                        "breakdown": "Capit 頭 + al",
+                        "definition": "首都/資本 —— 最重要的部分"
+                    },
+                    {
+                        "word": "Captain",
+                        "breakdown": "Capit 頭 + ain",
+                        "definition": "隊長/船長 —— 領頭的人"
+                    },
+                    {
+                        "word": "Decapitate",
+                        "breakdown": "De 除去 + capit 頭",
+                        "definition": "斬首"
+                    },
+                    {
+                        "word": "Extend",
+                        "breakdown": "Ex 出去 + tend 伸",
+                        "definition": "延伸/擴展"
+                    },
+                    {
+                        "word": "Tension",
+                        "breakdown": "Tens 拉緊 + ion",
+                        "definition": "緊張/張力"
+                    },
+                    {
+                        "word": "Maintain",
+                        "breakdown": "Main 手 + tain 握",
+                        "definition": "維持"
+                    },
+                    {
+                        "word": "Contain",
+                        "breakdown": "Con 全部 + tain 握",
+                        "definition": "包含"
+                    },
+                    {
+                        "word": "Continue",
+                        "breakdown": "Con 全部 + tin 握",
+                        "definition": "繼續 —— 一直握著不放"
+                    }
+                ]
+            }
+        ]
+    }
+]
