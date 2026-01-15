@@ -217,9 +217,6 @@ elif mode == "✍️ 學習測驗":
                 st.session_state.show = False
                 st.rerun()
 
-elif mode == "🏆 榮譽榜":
-    render_section("協作者榮譽榜", lambda: st.table(load_json(CONTRIB_FILE, [])))
-
 elif mode == "🤝 合作招募":
     render_section("合作招募中心", lambda: st.info("聯繫方式：私訊 Instagram/Threads 或寄信至 kadowsella@gmail.com"))
 
