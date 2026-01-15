@@ -284,4 +284,4 @@ elif mode == "🤝 合作招募":
     render_section("合作招募中心", show_recruit)
 
 # 版本號放在最後面，確保它不在任何 if 區塊內
-st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)m;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
+st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
