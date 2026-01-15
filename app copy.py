@@ -124,6 +124,8 @@ elif mode == "✍️ 學習測驗":
     if 'q' not in st.session_state:
         st.session_state.q = random.choice(all_words)
         st.session_state.show = False
+    q = st.session_state.q
+    st.subheader(f"單字：:blue[{q['word']}]")
     
     ans_type = st.radio("你想猜什麼？", ["中文含義", "拆解邏輯"])
     user_ans = st.text_input("輸入答案：")
