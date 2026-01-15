@@ -173,6 +173,44 @@ elif mode == "⚙️ 數據管理":
 
         # --- 數據輸入區 ---
         raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
+ # --- 主介面邏輯 ---
+if mode == "🔍 導覽解碼":
+    def show_search():
+        query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...")
+        if query:
+            q = query.lower().strip()
+            found = False
+            for cat in data:
+                for group in cat['root_groups']:
+                    root_match = any(q in r.lower() for r in group['roots'])
+                    matched_v = [v for v in group['vocabulary'] if q in v['word'].lower()]
+                    if root_match or matched_v:
+                        found = True
+                        st.markdown(f"#### 🧬 {cat['category']} | `{' / '.join(group['roots'])}` ({group['meaning']})")
+                        for v in group['vocabulary']:
+                            is_target = q in v['word'].lower()
+                            with st.expander(f"{'⭐ ' if is_target else ''}{v['word']}", expanded=is_target):
+                                st.write(f"**拆解：** `{v['breakdown']}`")
+                                st.write(f"**含義：** {v['definition']}")
+            if not found: st.warning("還沒做出來抱歉><")
+    render_section("導覽解碼系統", show_search)
+
+elif mode == "⚙️ 數據管理":
+    def show_factory():
+        st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
+        
+        with st.expander("📌 查看標準輸入格式範本", expanded=True):
+            example_format = """「（名稱1）」類
+-字根a-（解釋1/解釋2)
+單詞1（（詞素1）（解釋）+（詞素2）（解釋）=總義）
+
+「（名稱2）」類
+-字根b-（解釋1/解釋2)
+單詞2（（詞素1）（解釋）+（詞素2）（解釋）=總義）"""
+            st.code(example_format, language="text")
+            st.caption("⚠️ 系統會自動將全形括號轉換，請安心輸入。")
+
+        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -186,23 +224,19 @@ elif mode == "⚙️ 數據管理":
             else:
                 parsed = parse_text_to_json(raw_input)
                 if parsed:
-                    # 1. 同步數據至 PENDING_FILE
                     if save_to_github(parsed, PENDING_FILE, is_json=True):
-                        # 2. 同步貢獻者名單
                         contrib_entry = [{
                             "name": "Anonymous" if is_anon else (c_name if c_name else "Anonymous"),
                             "date": datetime.now().strftime('%Y-%m-%d'),
                             "type": "Data Contribution"
                         }]
                         save_to_github(contrib_entry, CONTRIB_FILE, is_json=True)
-                        
-                        st.success("✅ 數據已成功送達 GitHub！感謝你的貢獻。")
+                        st.success("✅ 數據已成功送達 GitHub！")
                         st.balloons()
                     else:
                         st.error("❌ GitHub 同步失敗，請檢查 Secrets 設定。")
                 else:
-                    st.error("❌ 解析失敗！請檢查類別標籤「」或字根標記 - - 是否正確。")
-
+                    st.error("❌ 解析失敗！請檢查格式。")
     render_section("數據工廠：詞根解碼投稿", show_factory)
 
 elif mode == "✍️ 學習測驗":
@@ -223,8 +257,7 @@ elif mode == "✍️ 學習測驗":
         st.subheader(f"挑戰單字：:blue[{q['word']}]")
         st.caption(f"提示：詞根含義為 「{q['root_meaning']}」")
         
-        # 增加一個答案輸入框，實現你說的「自由對題」
-        user_ans = st.text_input("在此寫下你的答案（自由輸入）：", placeholder="例如：sub(下) + way(路)...")
+        user_ans = st.text_input("在此寫下你的答案（自由輸入）：")
         
         ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"])
         if st.button("查看正確答案"): 
@@ -241,46 +274,14 @@ elif mode == "🤝 合作招募":
     def show_recruit():
         st.info("我們正在尋找以下夥伴：")
         st.markdown("""
-        1. **📊 SQLite 小幫手**：協助架構優化。
-        2. **🧹 整理資料的小幫手**：協助內容校對。
-        3. **✍️ 社群文案小幫手**：Threads/IG 內容經營。
+        1. **📊 SQLite 小幫手**
+        2. **🧹 數據整理員**
+        3. **✍️ 社群文案策劃**
         
-        **(適合對特殊選材、學習歷程有需求的同學參與！)**
+        **(適合特殊選材、學習歷程需求！)**
         """)
         st.write("📩 聯繫方式：私訊 Instagram/Threads 或寄信至 `kadowsella@gmail.com`")
-    
     render_section("合作招募中心", show_recruit)
 
-st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
-elif mode == "✍️ 學習測驗":
-    all_words = []
-    for cat in data:
-        for group in cat['root_groups']:
-            for v in group['vocabulary']:
-                all_words.append({**v, "root_meaning": group['meaning']})
-
-    if not all_words:
-        st.warning("資料庫暫無內容。")
-    else:
-        if 'q' not in st.session_state:
-            st.session_state.q = random.choice(all_words)
-            st.session_state.show = False
-        
-        q = st.session_state.q
-        st.subheader(f"挑戰單字：:blue[{q['word']}]")
-        st.caption(f"提示：詞根含義為 「{q['root_meaning']}」")
-        
-        ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"])
-        if st.button("查看答案"): st.session_state.show = True
-        
-        if st.session_state.show:
-            st.success(f"答案：{q['definition'] if ans_type == '中文含義' else q['breakdown']}")
-            if st.button("下一題"):
-                st.session_state.q = random.choice(all_words)
-                st.session_state.show = False
-                st.rerun()
-
-elif mode == "🤝 合作招募":
-    render_section("合作招募中心", lambda: st.info("我們需要 1. SQLite 小幫手 2. 整理資料的小幫手 3. 社群文案小幫手 （高中生！學習歷程！特殊選材！）聯繫方式：私訊 Instagram/Threads 或寄信至 kadowsella@gmail.com"))
-
-st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
+# 版本號放在最後面，確保它不在任何 if 區塊內
+st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)m;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
