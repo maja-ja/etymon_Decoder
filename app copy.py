@@ -1,124 +1,226 @@
 import streamlit as st
 import json
-import random
 import os
+from datetime import datetime
 import re
+import random
+import requests
+import base64
 
-# --- 基礎設定 ---
+# --- 基礎設定與版本 ---
+VERSION = "v1.4.1 (GitHub API Sync)"
 DB_FILE = 'etymon_database.json'
+CONTRIB_FILE = 'contributors.json'
+WISH_FILE = 'wish_list.txt'
+PENDING_FILE = 'pending_data.json'
 
-# --- 1. 密碼檢查功能 ---
-# --- 2. 數據處理與解析引擎 ---
-def load_data():
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return []
+# --- GitHub API 數據同步函式 ---
+def save_to_github(new_data, filename, is_json=True):
+    """
+    將資料安全同步回 GitHub 倉庫。
+    secrets 中需設定：GITHUB_TOKEN, GITHUB_REPO (格式: 帳號/專案名)
+    """
+    try:
+        token = st.secrets["GITHUB_TOKEN"]
+        repo = st.secrets["GITHUB_REPO"]
+        url = f"https://api.github.com/repos/{repo}/contents/{filename}"
+        headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
 
-def save_data(new_data):
-    with open(DB_FILE, 'w', encoding='utf-8') as f:
-        json.dump(new_data, f, indent=4, ensure_ascii=False)
+        # 1. 抓取舊檔案 SHA
+        r = requests.get(url, headers=headers)
+        sha = r.json().get("sha") if r.status_code == 200 else None
+        
+        # 2. 合併資料邏輯
+        if is_json:
+            current_content = []
+            if r.status_code == 200:
+                content_decoded = base64.b64decode(r.json()["content"]).decode("utf-8")
+                try:
+                    current_content = json.loads(content_decoded)
+                except:
+                    current_content = []
+            current_content.extend(new_data)
+            final_string = json.dumps(current_content, indent=4, ensure_ascii=False)
+        else:
+            # 純文字檔案 (許願池)
+            current_string = ""
+            if r.status_code == 200:
+                current_string = base64.b64decode(r.json()["content"]).decode("utf-8")
+            final_string = current_string + new_data
 
+        # 3. 推送回去
+        payload = {
+            "message": f"🤖 自動更新: {filename} via App",
+            "content": base64.b64encode(final_string.encode("utf-8")).decode("utf-8"),
+            "sha": sha
+        }
+        res = requests.put(url, json=payload, headers=headers)
+        return res.status_code in [200, 201]
+    except Exception as e:
+        st.error(f"GitHub 同步出錯：{e}")
+        return False
+
+# --- 數據讀取函式 ---
+def load_json(file_path, default_val):
+    # 本地端讀取（用於顯示搜尋結果）
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            try: return json.load(f)
+            except: return default_val
+    return default_val
+
+# --- 數據解析引擎 ---
 def parse_text_to_json(raw_text):
-    """解析人類格式為 JSON"""
     new_data = []
-    categories = re.split(r'「(.+?)」類', raw_text)
+    cleaned = raw_text.replace('（', '(').replace('）', ')').replace('－', '-').replace('「', '"').replace('」', '"')
+    categories = re.split(r'["\'](.+?)["\']類', cleaned)
     for i in range(1, len(categories), 2):
-        cat_name = categories[i]
+        cat_name = categories[i].strip()
         cat_body = categories[i+1]
         cat_obj = {"category": cat_name, "root_groups": []}
         root_blocks = re.split(r'\n(?=-)', cat_body)
         for block in root_blocks:
-            root_info = re.search(r'-([\w/ \-]+)-\s*[\(（](.+?)[\)）]', block)
+            root_info = re.search(r'-([\w/ \-]+)-\s*\((.+?)\)', block)
             if root_info:
                 group = {
                     "roots": [r.strip() for r in root_info.group(1).split('/')],
                     "meaning": root_info.group(2).strip(),
                     "vocabulary": []
                 }
-                words = re.findall(r'(\w+)\s*[\(（](.+?)\s*=\s*(.+?)[\)）]', block)
-                for w_name, w_logic, w_trans in words:
-                    group["vocabulary"].append({"word": w_name.strip(), "breakdown": w_logic.strip(), "definition": w_trans.strip()})
+                word_matches = re.findall(r'(\w+)\s*\((.+?)\)', block)
+                for w_name, w_logic in word_matches:
+                    logic_part, def_part = w_logic.split('=', 1) if "=" in w_logic else (w_logic, "待審核")
+                    group["vocabulary"].append({
+                        "word": w_name.strip(),
+                        "breakdown": logic_part.strip(),
+                        "definition": def_part.strip()
+                    })
                 if group["vocabulary"]:
                     cat_obj["root_groups"].append(group)
-        new_data.append(cat_obj)
+        if cat_obj["root_groups"]:
+            new_data.append(cat_obj)
     return new_data
 
-data = load_data()
+# 預載數據
+data = load_json(DB_FILE, [])
 
-# --- 3. 側邊欄：大類選單與詞根導覽 ---
-st.sidebar.title("🚀 詞根宇宙導航")
+# --- 模組化區塊 ---
+def render_section(title, content_func):
+    with st.container():
+        st.markdown(f"### {title}")
+        content_func()
+        st.divider()
+
+# --- 頁面配置 ---
+st.set_page_config(page_title="詞根宇宙：解碼導航", layout="wide")
+
+# --- 側邊欄 ---
+st.sidebar.title("🚀 詞根宇宙")
+st.sidebar.caption(f"當前版本：{VERSION}")
+mode = st.sidebar.radio("導航選單", ["🔍 導覽解碼", "✍️ 學習測驗", "⚙️ 數據管理", "🏆 榮譽榜", "🤝 合作招募"])
+
+# 側邊欄：許願池 (同步至 GitHub)
 st.sidebar.markdown("---")
+st.sidebar.subheader("🎯 零散單字許願")
+wish_word = st.sidebar.text_input("想要新增的單字", placeholder="例如: Metaphor")
+is_wish_anon = st.sidebar.checkbox("匿名許願")
+if st.sidebar.button("提交願望"):
+    if wish_word:
+        user = "Anonymous" if is_wish_anon else "User"
+        wish_entry = f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] {user}: {wish_word}\n"
+        if save_to_github(wish_entry, WISH_FILE, is_json=False):
+            st.sidebar.success("願望已永久同步至 GitHub！")
+        else:
+            st.sidebar.error("同步失敗，請檢查 Token 設定。")
 
-if not data:
-    st.sidebar.warning("請先去數據工廠新增內容")
-    mode = st.sidebar.radio("模式：", ["⚙️ 數據工廠"])
-else:
-    mode = st.sidebar.radio("切換模式：", ["🔍 導覽解碼", "✍️ 學習測驗", "⚙️ 數據工廠"])
-    
-    st.sidebar.markdown("---")
-    all_categories = [item['category'] for item in data]
-    selected_cat = st.sidebar.selectbox("選擇大類領域", all_categories)
-    
-    # 獲取當前大類的數據
-    current_cat = next(item for item in data if item['category'] == selected_cat)
-    st.sidebar.subheader(f"📍 {selected_cat} 包含：")
-    for group in current_cat['root_groups']:
-        st.sidebar.write(f"- {' / '.join(group['roots'])} ({group['meaning']})")
-
-# --- 4. 模式執行邏輯 ---
+# --- 主介面邏輯 ---
 
 if mode == "🔍 導覽解碼":
-    st.title(f"🧩 {selected_cat} 解碼地圖")
-    
-    # 單字搜尋
-    search_query = st.text_input("🔍 搜尋單字或詞根...", placeholder="輸入 dict, fac, predict...")
-    
-    if search_query:
-        query = search_query.lower()
-        for cat in data:
-            for group in cat['root_groups']:
-                match_words = [v for v in group['vocabulary'] if query in v['word'].lower()]
-                if any(query in r.lower() for r in group['roots']) or match_words:
-                    st.write(f"### 詞根: `{' / '.join(group['roots'])}` ({group['meaning']})")
-                    for v in group['vocabulary']:
-                        st.write(f"**{v['word']}** | `{v['breakdown']}` | {v['definition']}")
-                    st.divider()
-    else:
-        # 顯示該大類下的所有內容 (導覽模式)
-        for group in current_cat['root_groups']:
-            with st.expander(f"📦 詞根族：{' / '.join(group['roots'])} ({group['meaning']})", expanded=True):
-                cols = st.columns(2)
-                for idx, v in enumerate(group['vocabulary']):
-                    with cols[idx % 2]:
-                        st.markdown(f"**{v['word']}**")
-                        st.caption(f"拆解：{v['breakdown']}  \n含義：{v['definition']}")
+    def show_search():
+        query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...")
+        if query:
+            q = query.lower().strip()
+            found = False
+            for cat in data:
+                for group in cat['root_groups']:
+                    root_match = any(q in r.lower() for r in group['roots'])
+                    matched_v = [v for v in group['vocabulary'] if q in v['word'].lower()]
+                    if root_match or matched_v:
+                        found = True
+                        st.markdown(f"#### 🧬 {cat['category']} | `{' / '.join(group['roots'])}` ({group['meaning']})")
+                        for v in group['vocabulary']:
+                            is_target = q in v['word'].lower()
+                            with st.expander(f"{'⭐ ' if is_target else ''}{v['word']}", expanded=is_target):
+                                st.write(f"**拆解：** `{v['breakdown']}`")
+                                st.write(f"**含義：** {v['definition']}")
+            if not found: st.warning("未找到相關結果")
+    render_section("導覽解碼系統", show_search)
+
+elif mode == "⚙️ 數據管理":
+    def show_factory():
+        st.info("📦 此處提交的正式數據將直接更新 GitHub 上的 `pending_data.json`。")
+        with st.expander("📌 查看標準輸入格式提示", expanded=False):
+            st.code("「類別」類\n-字根-(解釋)\n單詞((根)(義)+(根)(義)=含義)", language="text")
+
+        raw_input = st.text_area("數據貼上區", height=300)
+        c_name = st.text_input("貢獻者名稱")
+        c_deed = st.text_input("本次事蹟")
+        is_c_anon = st.checkbox("匿名貢獻")
+
+        if st.button("🚀 提交至 GitHub 隔離區"):
+            if raw_input:
+                parsed = parse_text_to_json(raw_input)
+                if parsed:
+                    # 1. 同步數據至 GitHub
+                    if save_to_github(parsed, PENDING_FILE, is_json=True):
+                        # 2. 同步貢獻者名單至 GitHub
+                        contrib_entry = [{
+                            "name": "Anonymous" if is_c_anon else (c_name if c_name else "Anonymous"),
+                            "deed": c_deed,
+                            "date": datetime.now().strftime('%Y-%m-%d')
+                        }]
+                        save_to_github(contrib_entry, CONTRIB_FILE, is_json=True)
+                        
+                        st.success("✅ 數據已成功寫回 GitHub 檔案！")
+                        st.balloons()
+                    else:
+                        st.error("❌ GitHub 寫入失敗，請確認 Secrets。")
+                else:
+                    st.error("❌ 解析失敗，請檢查格式。")
+    render_section("數據工廠與隔離區", show_factory)
 
 elif mode == "✍️ 學習測驗":
-    st.title("✍️ 詞根解碼測驗")
-    st.info("模式已就緒，請開始挑戰。")
     all_words = []
     for cat in data:
         for group in cat['root_groups']:
             for v in group['vocabulary']:
-                all_words.append({**v, "root_meaning": group['meaning']}) #
+                all_words.append({**v, "root_meaning": group['meaning']})
 
-    if 'q' not in st.session_state:
-        st.session_state.q = random.choice(all_words)
-        st.session_state.show = False
-    q = st.session_state.q
-    st.subheader(f"單字：:blue[{q['word']}]")
-    
-    ans_type = st.radio("你想猜什麼？", ["中文含義", "拆解邏輯"])
-    user_ans = st.text_input("輸入答案：")
-    
-    if st.button("查看答案"):
-        st.session_state.show = True
-    
-    if st.session_state.show:
-        truth = q['definition'] if ans_type == "中文含義" else q['breakdown']
-        st.info(f"正確答案：{truth}")
-        if st.button("下一題"):
+    if not all_words:
+        st.warning("資料庫暫無內容。")
+    else:
+        if 'q' not in st.session_state:
             st.session_state.q = random.choice(all_words)
             st.session_state.show = False
-            st.rerun()
+        
+        q = st.session_state.q
+        st.subheader(f"挑戰單字：:blue[{q['word']}]")
+        st.caption(f"提示：詞根含義為 「{q['root_meaning']}」")
+        
+        ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"])
+        if st.button("查看答案"): st.session_state.show = True
+        
+        if st.session_state.show:
+            st.success(f"答案：{q['definition'] if ans_type == '中文含義' else q['breakdown']}")
+            if st.button("下一題"):
+                st.session_state.q = random.choice(all_words)
+                st.session_state.show = False
+                st.rerun()
+
+elif mode == "🏆 榮譽榜":
+    render_section("協作者榮譽榜", lambda: st.table(load_json(CONTRIB_FILE, [])))
+
+elif mode == "🤝 合作招募":
+    render_section("合作招募中心", lambda: st.info("聯繫方式：私訊 Instagram/Threads 或寄信至 kadowsella@gmail.com"))
+
+st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
