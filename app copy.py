@@ -218,6 +218,6 @@ elif mode == "✍️ 學習測驗":
                 st.rerun()
 
 elif mode == "🤝 合作招募":
-    render_section("合作招募中心", lambda: st.info("聯繫方式：私訊 Instagram/Threads 或寄信至 kadowsella@gmail.com"))
+    render_section("合作招募中心", lambda: st.info("我們需要 1. SQLite 工程師 2. 整理資料的小幫手3.幫我看看整個安不安全的人 （薪資暫無因爲開發者高二而已）聯繫方式：私訊 Instagram/Threads 或寄信至 kadowsella@gmail.com"))
 
 st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
