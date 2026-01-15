@@ -132,11 +132,10 @@ if st.sidebar.button("提交願望"):
             st.sidebar.success("願望已永久同步至 GitHub！")
         else:
             st.sidebar.error("同步失敗，請檢查 Token 設定。")
-
 # --- 主介面邏輯 ---
 if mode == "🔍 導覽解碼":
     def show_search():
-        query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...")
+        query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...", key="main_search_input")
         if query:
             q = query.lower().strip()
             found = False
@@ -152,47 +151,7 @@ if mode == "🔍 導覽解碼":
                             with st.expander(f"{'⭐ ' if is_target else ''}{v['word']}", expanded=is_target):
                                 st.write(f"**拆解：** `{v['breakdown']}`")
                                 st.write(f"**含義：** {v['definition']}")
-            if not found: st.warning("還沒做出來抱歉><")
-    render_section("導覽解碼系統", show_search)
-
-elif mode == "⚙️ 數據管理":
-    def show_factory():
-        st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
-        
-        # --- 格式範本展示區 ---
-        with st.expander("📌 查看標準輸入格式範本", expanded=True):
-            example_format = """「（名稱1）」類
--字根a-（解釋1/解釋2)
-單詞1（（詞素1）（解釋）+（詞素2）（解釋）=總義）
-
-「（名稱2）」類
--字根b-（解釋1/解釋2)
-單詞2（（詞素1）（解釋）+（詞素2）（解釋）=總義）"""
-            st.code(example_format, language="text")
-            st.caption("⚠️ 系統會自動將全形括號轉換，請安心輸入。")
-
-        # --- 數據輸入區 ---
-        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
- # --- 主介面邏輯 ---
-if mode == "🔍 導覽解碼":
-    def show_search():
-        query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...")
-        if query:
-            q = query.lower().strip()
-            found = False
-            for cat in data:
-                for group in cat['root_groups']:
-                    root_match = any(q in r.lower() for r in group['roots'])
-                    matched_v = [v for v in group['vocabulary'] if q in v['word'].lower()]
-                    if root_match or matched_v:
-                        found = True
-                        st.markdown(f"#### 🧬 {cat['category']} | `{' / '.join(group['roots'])}` ({group['meaning']})")
-                        for v in group['vocabulary']:
-                            is_target = q in v['word'].lower()
-                            with st.expander(f"{'⭐ ' if is_target else ''}{v['word']}", expanded=is_target):
-                                st.write(f"**拆解：** `{v['breakdown']}`")
-                                st.write(f"**含義：** {v['definition']}")
-            if not found: st.warning("還沒做出來抱歉><")
+            if not found: st.warning("目前資料庫中尚無此內容，我們會儘快新增！")
     render_section("導覽解碼系統", show_search)
 
 elif mode == "⚙️ 數據管理":
@@ -210,15 +169,16 @@ elif mode == "⚙️ 數據管理":
             st.code(example_format, language="text")
             st.caption("⚠️ 系統會自動將全形括號轉換，請安心輸入。")
 
-        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...")
+        # 使用唯一的 key 防止 DuplicateElementId
+        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...", key="factory_data_area")
         
         col1, col2 = st.columns(2)
         with col1:
-            c_name = st.text_input("貢獻者暱稱", placeholder="用於內部記錄")
+            c_name = st.text_input("貢獻者暱稱", placeholder="用於內部記錄", key="factory_user_name")
         with col2:
-            is_anon = st.checkbox("我希望匿名貢獻")
+            is_anon = st.checkbox("我希望匿名貢獻", key="factory_anon_check")
 
-        if st.button("🚀 提交至 GitHub 隔離區"):
+        if st.button("🚀 提交至 GitHub 隔離區", key="factory_submit_btn"):
             if not raw_input.strip():
                 st.warning("請輸入內容後再提交。")
             else:
@@ -236,7 +196,8 @@ elif mode == "⚙️ 數據管理":
                     else:
                         st.error("❌ GitHub 同步失敗，請檢查 Secrets 設定。")
                 else:
-                    st.error("❌ 解析失敗！請檢查格式。")
+                    st.error("❌ 解析失敗！請檢查類別標籤「」或字根標記 - - 是否正確。")
+                    
     render_section("數據工廠：詞根解碼投稿", show_factory)
 
 elif mode == "✍️ 學習測驗":
@@ -247,7 +208,7 @@ elif mode == "✍️ 學習測驗":
                 all_words.append({**v, "root_meaning": group['meaning']})
 
     if not all_words:
-        st.warning("資料庫暫無內容。")
+        st.warning("資料庫暫無內容，請先至數據管理提交數據。")
     else:
         if 'q' not in st.session_state:
             st.session_state.q = random.choice(all_words)
@@ -257,15 +218,15 @@ elif mode == "✍️ 學習測驗":
         st.subheader(f"挑戰單字：:blue[{q['word']}]")
         st.caption(f"提示：詞根含義為 「{q['root_meaning']}」")
         
-        user_ans = st.text_input("在此寫下你的答案（自由輸入）：")
+        user_ans = st.text_input("在此寫下你的答案（自由輸入練習）：", key="quiz_answer_input")
         
-        ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"])
-        if st.button("查看正確答案"): 
+        ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"], key="quiz_type_radio")
+        if st.button("查看正確答案", key="quiz_show_btn"): 
             st.session_state.show = True
         
         if st.session_state.show:
             st.success(f"參考答案：{q['definition'] if ans_type == '中文含義' else q['breakdown']}")
-            if st.button("下一題"):
+            if st.button("下一題", key="quiz_next_btn"):
                 st.session_state.q = random.choice(all_words)
                 st.session_state.show = False
                 st.rerun()
@@ -274,14 +235,14 @@ elif mode == "🤝 合作招募":
     def show_recruit():
         st.info("我們正在尋找以下夥伴：")
         st.markdown("""
-        1. **📊 SQLite 小幫手**
-        2. **🧹 數據整理員**
-        3. **✍️ 社群文案策劃**
+        1. **📊 SQLite 小幫手**：協助數據庫架構優化。
+        2. **🧹 數據整理員**：校對詞根含義。
+        3. **✍️ 社群文案策劃**：推廣詞根宇宙。
         
         **(適合特殊選材、學習歷程需求！)**
         """)
         st.write("📩 聯繫方式：私訊 Instagram/Threads 或寄信至 `kadowsella@gmail.com`")
     render_section("合作招募中心", show_recruit)
 
-# 版本號放在最後面，確保它不在任何 if 區塊內
+# 版本號顯示
 st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
