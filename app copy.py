@@ -8,7 +8,7 @@ import requests
 import base64
 
 # --- 基礎設定與版本 ---
-VERSION = "v1.4.1 (GitHub API Sync)"
+VERSION = "pre1.0"
 DB_FILE = 'etymon_database.json'
 CONTRIB_FILE = 'contributors.json'
 WISH_FILE = 'wish_list.txt'
