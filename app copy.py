@@ -116,14 +116,3 @@ elif mode == "✍️ 學習測驗":
     st.title("✍️ 詞根解碼測驗")
     # ... (隨機題目邏輯，從 current_cat 或全資料庫抓取) ...
     st.info("模式已就緒，請開始挑戰。")
-
-elif mode == "⚙️ 數據工廠":
-    st.title("⚙️ 自動化數據導航建立")
-    raw_text = st.text_area("請直接貼上 AI 格式文字：", height=300, 
-                            placeholder="「動作與修飾」類\n-fac- (做/製作)：\nFactory (Fac 做 + tory 場所 = 工廠)")
-    if st.button("🚀 點擊打包並儲存"):
-        if raw_text:
-            parsed = parse_text_to_json(raw_text)
-            save_data(parsed)
-            st.success("數據已成功結構化並建立導覽！")
-            st.rerun()
