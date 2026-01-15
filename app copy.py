@@ -158,7 +158,7 @@ if mode == "🔍 導覽解碼":
 
 elif mode == "⚙️ 數據管理":
     def show_factory():
-        st.info("📦 此處提交的正式數據將直接更新 GitHub 上。")
+        st.info("📦 此處提交的數據將直接更新在GitHub，然後作者會在小改版上傳。")
         with st.expander("📌 查看標準輸入格式提示", expanded=False):
             st.code("「類別」類\n-字根-(解釋)\n單詞((根)(義)+(根)(義)=含義)", language="text")
 
