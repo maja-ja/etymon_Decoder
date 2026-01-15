@@ -153,7 +153,7 @@ if mode == "🔍 導覽解碼":
                             with st.expander(f"{'⭐ ' if is_target else ''}{v['word']}", expanded=is_target):
                                 st.write(f"**拆解：** `{v['breakdown']}`")
                                 st.write(f"**含義：** {v['definition']}")
-            if not found: st.warning("未找到相關結果")
+            if not found: st.warning("還沒做出來抱歉><")
     render_section("導覽解碼系統", show_search)
 
 elif mode == "⚙️ 數據管理":
