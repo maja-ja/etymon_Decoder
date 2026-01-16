@@ -1,1 +1,91 @@
-[]
+[
+    {
+        "category": "形狀、位置與測量",
+        "root_groups": [
+            {
+                "roots": [
+                    "metr-",
+                    "-meter"
+                ],
+                "meaning": "測量",
+                "vocabulary": [
+                    {
+                        "word": "Symmetry",
+                        "breakdown": "Sym 共同 + metry 測量",
+                        "definition": "對稱"
+                    },
+                    {
+                        "word": "Perimeter",
+                        "breakdown": "Peri 周圍 + meter 測量",
+                        "definition": "周長"
+                    },
+                    {
+                        "word": "Diameter",
+                        "breakdown": "Dia 穿過 + meter 測量",
+                        "definition": "直徑"
+                    },
+                    {
+                        "word": "Pentagon",
+                        "breakdown": "Penta 五 + gon 角",
+                        "definition": "五邊形"
+                    },
+                    {
+                        "word": "Diagonal",
+                        "breakdown": "Dia 穿過 + gon 角",
+                        "definition": "對角線"
+                    },
+                    {
+                        "word": "Equation",
+                        "breakdown": "Equ 相等 + ation 名詞尾",
+                        "definition": "等式/方程式"
+                    },
+                    {
+                        "word": "Equivalent",
+                        "breakdown": "Equi 相等 + valent 價值",
+                        "definition": "等值的"
+                    },
+                    {
+                        "word": "Equilateral",
+                        "breakdown": "Equi 相等 + lateral 邊",
+                        "definition": "等邊的"
+                    },
+                    {
+                        "word": "Fraction",
+                        "breakdown": "Fract 碎片段",
+                        "definition": "分數"
+                    },
+                    {
+                        "word": "Fragment",
+                        "breakdown": "Frag 碎塊",
+                        "definition": "碎片"
+                    },
+                    {
+                        "word": "Abnormal",
+                        "breakdown": "ab[偏離] + norm[標準] + al[形容詞]",
+                        "definition": "異常的"
+                    },
+                    {
+                        "word": "absent",
+                        "breakdown": "(ab",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "abroad",
+                        "breakdown": "(ab",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "above",
+                        "breakdown": "(a/ab",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "about",
+                        "breakdown": "(a/ab",
+                        "definition": "待審核"
+                    }
+                ]
+            }
+        ]
+    }
+]
