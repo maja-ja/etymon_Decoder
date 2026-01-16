@@ -134,7 +134,40 @@ if st.sidebar.button("提交願望"):
 # --- 主介面邏輯 ---
 if mode == "🔍 導覽解碼":
     def show_search():
-        query = st.text_input("🔍 搜尋...", placeholder="dict, cap, factor...", key="main_search_input")
+        # --- 隨機預覽邏輯 ---
+        if 'preview_words' not in st.session_state:
+            all_v = []
+            for cat in data:
+                for group in cat['root_groups']:
+                    for v in group['vocabulary']:
+                        all_v.append({**v, "cat": cat['category'], "roots": group['roots'], "meaning": group['meaning']})
+            # 隨機挑選 3 個
+            st.session_state.preview_words = random.sample(all_v, min(len(all_v), 3)) if all_v else []
+
+        # 顯示隨機預覽卡片
+        if st.session_state.preview_words:
+            cols = st.columns(3)
+            for i, word_info in enumerate(st.session_state.preview_words):
+                with cols[i]:
+                    st.markdown(
+                        f"""
+                        <div style="border:1px solid #e6e9ef; border-radius:10px; padding:15px; background-color:#f8f9fa; height:150px">
+                            <h5 style="margin:0; color:#007bff;">{word_info['word']}</h5>
+                            <p style="font-size:0.8em; color:gray; margin:5px 0;">{word_info['cat']} | {'/'.join(word_info['roots'])}</p>
+                            <p style="font-size:0.9em; margin:0;">{word_info['definition'][:20]}...</p>
+                        </div>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+            
+            if st.button("🔄 換一批試試", key="refresh_preview"):
+                del st.session_state.preview_words
+                st.rerun()
+        
+        st.divider()
+
+        # --- 原有的搜尋邏輯 ---
+        query = st.text_input("🔍 搜尋...", placeholder="輸入字根或單字，例如: dict, cap, factor...", key="main_search_input")
         if query:
             q = query.lower().strip()
             found = False
@@ -151,8 +184,8 @@ if mode == "🔍 導覽解碼":
                                 st.write(f"**拆解：** `{v['breakdown']}`")
                                 st.write(f"**含義：** {v['definition']}")
             if not found: st.warning("目前資料庫中尚無此內容，我們會儘快新增！")
+            
     render_section("導覽解碼系統", show_search)
-
 elif mode == "⚙️ 數據管理":
     def show_factory():
         st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
