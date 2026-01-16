@@ -123,10 +123,9 @@ mode = st.sidebar.radio("導航選單", ["🔍 導覽解碼", "✍️ 學習測�
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎯 零散單字許願")
 wish_word = st.sidebar.text_input("想要新增的單字", placeholder="例如: Metaphor")
-is_wish_anon = st.sidebar.checkbox("匿名許願")
 if st.sidebar.button("提交願望"):
     if wish_word:
-        user = "Anonymous" if is_wish_anon else "User"
+        user = "Anonymous"
         wish_entry = f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] {user}: {wish_word}\n"
         if save_to_github(wish_entry, WISH_FILE, is_json=False):
             st.sidebar.success("願望已永久同步至 GitHub！")
