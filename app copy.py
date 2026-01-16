@@ -158,19 +158,28 @@ elif mode == "⚙️ 數據管理":
     def show_factory():
         st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
         
-        with st.expander("📌 格式範本（建議直接貼上AI然後跟他要字根跟五個單字）", expanded=True):
-            example_format = """「（名稱1）」類
--字根a-（解釋1/解釋2)
-單詞1（（詞素1）（解釋）+（詞素2）（解釋）=總義）
+        # 1. 格式範本與提示詞區域
+        with st.expander("💡 快速上手：如何使用 AI 協助貢獻？", expanded=True):
+            st.markdown("##### 第一步：複製下方提示詞")
+            # 這裡定義推薦的提示詞
+            prompt_text = """請幫我列出 5 個符合台灣「學測 5、6 級分」程度的英文單字，並嚴格按照以下格式輸出：
 
-「（名稱2）」類
--字根b-（解釋1/解釋2)
-單詞2（（詞素1）（解釋）+（詞素2）（解釋）=總義）"""
-            st.code(example_format, language="text")
+「（分類名稱）」類
+-字根-（字根含義)
+單字（（詞素1）（含義）+（詞素2）（含義）=總義）
+
+範例：
+「心靈感知」類
+-path-（感覺/感情)
+sympathy（（sym）（共同）+（pathy）（感情）=同情心）"""
+            
+            st.code(prompt_text, language="text")
+            
+            st.markdown("##### 第二步：將 AI 生成的結果（範例）貼入下方區域")
             st.caption("⚠️ 系統會自動將全形括號轉換，請安心輸入。")
 
-        # 使用唯一的 key 防止 DuplicateElementId
-        raw_input = st.text_area("🚀 數據貼上區", height=400, placeholder="在此貼上符合格式的資料...", key="factory_data_area")
+        # 2. 數據輸入區
+        raw_input = st.text_area("🚀 數據貼上區", height=300, placeholder="在此貼上 AI 生成的內容...", key="factory_data_area")
         
         col1, col2 = st.columns(2)
         with col1:
@@ -199,7 +208,6 @@ elif mode == "⚙️ 數據管理":
                     st.error("❌ 解析失敗！請檢查類別標籤「」或字根標記 - - 是否正確。")
                     
     render_section("數據工廠：詞根解碼投稿", show_factory)
-
 elif mode == "✍️ 學習測驗":
     all_words = []
     for cat in data:
