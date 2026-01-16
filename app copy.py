@@ -153,8 +153,8 @@ if mode == "🔍 導覽解碼":
                         f"""
                         <div style="border:1px solid #e6e9ef; border-radius:10px; padding:15px; background-color:#f8f9fa; height:150px">
                             <h5 style="margin:0; color:#007bff;">{word_info['word']}</h5>
-                            <p style="font-size:0.8em; color:gray; margin:5px 0;">{word_info['cat']} | {'/'.join(word_info['roots'])}</p>
-                            <p style="font-size:0.9em; margin:0;">{word_info['definition'][:20]}...</p>
+                            <p style="font-size:0.6em; color:gray; margin:5px 0;">{word_info['cat']} | {'/'.join(word_info['roots'])}</p>
+                            <p style="font-size:0.7em; margin:0;">{word_info['definition'][:20]}...</p>
                         </div>
                         """, 
                         unsafe_allow_html=True
