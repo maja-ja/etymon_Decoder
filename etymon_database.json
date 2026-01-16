@@ -116,27 +116,71 @@
     "category": "移動與空間",
     "root_groups": [
       {
-        "roots": ["port", "tract", "cess", "cede", "ceed"],
-        "meaning": "拿、運、拉、走",
+        "roots": ["port"],
+        "meaning": "拿、運、港口",
         "vocabulary": [
           {"word": "Import", "breakdown": "Im 往內 + port 運", "definition": "進口"},
           {"word": "Export", "breakdown": "Ex 往外 + port 運", "definition": "出口"},
           {"word": "Portable", "breakdown": "Port 拿 + able 可...的", "definition": "手提式的/輕便的"},
           {"word": "Transport", "breakdown": "Trans 跨越 + port 運", "definition": "運輸/運送"},
-          {"word": "Portfolio", "breakdown": "Port 拿 + folio 紙張", "definition": "作品集/投資組合"},
-          {"word": "Support", "breakdown": "Sup 在下面 + port 撐", "definition": "支持/支撐"},
+          {"word": "Portfolio", "breakdown": "Port 拿 + folio 紙張", "definition": "檔案夾/作品集/投資組合"},
+          {"word": "Support", "breakdown": "Sup 在下面 + port 撐", "definition": "支持/支撐"}
+        ]
+      },
+      {
+        "roots": ["tract"],
+        "meaning": "拉、抽",
+        "vocabulary": [
           {"word": "Attract", "breakdown": "At 靠近 + tract 拉", "definition": "吸引"},
-          {"word": "Extract", "breakdown": "Ex 往外 + tract 拉", "definition": "抽出/提煉"},
+          {"word": "Extract", "breakdown": "Ex 往外 + tract 拉", "definition": "抽出/提煉/萃取"},
           {"word": "Distract", "breakdown": "Dis 分散 + tract 拉", "definition": "使分心"},
-          {"word": "Contract", "breakdown": "Con 共同 + tract 拉", "definition": "契約/收縮"},
-          {"word": "Abstract", "breakdown": "Ab 離開 + tract 拉", "definition": "抽象的/摘要"},
-          {"word": "Retract", "breakdown": "Re 往回 + tract 拉", "definition": "縮回/撤回言論"},
+          {"word": "Contract", "breakdown": "Con 共同 + tract 拉", "definition": "契約/收縮 (雙方拉到一起簽約)"},
+          {"word": "Abstract", "breakdown": "Ab 離開 + tract 拉", "definition": "抽象的/摘要 (從具體中拉出重點)"},
+          {"word": "Retract", "breakdown": "Re 往回 + tract 拉", "definition": "縮回/撤回言論"}
+        ]
+      },
+      {
+        "roots": ["ced", "ceed", "cess"],
+        "meaning": "走、前進",
+        "vocabulary": [
           {"word": "Excess", "breakdown": "Ex 超出 + cess 走", "definition": "過度/過剩"},
           {"word": "Precede", "breakdown": "Pre 預先 + cede 走", "definition": "在...之前發生"},
           {"word": "Proceed", "breakdown": "Pro 向前 + ceed 走", "definition": "繼續進行"},
           {"word": "Recession", "breakdown": "Re 往回 + cess 走", "definition": "經濟衰退/後退"},
-          {"word": "Concede", "breakdown": "Con 全部 + cede 走", "definition": "讓步/承認"},
+          {"word": "Concede", "breakdown": "Con 全部 + cede 走", "definition": "讓步/承認輸了 (全退一步)"},
           {"word": "Access", "breakdown": "Ac 往 + cess 走", "definition": "管道/進入的權利"}
+        ]
+      }
+    ]
+  },
+  {
+    "category": "方向、屬性與狀態",
+    "root_groups": [
+      {
+        "roots": ["ad", "af", "ag", "at"],
+        "meaning": "朝向、增加、附加",
+        "vocabulary": [
+          {"word": "Add", "breakdown": "Ad 增加", "definition": "增加"},
+          {"word": "Address", "breakdown": "Ad 朝向 + dress 直/導向", "definition": "引導某人前往的地點/地址"},
+          {"word": "Admire", "breakdown": "Ad 朝向 + mire 驚奇/觀看", "definition": "欽佩/仰慕"},
+          {"word": "Advertisement", "breakdown": "Ad 朝向 + vert 轉動 + ment 名詞字尾", "definition": "將目光轉向某物/廣告"},
+          {"word": "Advice", "breakdown": "Ad 朝向 + vice/vid 名詞看", "definition": "給予觀點/勸告"},
+          {"word": "Advise", "breakdown": "Ad 朝向 + vise/vid 動詞看", "definition": "勸告/建議"},
+          {"word": "Affect", "breakdown": "Af/ad 朝向 + fect 做", "definition": "對...產生作用/影響"},
+          {"word": "Agree", "breakdown": "Ag/ad 朝向 + gr 喜悅", "definition": "產生好感/同意"},
+          {"word": "Adult", "breakdown": "Ad 朝向 + ult 終極的", "definition": "成人"}
+        ]
+      },
+      {
+        "roots": ["a-"],
+        "meaning": "處於...狀態、在...之中",
+        "vocabulary": [
+          {"word": "Afraid", "breakdown": "A 處於 + fraid/frith 恐懼", "definition": "害怕的"},
+          {"word": "Alike", "breakdown": "A 狀態 + like 相似", "definition": "相同地"},
+          {"word": "Again", "breakdown": "A 在 + gain/gegen 對面/反對", "definition": "反覆/再度"},
+          {"word": "Against", "breakdown": "A 在 + gainst 對面", "definition": "靠著/反對"},
+          {"word": "Ahead", "breakdown": "A 在 + head 頭", "definition": "在前方/向前"},
+          {"word": "Ago", "breakdown": "A 在 + go 走過", "definition": "很久以前"}
         ]
       }
     ]
