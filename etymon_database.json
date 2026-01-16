@@ -145,105 +145,21 @@
     "category": "心理與生命",
     "root_groups": [
       {
-        "roots": ["viv", "vit", "bio", "path"],
-        "meaning": "活、生命、感受",
+        "roots": ["viv", "vit"],
+        "meaning": "活、生命",
         "vocabulary": [
           {"word": "Vivid", "breakdown": "Viv 活 + id 形容詞尾", "definition": "活生生的/鮮艷的"},
           {"word": "Survive", "breakdown": "Sur 超過 + vive 活", "definition": "倖存/活下來"},
-          {"word": "Vitality", "breakdown": "Vit 生命 + ality 名詞尾", "definition": "活力/生命力"},
-          {"word": "Biology", "breakdown": "Bio 生命 + logy 學問", "definition": "生物學"},
-          {"word": "Antibiotic", "breakdown": "Anti 反 + bio 生命", "definition": "抗生素"},
+          {"word": "Vitality", "breakdown": "Vit 生命 + ality 名詞尾", "definition": "活力/生命力"}
+        ]
+      },
+      {
+        "roots": ["path"],
+        "meaning": "感受、病理",
+        "vocabulary": [
           {"word": "Antipathy", "breakdown": "Anti 反 + pathy 感受", "definition": "反感"},
           {"word": "Empathy", "breakdown": "Em 進入 + pathy 感受", "definition": "同理心"},
           {"word": "Sympathy", "breakdown": "Sym 共同 + pathy 感受", "definition": "同情心"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "動作、修飾與拿取",
-    "root_groups": [
-      {
-        "roots": ["fac", "fec", "fic", "cap", "cept", "ceive", "pel", "puls"],
-        "meaning": "做、製作、拿、推",
-        "vocabulary": [
-          {"word": "Factory", "breakdown": "Fac 做 + tory 場所", "definition": "工廠"},
-          {"word": "Efficient", "breakdown": "Ex 出來 + fic 做", "definition": "效率高的"},
-          {"word": "Deficit", "breakdown": "De 不足 + fic 做", "definition": "赤字/不足額"},
-          {"word": "Magnificent", "breakdown": "Magni 大 + fic 做", "definition": "宏偉的/極好的"},
-          {"word": "Capture", "breakdown": "Capt 拿 + ure 名詞尾", "definition": "捕獲/捕捉"},
-          {"word": "Accept", "breakdown": "Ac 朝向 + cept 拿", "definition": "接受"},
-          {"word": "Conceive", "breakdown": "Con 完全 + ceive 拿", "definition": "構思/懷孕"},
-          {"word": "Deceptive", "breakdown": "De 錯誤 + cept 拿", "definition": "欺騙性的"},
-          {"word": "Expel", "breakdown": "Ex 往外 + pel 推", "definition": "開除/驅逐"},
-          {"word": "Propel", "breakdown": "Pro 向前 + pel 推", "definition": "推進/驅動"},
-          {"word": "Compel", "breakdown": "Con 加強 + pel 推", "definition": "強迫"},
-          {"word": "Impulse", "breakdown": "Im 往內 + pulse 推", "definition": "衝動/脈衝"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "時間、順序與人民",
-    "root_groups": [
-      {
-        "roots": ["chron", "temp", "popul", "dem"],
-        "meaning": "時間、人民",
-        "vocabulary": [
-          {"word": "Chronic", "breakdown": "Chron 時間 + ic 形容詞尾", "definition": "慢性的/長期的"},
-          {"word": "Synchronize", "breakdown": "Syn 同時 + chron 時間 + ize 動詞尾", "definition": "同步"},
-          {"word": "Chronology", "breakdown": "Chron 時間 + ology 學問", "definition": "年代學"},
-          {"word": "Temporary", "breakdown": "Temp 時間 + orary 形容詞尾", "definition": "暫時的"},
-          {"word": "Contemporary", "breakdown": "Con 共同 + temp 時間", "definition": "當代的"},
-          {"word": "Preview", "breakdown": "Pre 前 + view 看", "definition": "預覽"},
-          {"word": "Population", "breakdown": "Popul 人民 + ation 名詞尾", "definition": "人口"},
-          {"word": "Democracy", "breakdown": "Demo 人民 + cracy 統治", "definition": "民主"},
-          {"word": "Epidemic", "breakdown": "Epi 在...之間 + dem 人民", "definition": "流行病"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "數量、邏輯與測量",
-    "root_groups": [
-      {
-        "roots": ["uni", "mono", "bi", "du", "tri", "quadr", "poly", "metr"],
-        "meaning": "數字、測量、比例",
-        "vocabulary": [
-          {"word": "Uniform", "breakdown": "Uni 一 + form 形狀", "definition": "統一的/制服"},
-          {"word": "Monomial", "breakdown": "Mono 單一 + mial 項", "definition": "單項式"},
-          {"word": "Binary", "breakdown": "Bin 二 + ary 形容詞尾", "definition": "二進制的"},
-          {"word": "Duplicate", "breakdown": "Du 二 + plic 摺疊", "definition": "複製/兩份"},
-          {"word": "Dilemma", "breakdown": "Di 二 + lemma 題目", "definition": "進退兩難"},
-          {"word": "Triangle", "breakdown": "Tri 三 + angle 角", "definition": "三角形"},
-          {"word": "Quadrilateral", "breakdown": "Quadr 四 + lateral 邊", "definition": "四邊形"},
-          {"word": "Polygon", "breakdown": "Poly 多 + gon 角", "definition": "多邊形"},
-          {"word": "Symmetry", "breakdown": "Sym 共同 + metry 測量", "definition": "對稱"},
-          {"word": "Perimeter", "breakdown": "Peri 周圍 + meter 測量", "definition": "周長"},
-          {"word": "Logarithm", "breakdown": "Log 比例 + arithm 數字", "definition": "對數"},
-          {"word": "Analogy", "breakdown": "Ana 根據 + log 比例", "definition": "類比/類推"},
-          {"word": "Variance", "breakdown": "Vari 改變 + ance 名詞尾", "definition": "變異數"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "控制、持有與頂端",
-    "root_groups": [
-      {
-        "roots": ["reg", "rect", "capit", "tain", "tin", "ten"],
-        "meaning": "管轄、頭、握住、伸展",
-        "vocabulary": [
-          {"word": "Regulate", "breakdown": "Reg 管轄 + ulate 動詞尾", "definition": "管理/規範"},
-          {"word": "Rectangle", "breakdown": "Rect 正/直 + angle 角", "definition": "長方形"},
-          {"word": "Capital", "breakdown": "Capit 頭 + al", "definition": "首都/資本"},
-          {"word": "Captain", "breakdown": "Capit 頭 + ain", "definition": "隊長/領袖"},
-          {"word": "Decapitate", "breakdown": "De 除去 + capit 頭", "definition": "斬首"},
-          {"word": "Maintain", "breakdown": "Main 手 + tain 握", "definition": "維持"},
-          {"word": "Contain", "breakdown": "Con 全部 + tain 握", "definition": "包含"},
-          {"word": "Continue", "breakdown": "Con 全部 + tin 握", "definition": "繼續"},
-          {"word": "Extend", "breakdown": "Ex 出去 + tend 伸", "definition": "延伸/擴展"},
-          {"word": "Tension", "breakdown": "Tens 拉緊 + ion 名詞尾", "definition": "緊張/張力"}
         ]
       }
     ]
