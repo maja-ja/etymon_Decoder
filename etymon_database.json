@@ -207,5 +207,62 @@
         ]
       }
     ]
+  },
+  {
+    "category": "動作與修飾",
+    "root_groups": [
+      {
+        "roots": ["fac", "fec", "fic"],
+        "meaning": "做、製作",
+        "vocabulary": [
+          {"word": "Factory", "breakdown": "Fac 做 + tory 場所", "definition": "工廠"},
+          {"word": "Efficient", "breakdown": "Ex 出來 + fic 做", "definition": "效率高的 (能做出成果的)"},
+          {"word": "Deficit", "breakdown": "De 不足 + fic 做", "definition": "赤字/不足額"},
+          {"word": "Magnificent", "breakdown": "Magni 大 + fic 做", "definition": "宏偉的/極好的"}
+        ]
+      },
+      {
+        "roots": ["cap", "capt", "cept", "ceive"],
+        "meaning": "拿、取、收",
+        "vocabulary": [
+          {"word": "Capture", "breakdown": "Capt 拿 + ure 名詞尾", "definition": "捕獲/捕捉"},
+          {"word": "Accept", "breakdown": "Ac 朝向 + cept 拿", "definition": "接受"},
+          {"word": "Conceive", "breakdown": "Con 共同/完全 + ceive 拿", "definition": "構思/懷孕"},
+          {"word": "Deceptive", "breakdown": "De 錯誤 + cept 拿", "definition": "欺騙性的 (誤導你的認知)"},
+          {"word": "Accident", "breakdown": "Ac 朝向 + cid 掉落 + ent 名詞尾", "definition": "意外/突然發生的事"}
+        ]
+      },
+      {
+        "roots": ["pel", "puls"],
+        "meaning": "推、驅使",
+        "vocabulary": [
+          {"word": "Expel", "breakdown": "Ex 往外 + pel 推", "definition": "開除/驅逐"},
+          {"word": "Propel", "breakdown": "Pro 向前 + pel 推", "definition": "推進/驅動"},
+          {"word": "Compel", "breakdown": "Con 加強 + pel 推", "definition": "強迫"},
+          {"word": "Impulse", "breakdown": "Im 往內 + pulse 推", "definition": "衝動/脈衝"}
+        ]
+      },
+      {
+        "roots": ["act"],
+        "meaning": "做、行動、驅動",
+        "vocabulary": [
+          {"word": "Action", "breakdown": "Act 行動 + ion 名詞尾", "definition": "活動/行為"},
+          {"word": "Active", "breakdown": "Act 行動 + ive 形容詞尾", "definition": "積極的/活躍的"},
+          {"word": "Actually", "breakdown": "Act 做/事實 + ual 形容詞尾 + ly 副詞尾", "definition": "實際上/確實"},
+          {"word": "Actor", "breakdown": "Act 演戲/行動 + or 人", "definition": "男演員"},
+          {"word": "Actress", "breakdown": "Act 演戲/行動 + ress 女性字尾", "definition": "女演員"}
+        ]
+      },
+      {
+        "roots": ["able", "cross", "al", "alb"],
+        "meaning": "能力、橫跨、屬性狀態",
+        "vocabulary": [
+          {"word": "Able", "breakdown": "Able 能力", "definition": "有能力的"},
+          {"word": "Across", "breakdown": "A 在... + cross 十字/橫越", "definition": "在…對面/橫過"},
+          {"word": "Alarm", "breakdown": "Al 朝向 + arm 武器", "definition": "拿起武器/警報"},
+          {"word": "Album", "breakdown": "Alb 白色", "definition": "用來留白的收集冊/相簿"}
+        ]
+      }
+    ]
   }
 ]
