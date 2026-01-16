@@ -8,7 +8,7 @@ import requests
 import base64
 
 # --- 基礎設定與版本 ---
-VERSION = "V1.0"
+VERSION = "V1.1"
 DB_FILE = 'etymon_database.json'
 CONTRIB_FILE = 'contributors.json'
 WISH_FILE = 'wish_list.txt'
