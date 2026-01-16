@@ -87,5 +87,93 @@
                 ]
             }
         ]
+    },
+    {
+        "category": "邏輯與運算",
+        "root_groups": [
+            {
+                "roots": [
+                    "log"
+                ],
+                "meaning": "比例/推理",
+                "vocabulary": [
+                    {
+                        "word": "Logarithm",
+                        "breakdown": "Log 比例 + arithm 數字",
+                        "definition": "對數"
+                    },
+                    {
+                        "word": "Analogy",
+                        "breakdown": "Ana 根據 + log 比例",
+                        "definition": "類比/類推"
+                    },
+                    {
+                        "word": "Addition",
+                        "breakdown": "Add 加",
+                        "definition": "加法"
+                    },
+                    {
+                        "word": "Summation",
+                        "breakdown": "Sum 總和 + ation",
+                        "definition": "加總/求和"
+                    },
+                    {
+                        "word": "Multiply",
+                        "breakdown": "Multi 多 + ply 摺疊",
+                        "definition": "乘法/增加 —— 原意是摺疊多次"
+                    },
+                    {
+                        "word": "Variable",
+                        "breakdown": "Vari 改變 + able",
+                        "definition": "變數"
+                    },
+                    {
+                        "word": "Variance",
+                        "breakdown": "Vari 改變 + ance",
+                        "definition": "方差/變異數"
+                    },
+                    {
+                        "word": "Accountant",
+                        "breakdown": "Account + ant 人",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "會計師",
+                        "breakdown": "處理帳務的人",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "Accountability",
+                        "breakdown": "Account + ability 能力",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "責任",
+                        "breakdown": "需要\"交代清楚\"的能力",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "Discount",
+                        "breakdown": "Dis 除去 + count 計算",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "折扣",
+                        "breakdown": "把一部分的計算結果扣掉",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "Recount",
+                        "breakdown": "Re 再次 + count 計算",
+                        "definition": "待審核"
+                    },
+                    {
+                        "word": "轉述",
+                        "breakdown": "再次講述一遍故事",
+                        "definition": "待審核"
+                    }
+                ]
+            }
+        ]
     }
 ]
