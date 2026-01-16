@@ -216,7 +216,7 @@ elif mode == "✍️ 學習測驗":
         
         q = st.session_state.q
         st.subheader(f"挑戰單字：:blue[{q['word']}]")
-        st.caption(f"提示：詞根含義為 「{q['root_meaning']}」")
+        st.caption()
         
         user_ans = st.text_input("在此寫下你的答案（自由輸入練習）：", key="quiz_answer_input")
         
