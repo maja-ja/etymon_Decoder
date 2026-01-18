@@ -16,5 +16,23 @@
                 ]
             }
         ]
+    },
+    {
+        "category": "心靈感知",
+        "root_groups": [
+            {
+                "roots": [
+                    "path"
+                ],
+                "meaning": "感覺/感情",
+                "vocabulary": [
+                    {
+                        "word": "sympathy",
+                        "breakdown": "(sym",
+                        "definition": "待審核"
+                    }
+                ]
+            }
+        ]
     }
 ]
