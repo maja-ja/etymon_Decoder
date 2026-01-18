@@ -1,1 +1,20 @@
-[]
+[
+    {
+        "category": "宏觀視野",
+        "root_groups": [
+            {
+                "roots": [
+                    "spec"
+                ],
+                "meaning": "看",
+                "vocabulary": [
+                    {
+                        "word": "prospect",
+                        "breakdown": "(pro",
+                        "definition": "待審核"
+                    }
+                ]
+            }
+        ]
+    }
+]
