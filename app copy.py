@@ -6,7 +6,7 @@ import re
 import random
 import requests
 import base64
-import plotly
+
 
 # --- 基礎設定與版本 ---
 VERSION = "V1.1"
