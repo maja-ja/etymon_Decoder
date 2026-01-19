@@ -33,3 +33,7 @@
 
 ---
 © 2026 Kadowsella. 開發日誌持續更新中。
+<img width="1920" height="1080" alt="截圖 2026-01-18 下午4 52 25" src="https://github.com/user-attachments/assets/f764a185-fc1f-4db5-8c15-1d41d2f7bec2" />
+<img width="1920" height="1080" alt="截圖 2026-01-18 下午4 52 32" src="https://github.com/user-attachments/assets/9f70195c-06c1-44f8-8eaf-632d26cac29e" />
+<img width="1920" height="1080" alt="截圖 2026-01-18 下午4 52 36" src="https://github.com/user-attachments/assets/4c02cce8-2ff1-4def-9bb8-f3537b9e8a9d" />
+
