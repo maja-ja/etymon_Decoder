@@ -1,286 +1,224 @@
 import streamlit as st
 import json
 import os
-from datetime import datetime
-import re
 import random
-import requests
-import base64
 
-
-# --- 基礎設定與版本 ---
-VERSION = "V1.1"
+# ==========================================
+# 1. 核心配置
+# ==========================================
 DB_FILE = 'etymon_database.json'
-CONTRIB_FILE = 'contributors.json'
-WISH_FILE = 'wish_list.txt'
-PENDING_FILE = 'pending_data.json'
 
-# --- GitHub API 數據同步函式 ---
-def save_to_github(new_data, filename, is_json=True):
-    """
-    將資料安全同步回 GitHub 倉庫。
-    secrets 中需設定：GITHUB_TOKEN, GITHUB_REPO (格式: 帳號/專案名)
-    """
-    try:
-        token = st.secrets["GITHUB_TOKEN"]
-        repo = st.secrets["GITHUB_REPO"]
-        url = f"https://api.github.com/repos/{repo}/contents/{filename}"
-        headers = {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
-
-        # 1. 抓取舊檔案 SHA
-        r = requests.get(url, headers=headers)
-        sha = r.json().get("sha") if r.status_code == 200 else None
-        
-        # 2. 合併資料邏輯
-        if is_json:
-            current_content = []
-            if r.status_code == 200:
-                content_decoded = base64.b64decode(r.json()["content"]).decode("utf-8")
-                try:
-                    current_content = json.loads(content_decoded)
-                except:
-                    current_content = []
-            current_content.extend(new_data)
-            final_string = json.dumps(current_content, indent=4, ensure_ascii=False)
-        else:
-            # 純文字檔案 (許願池)
-            current_string = ""
-            if r.status_code == 200:
-                current_string = base64.b64decode(r.json()["content"]).decode("utf-8")
-            final_string = current_string + new_data
-
-        # 3. 推送回去
-        payload = {
-            "message": f"🤖 自動更新: {filename} via App",
-            "content": base64.b64encode(final_string.encode("utf-8")).decode("utf-8"),
-            "sha": sha
-        }
-        res = requests.put(url, json=payload, headers=headers)
-        return res.status_code in [200, 201]
-    except Exception as e:
-        st.error(f"GitHub 同步出錯：{e}")
-        return False
-
-# --- 數據讀取函式 ---
-def load_json(file_path, default_val):
-    # 本地端讀取（用於顯示搜尋結果）
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as f:
+def load_db():
+    if os.path.exists(DB_FILE):
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
             try: return json.load(f)
-            except: return default_val
-    return default_val
+            except: return []
+    return []
 
-# --- 數據解析引擎 ---
-def parse_text_to_json(raw_text):
-    new_data = []
-    cleaned = raw_text.replace('（', '(').replace('）', ')').replace('－', '-').replace('「', '"').replace('」', '"')
-    categories = re.split(r'["\'](.+?)["\']類', cleaned)
-    for i in range(1, len(categories), 2):
-        cat_name = categories[i].strip()
-        cat_body = categories[i+1]
-        cat_obj = {"category": cat_name, "root_groups": []}
-        root_blocks = re.split(r'\n(?=-)', cat_body)
-        for block in root_blocks:
-            root_info = re.search(r'-([\w/ \-]+)-\s*\((.+?)\)', block)
-            if root_info:
-                group = {
-                    "roots": [r.strip() for r in root_info.group(1).split('/')],
-                    "meaning": root_info.group(2).strip(),
-                    "vocabulary": []
-                }
-                word_matches = re.findall(r'(\w+)\s*\((.+?)\)', block)
-                for w_name, w_logic in word_matches:
-                    logic_part, def_part = w_logic.split('=', 1) if "=" in w_logic else (w_logic, "待審核")
-                    group["vocabulary"].append({
-                        "word": w_name.strip(),
-                        "breakdown": logic_part.strip(),
-                        "definition": def_part.strip()
-                    })
-                if group["vocabulary"]:
-                    cat_obj["root_groups"].append(group)
-        if cat_obj["root_groups"]:
-            new_data.append(cat_obj)
-    return new_data
+def get_stats(data):
+    total_cats = len(data)
+    total_words = sum(len(g.get('vocabulary', [])) for cat in data for g in cat.get('root_groups', []))
+    return total_cats, total_words
 
-# 預載數據
-data = load_json(DB_FILE, [])
+# ==========================================
+# 2. UI 組件
+# ==========================================
+def ui_search_page(data, selected_cat):
+    st.title("字根導覽")
+    
+    # 1. 根據大類過濾
+    relevant_cats = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
+    
+    root_options = []
+    root_to_group = {}
+    for cat in relevant_cats:
+        for group in cat.get('root_groups', []):
+            label = f"{' / '.join(group['roots'])} ({group['meaning']})"
+            root_options.append(label)
+            root_to_group[label] = (cat['category'], group)
+    
+    # 2. 字根快選
+    selected_root_label = st.selectbox(f"字根選單 ({selected_cat})", ["顯示全部"] + root_options)
+    
+    st.divider()
 
-# --- 模組化區塊 ---
-def render_section(title, content_func):
-    with st.container():
-        st.markdown(f"### {title}")
-        content_func()
-        st.divider()
-
-# --- 頁面配置 ---
-st.set_page_config(page_title="詞根宇宙：解碼導航", layout="wide")
-
-# --- 側邊欄 ---
-st.sidebar.title("🚀 詞根宇宙")
-st.sidebar.caption(f"當前版本：{VERSION}")
-mode = st.sidebar.radio("導航選單", ["🔍 導覽解碼", "✍️ 學習測驗", "⚙️ 數據管理", "🤝 合作招募"])
-
-# 側邊欄：許願池 (同步至 GitHub)
-st.sidebar.markdown("---")
-st.sidebar.subheader("🎯 零散單字許願")
-wish_word = st.sidebar.text_input("想要新增的單字", placeholder="例如: Metaphor")
-if st.sidebar.button("提交願望"):
-    if wish_word:
-        user = "Anonymous"
-        wish_entry = f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] {user}: {wish_word}\n"
-        if save_to_github(wish_entry, WISH_FILE, is_json=False):
-            st.sidebar.success("願望已永久同步至 GitHub！")
-        else:
-            st.sidebar.error("同步失敗，請檢查 Token 設定。")
-# --- 主介面邏輯 ---
-if mode == "🔍 導覽解碼":
-    def show_search():
-        # --- 隨機預覽邏輯 ---
-        if 'preview_words' not in st.session_state:
-            all_v = []
-            for cat in data:
-                for group in cat['root_groups']:
-                    for v in group['vocabulary']:
-                        all_v.append({**v, "cat": cat['category'], "roots": group['roots'], "meaning": group['meaning']})
-            # 隨機挑選 3 個
-            st.session_state.preview_words = random.sample(all_v, min(len(all_v), 3)) if all_v else []
-
-        # 顯示隨機預覽卡片
-        if st.session_state.preview_words:
-            cols = st.columns(3)
-            for i, word_info in enumerate(st.session_state.preview_words):
-                with cols[i]:
-                    st.markdown(
-                        f"""
-                        <div style="border:1px solid #e6e9ef; border-radius:10px; padding:15px; background-color:#f8f9fa; height:150px">
-                            <h5 style="margin:0; color:#007bff;">{word_info['word']}</h5>
-                            <p style="font-size:0.7em; color:gray; margin:5px 0;">{word_info['cat']} | {'/'.join(word_info['roots'])}</p>
-                            <p style="font-size:0.8em; margin:0;">{word_info['definition'][:20]}...</p>
-                        </div>
-                        """, 
-                        unsafe_allow_html=True
-                    )
+    # 3. 顯示邏輯 (移除所有 random.choice 相關代碼)
+    if selected_root_label == "顯示全部":
+        query = st.text_input("檢索單字", placeholder="在目前範圍內搜尋...").lower().strip()
+        for label in root_options:
+            cat_name, group = root_to_group[label]
+            matched_v = [v for v in group['vocabulary'] if query in v['word'].lower()] if query else group['vocabulary']
             
-            if st.button("🔄 換一批試試", key="refresh_preview"):
-                del st.session_state.preview_words
-                st.rerun()
+            if matched_v:
+                st.markdown(f"### {label}")
+                for v in matched_v:
+                    # 確保 is_expanded 是布林值
+                    with st.expander(f"{v['word']}", expanded=bool(query)):
+                        st.write(f"結構: `{v['breakdown']}`")
+                        st.write(f"釋義: {v['definition']}")
+    else:
+        # 顯示單一字根組
+        cat_name, group = root_to_group[selected_root_label]
+        st.subheader(f"分類：{cat_name}")
+        for v in group['vocabulary']:
+            with st.expander(f"{v['word']}", expanded=False):
+                st.write(f"結構: `{v['breakdown']}`")
+                st.write(f"釋義: {v['definition']}")
+def ui_quiz_page(data):
+    # 0. 基礎狀態初始化
+    if 'failed_words' not in st.session_state:
+        st.session_state.failed_words = set()
+    if 'quiz_active' not in st.session_state:
+        st.session_state.quiz_active = False
+
+    # 1. 初始設定畫面
+    if not st.session_state.quiz_active:
+        st.title("記憶卡片")
+        categories = ["全部隨機"] + sorted([c['category'] for c in data])
+        selected_quiz_cat = st.selectbox("選擇練習範圍", categories)
         
         st.divider()
+        if st.button("開始練習", use_container_width=True):
+            st.session_state.selected_quiz_cat = selected_quiz_cat
+            st.session_state.quiz_active = True
+            if 'flash_q' in st.session_state: del st.session_state.flash_q
+            st.rerun()
+        return
 
-        # --- 原有的搜尋邏輯 ---
-        query = st.text_input("🔍 搜尋...", placeholder="輸入字根或單字，例如: dict, cap, factor...", key="main_search_input")
-        if query:
-            q = query.lower().strip()
-            found = False
-            for cat in data:
-                for group in cat['root_groups']:
-                    root_match = any(q in r.lower() for r in group['roots'])
-                    matched_v = [v for v in group['vocabulary'] if q in v['word'].lower()]
-                    if root_match or matched_v:
-                        found = True
-                        st.markdown(f"#### 🧬 {cat['category']} | `{' / '.join(group['roots'])}` ({group['meaning']})")
-                        for v in group['vocabulary']:
-                            is_target = q in v['word'].lower()
-                            with st.expander(f"{'⭐ ' if is_target else ''}{v['word']}", expanded=is_target):
-                                st.write(f"**拆解：** `{v['breakdown']}`")
-                                st.write(f"**含義：** {v['definition']}")
-            if not found: st.warning("目前資料庫中尚無此內容，我們會儘快新增！")
-            
-    render_section("導覽解碼系統", show_search)
-elif mode == "⚙️ 數據管理":
-    def show_factory():
-        st.info("📦 此處提交的數據將直接更新在 GitHub 隔離區，由作者審核後於小改版正式發布。")
-        
-        # 1. 格式範本與提示詞區域
-        with st.expander("💡 快速上手：如何使用 AI 協助貢獻？", expanded=True):
-            st.markdown("##### 第一步：複製下方提示詞")
-            # 這裡定義推薦的提示詞
-            prompt_text = """例：請幫我列出 5 個符合台灣「學測 5、6 級」程度的英文單字，並嚴格按照以下格式輸出：
+    # 2. 練習模式：頂部工具欄
+    st.title("記憶卡片")
+    col_t1, col_t2 = st.columns([4, 1])
+    col_t1.caption(f"目前範圍: {st.session_state.selected_quiz_cat}")
+    if col_t2.button("結束", use_container_width=True):
+        st.session_state.quiz_active = False
+        if 'flash_q' in st.session_state: del st.session_state.flash_q
+        st.rerun()
 
-「（分類名稱）」類
--字根-（字根含義)
-單字（（字根1）（含義）+（字根2）（含義）=總義）
+    # 3. 準備題目池
+    if st.session_state.selected_quiz_cat == "全部隨機":
+        relevant_data = data
+    else:
+        relevant_data = [c for c in data if c['category'] == st.session_state.selected_quiz_cat]
 
-範例：
-「心靈感知」類
--path-（感覺/感情)
-sympathy（（sym）（共同）+（pathy）（感情）=同情心）"""
-            
-            st.code(prompt_text, language="text")
-            
-            st.markdown("##### 第二步：將 AI 生成的結果（範例）貼入下方區域")
-            st.caption("⚠️ 系統會自動將全形括號轉換，請安心輸入。")
-
-        # 2. 數據輸入區
-        raw_input = st.text_area("🚀 數據貼上區", height=300, placeholder="在此貼上 AI 生成的內容...", key="factory_data_area")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            c_name = st.text_input("貢獻者暱稱", placeholder="用於內部記錄", key="factory_user_name")
-        with col2:
-            is_anon = st.checkbox("我希望匿名貢獻", key="factory_anon_check")
-
-        if st.button("🚀 提交至 GitHub 隔離區", key="factory_submit_btn"):
-            if not raw_input.strip():
-                st.warning("請輸入內容後再提交。")
-            else:
-                parsed = parse_text_to_json(raw_input)
-                if parsed:
-                    if save_to_github(parsed, PENDING_FILE, is_json=True):
-                        contrib_entry = [{
-                            "name": "Anonymous" if is_anon else (c_name if c_name else "Anonymous"),
-                            "date": datetime.now().strftime('%Y-%m-%d'),
-                            "type": "Data Contribution"
-                        }]
-                        save_to_github(contrib_entry, CONTRIB_FILE, is_json=True)
-                        st.success("✅ 數據已成功送達 GitHub！")
-                        st.balloons()
-                    else:
-                        st.error("❌ GitHub 同步失敗，請檢查 Secrets 設定。")
-                else:
-                    st.error("❌ 解析失敗！請檢查類別標籤「」或字根標記 - - 是否正確。")
-                    
-    render_section("數據工廠：詞根解碼投稿", show_factory)
-elif mode == "✍️ 學習測驗":
-    all_words = []
-    for cat in data:
-        for group in cat['root_groups']:
-            for v in group['vocabulary']:
-                all_words.append({**v, "root_meaning": group['meaning']})
+    all_words = [{**v, "cat": cat['category']} for cat in relevant_data 
+                 for group in cat.get('root_groups', []) 
+                 for v in group.get('vocabulary', [])]
 
     if not all_words:
-        st.warning("資料庫暫無內容，請先至數據管理提交數據。")
+        st.warning("查無單字。")
+        if st.button("返回"):
+            st.session_state.quiz_active = False
+            st.rerun()
+        return
+
+    # 4. 智慧抽題邏輯
+    if 'flash_q' not in st.session_state:
+        st.session_state.is_review = False
+        if st.session_state.failed_words and random.random() > 0.5:
+            failed_pool = [w for w in all_words if w['word'] in st.session_state.failed_words]
+            if failed_pool:
+                st.session_state.flash_q = random.choice(failed_pool)
+                st.session_state.is_review = True
+            else:
+                st.session_state.flash_q = random.choice(all_words)
+        else:
+            st.session_state.flash_q = random.choice(all_words)
+        st.session_state.is_flipped = False
+
+    q = st.session_state.flash_q
+    is_review = st.session_state.get('is_review', False)
+    is_flipped_class = "flipped" if st.session_state.is_flipped else ""
+
+    # 建立複習標籤
+    review_tag = '<span style="background-color:#ffeef0;color:#d73a49;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:bold;margin-left:10px;border:1px solid #f9c2c7;">複習</span>' if is_review else ""
+
+    # 5. 卡片渲染
+    card_html = f"""
+    <style>
+    .flip-card {{ background-color: transparent; width: 100%; height: 350px; perspective: 1000px; }}
+    .flip-card-inner {{ position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }}
+    .flipped {{ transform: rotateY(180deg); }}
+    .flip-card-front, .flip-card-back {{ 
+        position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
+        border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        background: white; border: 1px solid #e1e4e8; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }}
+    .flip-card-back {{ transform: rotateY(180deg); padding: 40px; }}
+    </style>
+    <div class="flip-card">
+        <div class="flip-card-inner {is_flipped_class}">
+            <div class="flip-card-front">
+                <div style="display:flex; align-items:center; justify-content:center;">
+                    <small style="color:#888;">{q['cat'].upper()}</small>{review_tag}
+                </div>
+                <h1 style="font-size:3.2rem; font-weight:700; margin:15px 0; color:#1a1a1a;">{q['word']}</h1>
+                <div style="font-size:0.7rem; color:#ccc;">等待翻轉...</div>
+            </div>
+            <div class="flip-card-back">
+                <div style="text-align:left; width:100%;">
+                    <div style="font-size:0.8rem; color:#888;">STRUCTURE</div>
+                    <div style="font-family:monospace; font-size:1.1rem; color:#0366d6; margin-bottom:20px;">{q['breakdown']}</div>
+                    <div style="font-size:0.8rem; color:#888;">MEANING</div>
+                    <div style="font-size:1.4rem; font-weight:700; color:#24292e;">{q['definition']}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+
+    # 6. 控制按鈕 (整合翻回功能)
+    st.write("")
+    if not st.session_state.is_flipped:
+        if st.button("查看答案", use_container_width=True):
+            st.session_state.is_flipped = True
+            st.rerun()
     else:
-        if 'q' not in st.session_state:
-            st.session_state.q = random.choice(all_words)
-            st.session_state.show = False
+        # 當卡片翻開時，顯示三個功能按鈕
+        c1, c2, c3 = st.columns([1, 1, 1])
         
-        q = st.session_state.q
-        st.subheader(f"挑戰單字：:blue[{q['word']}]")
-        
-        user_ans = st.text_input("在此寫下你的答案（自由輸入練習）：", key="quiz_answer_input")
-        
-        ans_type = st.radio("測驗類型", ["中文含義", "拆解邏輯"], key="quiz_type_radio")
-        if st.button("查看正確答案", key="quiz_show_btn"): 
-            st.session_state.show = True
-        
-        if st.session_state.show:
-            st.success(f"參考答案：{q['definition'] if ans_type == '中文含義' else q['breakdown']}")
-            if st.button("下一題", key="quiz_next_btn"):
-                st.session_state.q = random.choice(all_words)
-                st.session_state.show = False
-                st.rerun()
+        if c1.button("標記陌生", use_container_width=True):
+            st.session_state.failed_words.add(q['word'])
+            if 'flash_q' in st.session_state: del st.session_state.flash_q
+            st.rerun()
+            
+        if c2.button("翻回正面", use_container_width=True):
+            st.session_state.is_flipped = False
+            st.rerun()
+            
+        if c3.button("標記熟練", use_container_width=True):
+            st.session_state.failed_words.discard(q['word'])
+            if 'flash_q' in st.session_state: del st.session_state.flash_q
+            st.rerun()
+# ==========================================
+# 3. 主程序
+# ==========================================
 
-elif mode == "🤝 合作招募":
-    def show_recruit():
-        st.info("我們正在尋找以下夥伴：")
-        st.markdown("""
-        1. **📊 SQLite 小幫手**：協助數據庫架構優化。
-        2. **🧹 數據整理員**：校對詞根含義。
-        3. **✍️ 社群文案策劃**：推廣詞根宇宙。
-        """)
-        st.write("📩 聯繫方式：私訊 Instagram/Threads 或寄信至 `kadowsella@gmail.com`")
-    render_section("合作招募中心", show_recruit)
-
-# 版本號顯示
-st.markdown(f"<center style='color:gray; font-size:0.8em;'>詞根宇宙 {VERSION}</center>", unsafe_allow_html=True)
+def main():
+    st.set_page_config(page_title="Etymon", layout="wide")
+    data = load_db()
+    
+    st.sidebar.title("Etymon")
+    
+    # 導航功能
+    menu_options = ["字根導覽", "記憶卡片"]
+    choice = st.sidebar.radio("功能選單", menu_options)
+    
+    # 分類選單 (僅在導覽頁顯示，或作為全域過濾)
+    st.sidebar.divider()
+    categories = ["全部顯示"] + sorted([c['category'] for c in data])
+    selected_cat = st.sidebar.selectbox("選擇分類", categories)
+    
+    # 數據統計
+    c_count, w_count = get_stats(data)
+    st.sidebar.divider()
+    st.sidebar.write("**統計**")
+    st.sidebar.text(f"分類總數: {c_count}")
+    st.sidebar.text(f"單字總量: {w_count}")
+    
+    if choice == "字根導覽":
+        ui_search_page(data, selected_cat)
+    else:
+        ui_quiz_page(data)
+if __name__ == "__main__":
+    main()
