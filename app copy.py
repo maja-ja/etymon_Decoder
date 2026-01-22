@@ -153,15 +153,27 @@ def ui_quiz_page(data):
             st.rerun()
 
     if st.session_state.get('flipped'):
-        # 翻開答案時自動朗讀一次（只朗讀一次避免重複）
+        # 翻開答案時自動朗讀
         if not st.session_state.get('voiced'):
             speak(q['word'])
             st.session_state.voiced = True
             
+        # 根據是否為法律區，動態調整顏色
+        is_legal = "法律" in q['cat']
+        bg_color = "#1A1A1A" if is_legal else "#E3F2FD"  # 法律用深黑，其他用淺藍
+        label_color = "#FFD700" if is_legal else "#1E88E5" # 法律用金色，其他用藍色
+        text_color = "#FFFFFF" if is_legal else "#000000"  # 法律用白色文字，其他用黑色
+        breakdown_color = "#FFD700" if is_legal else "#D32F2F" # 法律拆解用金色，其他用紅色
+
         st.markdown(f"""
-            <div style="background-color: #000; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid #1E88E5;">
-                <p style="font-size: 2em; margin-bottom: 10px; color: #000"><b>拆解：</b> <span style="color: #D32F2F;">{q['breakdown']}</span></p>
-                <p style="font-size: 1.5em; color: #000"><b>釋義：</b> {q['definition']}</p>
+            <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
+                <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+                    <b style="color: {label_color};">拆解：</b> 
+                    <span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
+                </p>
+                <p style="font-size: 1.5em; color: {text_color};">
+                    <b style="color: {label_color};">釋義：</b> {q['definition']}
+                </p>
             </div>
         """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
