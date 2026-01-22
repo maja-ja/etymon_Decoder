@@ -133,7 +133,7 @@ def ui_quiz_page(data):
     # 6. 按鈕控制
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("查看答案", use_container_width=True, type="primary"): 
+        if st.button("查看答案", use_container_width=True): 
             st.session_state.flipped = True
     with col2:
         if st.button("下一題", use_container_width=True): 
@@ -195,7 +195,7 @@ def main():
     _, total_words = get_stats(data)
     st.sidebar.markdown(f"""
         <div style="text-align: center; padding: 10px; background-color: #f0f2f6; border-radius: 10px; margin-top: 10px;">
-            <p style="margin: 0; font-size: 0.9em; color: #666;">資料庫總計</p>
+            <p style="margin: 0; font-size: 0.9em; color: #000;">資料庫總計</p>
             <p style="margin: 0; font-size: 1.8em; font-weight: bold; color: #1E88E5;">{total_words} <span style="font-size: 0.5em;">Words</span></p>
         </div>
     """, unsafe_allow_html=True)
