@@ -223,7 +223,7 @@ def ui_quiz_page(data):
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("查看答案", use_container_width=True, type="primary"):
+        if st.button("查看答案", use_container_width=True):
             st.session_state.flipped = True
     with col2:
         if st.button("下一題", use_container_width=True):
