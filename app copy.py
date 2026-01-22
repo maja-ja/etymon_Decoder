@@ -250,20 +250,24 @@ def ui_quiz_page(data):
     """, unsafe_allow_html=True)
 
     st.write("")
+    
+    # --- 按鈕邏輯修改區 ---
     if not st.session_state.is_flipped:
-        if st.button("翻轉卡片", use_container_width=True, type="primary"):
+        if st.button("查看答案", use_container_width=True, type="primary"):
             st.session_state.is_flipped = True
             st.rerun()
     else:
         c1, c2 = st.columns(2)
-        if c1.button("下一題", use_container_width=True):
-            if 'flash_q' in st.session_state: del st.session_state.flash_q
+        # 左邊按鈕：改為翻回正面
+        if c1.button("⬅️ 翻回正面", use_container_width=True):
+            st.session_state.is_flipped = False
             st.rerun()
-        if c2.button("標記陌生", use_container_width=True):
-            st.session_state.failed_words.add(q['word'])
+        
+        # 右邊按鈕：下一題
+        if c2.button("下一題 ➡️", use_container_width=True, type="primary"):
             if 'flash_q' in st.session_state: del st.session_state.flash_q
+            st.session_state.is_flipped = False # 確保下一題從正面開始
             st.rerun()
-
 # ==========================================
 # 3. 主程序入口
 # ==========================================
