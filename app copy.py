@@ -1,57 +1,51 @@
 import streamlit as st
 import json
 import os
+import random
 import pandas as pd
 
-# --- 1. 所有的常數定義必須放在最前面 ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, 'etymon_database.json')
-
-# 你的 Google 試算表 ID
+# ==========================================
+# 1. 核心配置與雲端同步 (放在最前面)
+# ==========================================
+# 這是你的 Google 試算表 ID
 SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
-# CSV 下載連結（讓 load_db 永遠優先讀取雲端，就不會變回 60 個單字）
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
+DB_FILE = 'etymon_database.json'
+PENDING_FILE = 'pending_data.json'
 
-# --- 2. 數據讀取函數 ---
 def load_db():
-    # 策略：優先讀取 Google Sheets 上的備份，失敗才讀本地 JSON
+    """優先讀取 Google 試算表 A1 的資料，失敗則讀本地 JSON"""
     try:
+        # 讀取試算表（不需要 API Key）
         df = pd.read_csv(GSHEET_URL)
-        # 假設你把 JSON 文字貼在 Google 試算表第一格
-        json_str = df.columns[0] 
+        # 抓取 A1 儲存格的內容
+        json_str = df.columns[0]
         return json.loads(json_str)
     except Exception as e:
-        # 如果雲端沒東西，讀取本地檔案
+        # 如果雲端失敗，讀取本地檔案
         if os.path.exists(DB_FILE):
             with open(DB_FILE, 'r', encoding='utf-8') as f:
-                try:
-                    return json.load(f)
-                except:
-                    return []
+                try: return json.load(f)
+                except: return []
     return []
 
-# --- 3. 其他邏輯與 UI 函數 (merge_logic, ui_admin_page 等等) ---
-# ... 接下來放你原本的其他程式碼 ...
 def get_stats(data):
-    """計算目前的分類與單字總數"""
     if not data: return 0, 0
     total_cats = len(data)
     total_words = sum(len(g.get('vocabulary', [])) for cat in data for g in cat.get('root_groups', []))
     return total_cats, total_words
 
 def merge_logic(pending_data):
-    """將 Pending 數據合併至主資料庫並去重"""
+    """合併邏輯：將新數據併入主資料庫並去重"""
     try:
-        main_db = load_db()  # 這裡會正確讀取現有資料
+        main_db = load_db()
         pending_list = [pending_data] if isinstance(pending_data, dict) else pending_data
         added_cats, added_groups, added_words = 0, 0, 0
 
         for new_cat in pending_list:
             cat_name = new_cat.get("category", "").strip()
             if not cat_name: continue
-            
             target_cat = next((c for c in main_db if c["category"] == cat_name), None)
-            
             if not target_cat:
                 main_db.append(new_cat)
                 added_cats += 1
@@ -62,7 +56,6 @@ def merge_logic(pending_data):
                     new_roots = set(new_group.get("roots", []))
                     target_group = next((g for g in target_cat.get("root_groups", []) 
                                        if set(g.get("roots", [])) == new_roots), None)
-                    
                     if not target_group:
                         target_cat["root_groups"].append(new_group)
                         added_groups += 1
@@ -73,17 +66,16 @@ def merge_logic(pending_data):
                             word_clean = v["word"].lower().strip()
                             if word_clean not in existing_words:
                                 target_group["vocabulary"].append(v)
-                                existing_words.add(word_clean)
                                 added_words += 1
-        
+        # 同時儲存到本地
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(main_db, f, ensure_ascii=False, indent=2)
-        return True, f"成功併入：{added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
+        return True, f"成功新增：{added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
     except Exception as e:
-        return False, f"錯誤: {str(e)}"
+        return False, str(e)
 
 # ==========================================
-# 2. UI 頁面組件
+# 2. UI 頁面組件 (定義在邏輯之後)
 # ==========================================
 
 def ui_admin_page():
@@ -94,69 +86,34 @@ def ui_admin_page():
         st.session_state.admin_authenticated = False
 
     if not st.session_state.admin_authenticated:
-        pwd_input = st.text_input("請輸入管理員密碼", type="password")
+        pwd_input = st.text_input("管理員密碼", type="password")
         if st.button("登入"):
             if pwd_input == ADMIN_PASSWORD:
                 st.session_state.admin_authenticated = True
                 st.rerun()
-            else:
-                st.error("密碼錯誤")
         return
 
-    col1, col2 = st.columns([3, 1])
-    with col1: st.write("目前登入：管理員 (Admin)")
-    with col2:
-        if st.button("登出管理台", use_container_width=True):
-            st.session_state.admin_authenticated = False
-            st.rerun()
-
-    st.divider()
-    tab1, tab2 = st.tabs(["方案 A：一鍵合併並清空 Pending", "方案 B：手動貼上 JSON"])
-
-    with tab1:
-        st.subheader(f"從 `{PENDING_FILE}` 自動合併")
-        is_pending_ready = os.path.exists(PENDING_FILE) and os.path.getsize(PENDING_FILE) > 2
-        
-        if not is_pending_ready:
-            st.info(f"✨ 目前 `{PENDING_FILE}` 是空的。")
-        else:
-            st.warning(f"注意：合併成功後將清空 `{PENDING_FILE}`。")
-        
-        if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary", disabled=not is_pending_ready):
-            try:
-                with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                    new_data = json.load(f)
-                
-                success, msg = merge_logic(new_data)
-                
-                if success:
-                    with open(PENDING_FILE, 'w', encoding='utf-8') as f:
-                        json.dump([], f)
-                        f.flush()
-                        os.fsync(f.fileno())
-                    st.success(f"✅ {msg}")
-                    st.balloons()
-                    st.cache_data.clear()
-                    st.rerun()
-                else:
-                    st.error(f"合併失敗：{msg}")
-            except Exception as e:
-                st.error(f"處理失敗: {e}")
-
-    with tab2:
-        st.subheader("手動輸入合併")
-        json_input = st.text_area("在此貼上 JSON 內容", height=300)
-        if st.button("確認手動合併", use_container_width=True):
-            if json_input.strip():
-                try:
-                    data = json.loads(json_input)
-                    success, msg = merge_logic(data)
-                    if success:
-                        st.success(msg)
-                        st.cache_data.clear()
-                        st.rerun()
-                    else: st.warning(msg)
-                except Exception as e: st.error(f"JSON 無效: {e}")
+    # 管理功能
+    data = load_db()
+    c_count, w_count = get_stats(data)
+    
+    st.subheader("🚀 雲端資料同步")
+    st.write(f"目前單字總量：**{w_count}**")
+    
+    # 顯示 JSON 供複製到 Google Sheets
+    json_text = json.dumps(data, ensure_ascii=False, indent=2)
+    st.info("合併後，請點擊下方按鈕複製，並貼回 Google 試算表的 A1 儲存格，資料才不會在改程式時消失。")
+    st.code(json_text, language="json")
+    
+    # 合併功能
+    if st.button("🚀 從 Pending 檔案執行合併"):
+        if os.path.exists(PENDING_FILE):
+            with open(PENDING_FILE, 'r', encoding='utf-8') as f:
+                new_data = json.load(f)
+            success, msg = merge_logic(new_data)
+            if success:
+                st.success(msg)
+                st.rerun()")
 def ui_medical_page(med_data):
     st.title("醫學術語專業區")
     st.info("醫學術語由字根、前綴與後綴組成。")
@@ -279,28 +236,16 @@ def ui_quiz_page(data):
 # ==========================================
 def main():
     st.set_page_config(page_title="Etymon 智選", layout="wide")
-    
-    # 每次運行都重新從硬碟讀取最新資料
     data = load_db()
     
     st.sidebar.title("Etymon")
-    menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
+    menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "管理後台"])
     
-    st.sidebar.divider()
-    categories = ["全部顯示"] + sorted([c['category'] for c in data])
-    selected_cat = st.sidebar.selectbox("全域過濾分類", categories)
-    
-    c_count, w_count = get_stats(data)
-    st.sidebar.metric("目前分類", c_count)
-    st.sidebar.metric("總單字量", w_count)
+    c, w = get_stats(data)
+    st.sidebar.metric("總單字量", w)
 
-    if menu == "字根導覽": ui_search_page(data, selected_cat)
-    elif menu == "記憶卡片": ui_quiz_page(data)
-    elif menu == "醫學專區":
-        med_data = [c for c in data if "醫學" in (c.get('category') or "")]
-        if med_data: ui_medical_page(med_data)
-        else: st.info("尚未導入醫學分類數據")
-    elif menu == "管理後台": ui_admin_page()
+    if menu == "管理後台": ui_admin_page()
+    # elif ... 其他頁面邏輯
 
 if __name__ == "__main__":
     main()
