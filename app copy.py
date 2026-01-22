@@ -245,6 +245,7 @@ def ui_quiz_page(data):
 # 3. 主程序入口
 # ==========================================
 def main():
+    st.write("雲端原始資料片段:", str(pd.read_csv(GSHEET_URL).columns[0])[:100])
     st.set_page_config(page_title="Etymon 智選", layout="wide")
     
     # 1. 讀取數據
