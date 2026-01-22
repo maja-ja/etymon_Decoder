@@ -67,7 +67,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map: root_map[label] = group
     
-    selected_label = st.selectbox("🎯 選擇要複習的字根", sorted(root_map.keys()), key=title)
+    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
         group = root_map[selected_label]
