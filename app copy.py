@@ -23,6 +23,151 @@ def get_stats(data):
 # ==========================================
 # 2. UI 組件
 # ==========================================
+# ==========================================
+# 數據合併核心邏輯
+# ==========================================
+
+def merge_logic(pending_data):
+    """
+    處理 JSON 合併的核心邏輯：
+    1. 支援單一物件 {} 或 物件串列 []
+    2. 自動檢查分類 (category) 是否存在
+    3. 自動檢查字根組 (roots) 是否存在
+    4. 自動對單字 (word) 進行去重
+    """
+    try:
+        # 1. 讀取現有資料庫
+        main_db = load_db()
+        
+        # 2. 統一輸入格式為串列
+        if isinstance(pending_data, dict):
+            pending_list = [pending_data]
+        else:
+            pending_list = pending_data
+
+        added_cats = 0
+        added_groups = 0
+        added_words = 0
+
+        for new_cat in pending_list:
+            cat_name = new_cat.get("category")
+            # 尋找現有分類
+            target_cat = next((c for c in main_db if c["category"] == cat_name), None)
+            
+            if not target_cat:
+                main_db.append(new_cat)
+                added_cats += 1
+            else:
+                # 分類已存在，遍歷字根組
+                for new_group in new_cat.get("root_groups", []):
+                    new_roots = set(new_group["roots"])
+                    target_group = next((g for g in target_cat["root_groups"] 
+                                       if set(g["roots"]) == new_roots), None)
+                    
+                    if not target_group:
+                        target_cat["root_groups"].append(new_group)
+                        added_groups += 1
+                    else:
+                        # 字根組已存在，合併單字並去重
+                        existing_words = {v["word"].lower() for v in target_group["vocabulary"]}
+                        for v in new_group["vocabulary"]:
+                            if v["word"].lower() not in existing_words:
+                                target_group["vocabulary"].append(v)
+                                existing_words.add(v["word"].lower())
+                                added_words += 1
+        
+        # 3. 寫回資料庫檔案
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(main_db, f, ensure_ascii=False, indent=2)
+            
+        summary = f"新增了 {added_cats} 個分類, {added_groups} 組字根, {added_words} 個單字。"
+        return True, summary
+
+    except Exception as e:
+        return False, f"合併過程中發生錯誤: {str(e)}"
+
+def ui_admin_page():
+    st.title("數據管理後台")
+    
+    # --- 權限驗證 ---
+    ADMIN_PASSWORD = "8787"  # 👈 你的密碼
+    
+    if 'admin_authenticated' not in st.session_state:
+        st.session_state.admin_authenticated = False
+
+    if not st.session_state.admin_authenticated:
+        st.info("此區域受密碼保護")
+        pwd_input = st.text_input("請輸入管理員密碼", type="password")
+        if st.button("登入"):
+            if pwd_input == ADMIN_PASSWORD:
+                st.session_state.admin_authenticated = True
+                st.success("身分驗證成功！")
+                st.rerun()
+            else:
+                st.error("密碼錯誤，請重新輸入。")
+        return
+
+    # --- 通過驗證後的管理介面 ---
+    col_header, col_logout = st.columns([4, 1])
+    col_header.markdown("數據導入與合併")
+    if col_logout.button("登出管理台"):
+        st.session_state.admin_authenticated = False
+        st.rerun()
+
+    # --- 方案 A：自動合併現有檔案 ---
+    st.subheader("方案 A：自動從 pending_data.json 合併")
+    PENDING_FILE = 'pending_data.json'
+    
+    if st.button("執行檔案合併", use_container_width=True):
+        if not os.path.exists(PENDING_FILE):
+            st.error(f"提示：找不到 `{PENDING_FILE}`。請確認檔案已放置於目錄中。")
+        else:
+            try:
+                with open(PENDING_FILE, 'r', encoding='utf-8') as f:
+                    content = json.load(f)
+                
+                # 檢查是否為空內容 (空 list 或 空 dict)
+                if not content or (isinstance(content, list) and len(content) == 0):
+                    st.warning(f"提示：`{PENDING_FILE}` 內沒有數據內容。")
+                else:
+                    success, msg = merge_logic(content) # 呼叫你的合併邏輯
+                    if success:
+                        st.success(f"成功自檔案合併！{msg}")
+                        # 合併成功後，為了避免重複合併，建議清空該檔案
+                        with open(PENDING_FILE, 'w', encoding='utf-8') as f:
+                            json.dump([], f)
+                        st.info("檔案內容已在合併後自動清空。")
+                        st.cache_data.clear()
+                    else:
+                        st.error(msg)
+            except Exception as e:
+                st.error(f"處理檔案時發生錯誤: {e}")
+
+    st.divider()
+
+    # --- 方案 B：原有的貼上 JSON 合併 ---
+    st.subheader("方案 B：手動貼上數據")
+    st.markdown("在此貼上新的 JSON 數據，系統將自動去重並合併。")
+    json_input = st.text_area("JSON 數據輸入", height=200, 
+                             placeholder='{"category": "醫學術語", "root_groups": [...] }')
+    
+    if st.button("執行手動合併", type="primary"):
+        if json_input.strip():
+            try:
+                pending_data = json.loads(json_input)
+                success, msg = merge_logic(pending_data) 
+                if success:
+                    st.success(f"✅ {msg}")
+                    st.cache_data.clear() 
+                else:
+                    st.error(msg)
+            except json.JSONDecodeError:
+                st.error("❌ JSON 格式錯誤。")
+        else:
+            st.warning("⚠️ 貼上內容不能為空。")
+
+    with st.expander("查看範例結構"):
+        st.code('{"category": "醫學", "root_groups": [{"roots": ["..."], "meaning": "...", "vocabulary": [...]}]}', language="json")
 def ui_search_page(data, selected_cat):
     st.title("字根導覽")
     
@@ -64,6 +209,38 @@ def ui_search_page(data, selected_cat):
             with st.expander(f"{v['word']}", expanded=False):
                 st.write(f"結構: `{v['breakdown']}`")
                 st.write(f"釋義: {v['definition']}")
+def ui_medical_page(med_data):
+    st.title("🏥 醫學術語專業區")
+    st.markdown("醫學單字是由精確的**構詞元件**組成的，掌握字根即可推導出複雜術語。")
+    
+    # 建立側邊欄過濾或上方索引
+    all_med_roots = []
+    for cat in med_data:
+        for group in cat['root_groups']:
+            all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
+    
+    selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
+    
+    st.divider()
+    
+    # 顯示內容
+    for cat in med_data:
+        for group in cat['root_groups']:
+            # 如果符合選取的字根則展開，否則預設折疊
+            label = f"{' / '.join(group['roots'])} → {group['meaning']}"
+            is_expanded = (label == selected_med)
+            
+            with st.expander(f"🧬 核心字根：{label}", expanded=is_expanded):
+                cols = st.columns(2)
+                for i, v in enumerate(group['vocabulary']):
+                    with cols[i % 2]:
+                        st.markdown(f"""
+                        <div style="padding:15px; border-radius:10px; border-left:5px solid #ff4b4b; background-color:#f0f2f6; margin-bottom:10px;">
+                            <h4 style="margin:0; color:#1f77b4;">{v['word']}</h4>
+                            <p style="margin:5px 0; font-size:0.9rem;"><b>拆解：</b><code>{v['breakdown']}</code></p>
+                            <p style="margin:0; font-weight:bold;">釋義：{v['definition']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
 def ui_quiz_page(data):
     # 0. 基礎狀態初始化
     if 'failed_words' not in st.session_state:
@@ -201,7 +378,7 @@ def main():
     st.sidebar.title("Etymon")
     
     # 導航功能
-    menu_options = ["字根導覽", "記憶卡片"]
+    menu_options = ["字根導覽", "記憶卡片", "醫學專區", "管理後台"]
     choice = st.sidebar.radio("功能選單", menu_options)
     
     # 分類選單 (僅在導覽頁顯示，或作為全域過濾)
@@ -215,10 +392,22 @@ def main():
     st.sidebar.write("**統計**")
     st.sidebar.text(f"分類總數: {c_count}")
     st.sidebar.text(f"單字總量: {w_count}")
+    # 在 main() 函數中修改導航功能
     
     if choice == "字根導覽":
         ui_search_page(data, selected_cat)
-    else:
+    elif choice == "記憶卡片":
         ui_quiz_page(data)
+    elif choice == "醫學專區":
+        # 直接過濾出醫學分類
+        med_data = [c for c in data if "醫學" in c['category']]
+        if med_data:
+            ui_medical_page(med_data)
+        else:
+            st.info("目前資料庫中尚無醫學分類資料。請在 JSON 中新增標籤為 '醫學' 的分類。")
+    elif choice == "管理後台":
+        ui_admin_page() # 呼叫新功能
+
+
 if __name__ == "__main__":
     main()
