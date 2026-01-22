@@ -128,10 +128,22 @@ def ui_highschool_page(hs_data):
                 col1, col2 = st.columns([1, 3])
                 with col1:
                     st.markdown(f"### **{v['word']}**")
+                # 找到 ui_highschool_page 內部的 for v in selected_group.get('vocabulary', [])
                 with col2:
-                    st.markdown(f"**拆解：** `{v['breakdown']}`")
-                    st.markdown(f"**中文定義：** {v['definition']}")
-                st.divider()
+                    # 原本是：st.markdown(f"**拆解：** `{v['breakdown']}`")
+                    # 改為：
+                    st.markdown(f"""
+                        <div style="line-height: 1.8;">
+                            <span style="font-size: 1.2em; font-weight: bold;">拆解：</span>
+                            <span style="font-size: 1.4em; color: #D32F2F; background: #f0f0f0; padding: 2px 6px; border-radius: 4px;">{v['breakdown']}</span>
+                        </div>
+                        <div style="font-size: 1.2em; margin-top: 5px;">
+                            <b>中文定義：</b> {v['definition']}
+                        </div>
+                    """, unsafe_allow_html=True)with col2:
+                                    st.markdown(f"**拆解：** `{v['breakdown']}`")
+                                    st.markdown(f"**中文定義：** {v['definition']}")
+                                    st.divider()
 
         # 4. 顯示來源分類 (修正原本報錯的地方)
         source_categories = []
