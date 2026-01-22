@@ -359,11 +359,10 @@ def main():
         # 篩選 category 包含 "高中" 或 "7000" 的資料
         hs_data = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
         ui_highschool_page(hs_data)
+    # 在 main() 的 if menu == "醫學區" 區塊
     elif menu == "醫學區":
-        med = [c for c in data if "醫學" in c['category']]
-        if med:
-            ui_medical_page(med)
-        else:
-            st.info("尚未包含醫學相關分類。")
+        # 只要分類名稱包含 "醫學" 或 "Med" 就會被歸入此區
+        med_data = [c for c in data if "醫學" in c['category'] or "Med" in c['category']]
+        ui_medical_page(med_data)
 if __name__ == "__main__":
     main()
