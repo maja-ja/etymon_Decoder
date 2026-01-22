@@ -92,9 +92,9 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                 
                 st.markdown(f"""
                     <div style="margin-bottom: 15px;">
-                        <span style="font-size: 1.1em; color: #000;">構造拆解：</span>
+                        <span style="font-size: 1.1em; color: #000; font-family: monospace; background: {bg_color}; padding: 2px 10px; border-radius: 5px;">構造拆解：</span>
                         <span style="font-size: 1.6em; color: #D32F2F; font-family: monospace; background: {bg_color}; padding: 2px 10px; border-radius: 5px;">{v['breakdown']}</span>
-                        <div style="font-size: 1.3em; color: #000; margin-top: 5px;"><b>中文定義：</b> {v['definition']}</div>
+                        <div style="font-size: 1.3em; color: #000; margin-top: 5px; font-family: monospace; background: {bg_color}; padding: 2px 10px; border-radius: 5px;"><b>中文定義：</b> {v['definition']}</div>
                     </div>
                     <hr>
                 """, unsafe_allow_html=True)
