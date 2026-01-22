@@ -12,6 +12,7 @@ GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out
 DB_FILE = 'etymon_database.json'
 PENDING_FILE = 'pending_data.json'
 
+@st.cache_data(ttl=600)
 def load_db():
     """從 Google Sheets 讀取表格並轉換為結構化數據"""
     try:
@@ -19,14 +20,11 @@ def load_db():
         if df.empty:
             return []
         
-        # 統一欄位名稱
         df.columns = [c.strip().lower() for c in df.columns]
         
         structured_data = []
-        # 按分類分組
         for cat_name, cat_group in df.groupby('category'):
             root_groups = []
-            # 按字根與意義分組
             for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
                 vocabulary = []
                 for _, row in group_df.iterrows():
@@ -44,15 +42,16 @@ def load_db():
                 "category": str(cat_name),
                 "root_groups": root_groups
             })
+        
+        # 成功讀取後備份到本地
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(structured_data, f, ensure_ascii=False, indent=2)
+            
         return structured_data
     except Exception as e:
-        # 如果雲端失敗，嘗試讀取本地備份
         if os.path.exists(DB_FILE):
-            try:
-                with open(DB_FILE, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
-                return []
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
         return []
 
 def get_stats(data):
@@ -63,12 +62,11 @@ def get_stats(data):
     return total_cats, total_words
 
 def merge_logic(pending_data):
-    """將 Pending 資料併入主資料庫並存為本地 JSON"""
+    """將 Pending 資料併入資料庫並存為備份"""
     try:
         main_db = load_db()
         pending_list = [pending_data] if isinstance(pending_data, dict) else pending_data
-        added_words = 0
-
+        
         for new_cat in pending_list:
             cat_name = new_cat.get("category", "").strip()
             target_cat = next((c for c in main_db if c["category"] == cat_name), None)
@@ -85,11 +83,10 @@ def merge_logic(pending_data):
                         for v in new_group.get("vocabulary", []):
                             if v["word"].lower().strip() not in existing:
                                 target_group["vocabulary"].append(v)
-                                added_words += 1
         
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(main_db, f, ensure_ascii=False, indent=2)
-        return True, "合併完成"
+        return True, "合併完成。請下載 CSV 並更新雲端試算表。"
     except Exception as e:
         return False, str(e)
 
@@ -110,18 +107,23 @@ def ui_admin_page():
         return
 
     data = load_db()
-    c_count, w_count = get_stats(data)
-    st.metric("當前資料庫單字量", w_count)
+    _, w_count = get_stats(data)
+    st.metric("資料庫總量", f"{w_count} 單字")
 
-    if st.button("🚀 執行 Pending 合併"):
+    st.subheader("數據合併操作")
+    if st.button("執行 Pending 合併"):
         if os.path.exists(PENDING_FILE):
             with open(PENDING_FILE, 'r', encoding='utf-8') as f:
                 new_data = json.load(f)
             success, msg = merge_logic(new_data)
-            if success: st.success(msg); st.rerun()
-        else: st.error("找不到檔案")
+            if success: 
+                st.success(msg)
+                st.rerun()
+        else:
+            st.warning(f"找不到檔案 {PENDING_FILE}")
 
-    st.subheader("☁️ 雲端存檔 (請下載後貼入 Google Sheets)")
+    st.divider()
+    st.subheader("備份與匯出")
     flat_list = []
     for cat in data:
         for group in cat.get('root_groups', []):
@@ -131,72 +133,110 @@ def ui_admin_page():
                     "meaning": group['meaning'], "word": v['word'],
                     "breakdown": v['breakdown'], "definition": v['definition']
                 })
+    
     if flat_list:
         df_export = pd.DataFrame(flat_list)
-        st.dataframe(df_export)
+        st.dataframe(df_export, use_container_width=True)
         csv = df_export.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📥 下載最新的單字表 (CSV)", csv, "words.csv", "text/csv")
+        st.download_button("下載備份 CSV", csv, "etymon_backup.csv", "text/csv")
 
 def ui_medical_page(med_data):
     st.title("醫學區")
     for cat in med_data:
+        st.caption(f"分類: {cat['category']}")
         for group in cat.get('root_groups', []):
-            label = f"{' / '.join(group['roots'])} → {group['meaning']}"
+            label = f"{' / '.join(group['roots'])} -> {group['meaning']}"
             with st.expander(label):
                 cols = st.columns(2)
                 for i, v in enumerate(group.get('vocabulary', [])):
                     with cols[i % 2]:
-                        st.markdown(f"**{v['word']}** \n`{v['breakdown']}`  \n{v['definition']}")
+                        st.markdown(f"""
+                        <div style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:10px;">
+                            <h4 style="margin:0;">{v['word']}</h4>
+                            <p style="font-size:0.8em; color:#888;">拆解: {v['breakdown']}</p>
+                            <p style="margin-top:5px;">{v['definition']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
 
 def ui_search_page(data, selected_cat):
     st.title("字根區")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
-    query = st.text_input("搜尋單字...")
+    query = st.text_input("搜尋單字或字根...").strip().lower()
+    
     for cat in relevant:
         for group in cat.get('root_groups', []):
-            matched = [v for v in group['vocabulary'] if query.lower() in v['word'].lower()] if query else group['vocabulary']
+            matched = []
+            for v in group['vocabulary']:
+                if query in v['word'].lower() or any(query in r.lower() for r in group['roots']):
+                    matched.append(v)
+            
             if matched:
-                with st.expander(f"{'/'.join(group['roots'])} ({group['meaning']})"):
+                with st.expander(f"{'/'.join(group['roots'])} ({group['meaning']})", expanded=bool(query)):
                     for v in matched:
-                        st.write(f"**{v['word']}**: {v['definition']} (`{v['breakdown']}`)")
+                        st.markdown(f"**{v['word']}**: {v['definition']}  \n結構: {v['breakdown']}")
 
 def ui_quiz_page(data):
     st.title("學習區")
     if 'flash_q' not in st.session_state:
         all_words = [{**v, "cat": c['category']} for c in data for g in c.get('root_groups', []) for v in g.get('vocabulary', [])]
-        if not all_words: st.warning("目前無單字"); return
+        if not all_words: 
+            st.warning("無單字數據")
+            return
         st.session_state.flash_q = random.choice(all_words)
         st.session_state.flipped = False
 
     q = st.session_state.flash_q
-    st.markdown(f"### {q['word']}")
-    if st.button("查看答案"): st.session_state.flipped = True
+    
+    st.markdown(f"""
+    <div style="text-align: center; padding: 40px; border: 2px solid #ddd; border-radius: 20px;">
+        <p style="color: gray;">分類: {q['cat']}</p>
+        <h1 style="font-size: 4em; margin: 0;">{q['word']}</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("查看答案", use_container_width=True):
+            st.session_state.flipped = True
+    with col2:
+        if st.button("下一題", use_container_width=True):
+            del st.session_state.flash_q
+            st.rerun()
+
     if st.session_state.get('flipped'):
-        st.info(f"{q['breakdown']} - {q['definition']}")
-    if st.button("下一題"):
-        del st.session_state.flash_q
-        st.rerun()
+        st.info(f"拆解: {q['breakdown']}  \n釋義: {q['definition']}")
 
 # ==========================================
 # 3. 主程序入口
 # ==========================================
 def main():
-    st.set_page_config(page_title="Etymon", layout="wide")
+    st.set_page_config(page_title="Etymon Decoder", layout="wide")
     data = load_db()
-    st.sidebar.title("Etymon")
+    
+    st.sidebar.title("Etymon Decoder")
     menu = st.sidebar.radio("導航", ["字根區", "學習區", "醫學區", "管理區"])
     
-    _, w = get_stats(data)
-    st.sidebar.metric("總單字量", w)
+    _, w_count = get_stats(data)
+    st.sidebar.divider()
+    st.sidebar.metric("單字總量", w_count)
+    if st.sidebar.button("強制刷新雲端數據"):
+        st.cache_data.clear()
+        st.rerun()
 
-    if menu == "管理區": ui_admin_page()
+    if menu == "管理區":
+        ui_admin_page()
     elif menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
-        ui_search_page(data, st.sidebar.selectbox("分類", cats))
-    elif menu == "學習區": ui_quiz_page(data)
+        ui_search_page(data, st.sidebar.selectbox("篩選分類", cats))
+    elif menu == "學習區":
+        ui_quiz_page(data)
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
-        ui_medical_page(med) if med else st.info("尚無醫學數據")
+        if med:
+            ui_medical_page(med)
+        else:
+            st.info("尚未包含醫學相關分類。")
 
 if __name__ == "__main__":
     main()
