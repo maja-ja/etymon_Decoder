@@ -255,38 +255,33 @@ def ui_quiz_page(data):
     q = st.session_state.flash_q
         
     for cat in med_data:
-        for group in cat['root_groups']:
-            label = f"{' / '.join(group['roots'])} → {group['meaning']}"
-            with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
-                cols = st.columns(2)
-                for i, v in enumerate(group['vocabulary']):
-                    with cols[i % 2]:
-                        # 統一鎖定卡片內的文字顏色，確保手機/電腦不吃字
-    st.markdown(f"""
-    <div style="
-        background-color: #ffffff; 
-        padding: 40px; 
-        border-radius: 20px; 
-        border: 1px solid #e0e0e0; 
-        text-align: center; 
-        min-height: 280px; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        color: #31333f; /* 強制設定卡片全域文字為深灰色 */
-    ">
-        <small style="color: #888888; font-weight: bold;">{q['cat'].upper()}</small>
-        
-        <h1 style="font-size: 3.5rem; margin: 20px 0; color: #1f77b4;">{q['word']}</h1>
-        
-        {f'''
-            <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 20px 0;">
-            <p style="font-size: 1.2rem; color: #0366d6; background: #f0f7ff; display: inline-block; padding: 2px 10px; border-radius: 5px;">
-                <code>{q["breakdown"]}</code>
-            </p>
-            <h3 style="color: #31333f; margin-top: 15px;">{q["definition"]}</h3>
-        ''' if st.session_state.is_flipped else '<p style="color: #cccccc; margin-top: 50px;">點擊下方按鈕查看答案</p>'}
-    </div>
-    """, unsafe_allow_html=True)
-
+    for group in cat['root_groups']:
+        label = f"{' / '.join(group['roots'])} → {group['meaning']}"
+        with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
+            cols = st.columns(2)
+            for i, v in enumerate(group['vocabulary']):
+                with cols[i % 2]:
+                    # 注意：這裡必須有縮進（通常是 4 個空格）
+                    st.markdown(f"""
+                    <div style="
+                        padding: 20px; 
+                        border-radius: 12px; 
+                        border-left: 6px solid #ff4b4b; 
+                        background-color: #ffffff; 
+                        margin-bottom: 15px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                        color: #31333f !important;
+                    ">
+                        <h4 style="margin: 0; color: #1f77b4; font-size: 1.3rem;">{v['word']}</h4>
+                        <div style="margin: 10px 0;">
+                            <span style="font-size: 0.85rem; color: #666666; font-weight: bold;">結構分析：</span>
+                            <code style="color: #0366d6; background-color: #f0f7ff; padding: 2px 6px; border-radius: 4px;">{v['breakdown']}</code>
+                        </div>
+                        <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 1rem; color: #31333f;">
+                            釋義：{v['definition']}
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
     st.write("")
     
     # --- 按鈕邏輯修改區 ---
