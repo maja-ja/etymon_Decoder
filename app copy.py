@@ -272,42 +272,44 @@ def ui_quiz_page(data):
 # 3. 主程序入口
 # ==========================================
 def main():
-    # 1. 必須放在最首行，且只能出現一次
-    st.set_page_config(
-        page_title="Etymon 智選", 
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+    st.set_page_config(page_title="Etymon 智選", layout="wide")
     
-    # 2. 注入 CSS (統一背景顏色並處理手機端邊界)
+    # --- 修正版 CSS：強制文字顏色 ---
     st.markdown("""
         <style>
-            /* 主內容背景顏色 */
-            .stApp {
-                background-color: #f8f9fa; 
+            /* 1. 全域文字顏色強制設定 */
+            html, body, [data-testid="stWidgetLabel"], .stText, p, h1, h2, h3, h4, h5, h6 {
+                color: #31333f !important; /* 深灰色字體 */
             }
 
-            /* 側邊欄背景顏色 */
+            /* 2. 主內容區域背景 */
+            .stApp {
+                background-color: #f8f9fa !important;
+            }
+
+            /* 3. 側邊欄背景與文字 */
             [data-testid="stSidebar"] {
                 background-color: #ffffff !important;
             }
-
-            /* 移除手機端頂部導航條的陰影與背景色差 */
-            header[data-testid="stHeader"] {
-                background-color: rgba(0,0,0,0) !important;
-                border-bottom: none;
+            [data-testid="stSidebar"] * {
+                color: #31333f !important;
             }
 
-            /* 強制設定手機端選單按鈕的背景色（選配） */
-            [data-testid="stSidebarNav"] {
-                background-color: #ffffff;
+            /* 4. 頂部導航欄透明 */
+            header[data-testid="stHeader"] {
+                background-color: rgba(0,0,0,0) !important;
+            }
+            
+            /* 5. 修正輸入框等組件的文字顏色 */
+            .stTextInput input {
+                color: #31333f !important;
             }
         </style>
     """, unsafe_allow_html=True)
+    # --- CSS 結束 ---
 
-    # 3. 讀取資料與邏輯
     data = load_db()
-    
+    # ... 後續程式碼
     st.sidebar.title("Etymon")
     menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
     
