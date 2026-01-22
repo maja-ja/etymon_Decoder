@@ -247,7 +247,45 @@ def ui_medical_page(med_data):
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+def ui_domain_page(domain_data, title, bg_color, text_color):
+    st.title(title)
+    
+    if not domain_data:
+        st.info(f"目前資料庫中尚無相關分類。請在 Sheets 的 category 標記關鍵字。")
+        return
 
+    # 提取字根選單
+    root_options = []
+    root_map = {} 
+    for cat in domain_data:
+        for group in cat.get('root_groups', []):
+            label = f"{'/'.join(group['roots'])} ({group['meaning']})"
+            if label not in root_map:
+                root_map[label] = group
+                root_options.append(label)
+    
+    root_options.sort()
+    selected_label = st.selectbox(f"🔍 選擇字根", root_options, key=title)
+    
+    if selected_label:
+        selected_group = root_map[selected_label]
+        for v in selected_group.get('vocabulary', []):
+            st.markdown(f"""
+                <div style="border: 2px solid #e0e0e0; padding: 20px; border-radius: 15px; margin-bottom: 15px; background-color: white;">
+                    <div style="font-size: 2em; font-weight: bold; color: {text_color};">{v['word']}</div>
+                    <hr style="margin: 10px 0;">
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-size: 1.1em; font-weight: bold; color: #555;">構造拆解：</span>
+                        <span style="font-size: 1.6em; color: #D32F2F; font-family: monospace; background: {bg_color}; padding: 2px 8px; border-radius: 5px;">
+                            {v['breakdown']}
+                        </span>
+                    </div>
+                    <div>
+                        <span style="font-size: 1.1em; font-weight: bold; color: #555;">中文定義：</span>
+                        <span style="font-size: 1.3em; color: #333;">{v['definition']}</span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("字根區")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
@@ -338,7 +376,7 @@ def main():
     
     st.sidebar.title("Etymon Decoder")
     # 在這裡新增 "高中 7000 區"
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "管理區"])
+    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "管理區"])
     
     _, w_count = get_stats(data)
     st.sidebar.divider()
