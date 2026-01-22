@@ -177,36 +177,68 @@ def ui_search_page(data, selected_cat):
 
 def ui_quiz_page(data):
     st.title("學習區")
+    
+    # 1. 準備選單選項
+    all_categories = sorted(list(set(c['category'] for c in data)))
+    quiz_options = ["全部顯示"] + all_categories
+    
+    # 2. 在頁面上方加入分類選單
+    selected_quiz_cat = st.selectbox("選擇練習範圍", quiz_options)
+    
+    # 3. 處理重置邏輯：如果分類改變了，就清空目前的題目
+    if 'current_quiz_cat' not in st.session_state:
+        st.session_state.current_quiz_cat = selected_quiz_cat
+    
+    if st.session_state.current_quiz_cat != selected_quiz_cat:
+        st.session_state.current_quiz_cat = selected_quiz_cat
+        if 'flash_q' in st.session_state:
+            del st.session_state.flash_q
+        st.rerun()
+
+    # 4. 抽題邏輯
     if 'flash_q' not in st.session_state:
-        all_words = [{**v, "cat": c['category']} for c in data for g in c.get('root_groups', []) for v in g.get('vocabulary', [])]
-        if not all_words: 
-            st.warning("無單字數據")
+        # 根據選單篩選單字池
+        if selected_quiz_cat == "全部顯示":
+            all_words = [{**v, "cat": c['category']} for c in data for g in c.get('root_groups', []) for v in g.get('vocabulary', [])]
+        else:
+            all_words = [{**v, "cat": c['category']} for c in data if c['category'] == selected_quiz_cat 
+                         for g in c.get('root_groups', []) for v in g.get('vocabulary', [])]
+        
+        if not all_words:
+            st.warning(f"『{selected_quiz_cat}』分類中目前沒有單字數據。")
             return
+        
         st.session_state.flash_q = random.choice(all_words)
         st.session_state.flipped = False
 
     q = st.session_state.flash_q
     
+    # 5. UI 顯示
     st.markdown(f"""
-    <div style="text-align: center; padding: 40px; border: 2px solid #ddd; border-radius: 20px;">
-        <p style="color: gray;">分類: {q['cat']}</p>
-        <h1 style="font-size: 4em; margin: 0;">{q['word']}</h1>
+    <div style="text-align: center; padding: 40px; border: 2px solid #ddd; border-radius: 20px; background-color: #f9f9f9; margin-bottom: 20px;">
+        <p style="color: #666; font-weight: bold;">[ {q['cat']} ]</p>
+        <h1 style="font-size: 4em; margin: 0; color: #1E88E5;">{q['word']}</h1>
     </div>
     """, unsafe_allow_html=True)
 
-    st.write("")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("查看答案", use_container_width=True):
+        if st.button("查看答案", use_container_width=True, type="primary"):
             st.session_state.flipped = True
     with col2:
         if st.button("下一題", use_container_width=True):
-            del st.session_state.flash_q
+            if 'flash_q' in st.session_state:
+                del st.session_state.flash_q
             st.rerun()
 
+    # 6. 顯示答案
     if st.session_state.get('flipped'):
-        st.info(f"拆解: {q['breakdown']}  \n釋義: {q['definition']}")
-
+        st.markdown(f"""
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 15px; margin-top: 20px;">
+            <p style="font-size: 1.2em;"><b>拆解：</b> {q['breakdown']}</p>
+            <p style="font-size: 1.2em;"><b>釋義：</b> {q['definition']}</p>
+        </div>
+        """, unsafe_allow_html=True)
 # ==========================================
 # 3. 主程序入口
 # ==========================================
