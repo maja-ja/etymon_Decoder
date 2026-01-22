@@ -1,98 +1,77 @@
 [
-{
+  {
     "category": "五感與行為",
     "root_groups": [
       {
         "roots": ["dict"],
         "meaning": "說、話、言論",
         "vocabulary": [
-          {"word": "Contradict", "breakdown": "Contra 相反 + dict 說", "definition": "矛盾/反駁"},
-          {"word": "Predict", "breakdown": "Pre 預先 + dict 說", "definition": "預測/預言"},
-          {"word": "Verdict", "breakdown": "Ver 真實 + dict 說", "definition": "判決/定論"},
-          {"word": "Dictator", "breakdown": "Dict 說 + ator 者", "definition": "獨裁者/發號施令者"},
-          {"word": "Indict", "breakdown": "In 進入 + dict 說", "definition": "起訴/控告"}
+          {"word": "Contradict", "breakdown": "Contra (相反) + dict (說)", "definition": "矛盾/反駁"},
+          {"word": "Predict", "breakdown": "Pre (預先) + dict (說)", "definition": "預測/預言"},
+          {"word": "Verdict", "breakdown": "Ver (真實) + dict (說)", "definition": "判決/定論"},
+          {"word": "Dictator", "breakdown": "Dict (說) + ator (者)", "definition": "獨裁者"},
+          {"word": "Indict", "breakdown": "In (進入) + dict (說)", "definition": "起訴/控告"}
         ]
       },
       {
         "roots": ["log", "loqu"],
         "meaning": "說話、言語",
         "vocabulary": [
-          {"word": "Dialogue", "breakdown": "Dia 穿過/兩者之間 + log 說", "definition": "對話"},
-          {"word": "Apology", "breakdown": "Apo 遠離/辯解 + log 說", "definition": "道歉/辯白"},
-          {"word": "Eloquent", "breakdown": "E 出來 + loqu 說", "definition": "雄辯的/口才流利的"},
-          {"word": "Loquacious", "breakdown": "Loqu 說 + acious 多...的", "definition": "滔滔不絕的/多話的"},
-          {"word": "Monologue", "breakdown": "Mono 單一 + log 說", "definition": "獨白"}
+          {"word": "Dialogue", "breakdown": "Dia (兩者間) + log (說)", "definition": "對話"},
+          {"word": "Apology", "breakdown": "Apo (遠離/辯解) + log (說)", "definition": "道歉/辯白"},
+          {"word": "Eloquent", "breakdown": "E (出) + loqu (說)", "definition": "雄辯的/口才流利的"},
+          {"word": "Loquacious", "breakdown": "Loqu (說) + acious (多...的)", "definition": "滔滔不絕的"},
+          {"word": "Monologue", "breakdown": "Mono (單一) + log (說)", "definition": "獨白"}
         ]
       },
       {
         "roots": ["claim", "clam"],
         "meaning": "大喊、宣稱",
         "vocabulary": [
-          {"word": "Exclaim", "breakdown": "Ex 出去 + claim 喊", "definition": "驚叫/呼喊"},
-          {"word": "Proclaim", "breakdown": "Pro 向前 + claim 喊", "definition": "宣布/公告"},
-          {"word": "Reclaim", "breakdown": "Re 回來 + claim 喊", "definition": "拿回/開墾"}
+          {"word": "Exclaim", "breakdown": "Ex (出) + claim (喊)", "definition": "驚叫/呼喊"},
+          {"word": "Proclaim", "breakdown": "Pro (向前) + claim (喊)", "definition": "宣布/公告"},
+          {"word": "Reclaim", "breakdown": "Re (回) + claim (喊)", "definition": "拿回/開墾"}
         ]
       },
       {
         "roots": ["voc", "vok"],
         "meaning": "聲音、召喚",
         "vocabulary": [
-          {"word": "Advocate", "breakdown": "Ad 往 + voc 說/聲", "definition": "擁護/提倡"},
-          {"word": "Provoke", "breakdown": "Pro 向前 + vok 呼喚", "definition": "激怒/挑釁"},
-          {"word": "Equivocal", "breakdown": "Equi 平等 + voc 聲", "definition": "模稜兩可的/雙關的"}
+          {"word": "Advocate", "breakdown": "Ad (往) + voc (說/聲)", "definition": "擁護/提倡"},
+          {"word": "Provoke", "breakdown": "Pro (向前) + vok (呼)", "definition": "激怒/挑釁"},
+          {"word": "Equivocal", "breakdown": "Equi (平等) + voc (聲)", "definition": "模稜兩可的"}
         ]
       },
       {
         "roots": ["scop", "vis", "vid", "spect", "spic"],
         "meaning": "看、觀察",
         "vocabulary": [
-          {"word": "Telescope", "breakdown": "Tele 遠 + scope 觀察", "definition": "望遠鏡"},
-          {"word": "Invisible", "breakdown": "In 不 + vis 見", "definition": "看不見的"},
-          {"word": "Evident", "breakdown": "E 出來 + vid 看", "definition": "顯而易見的"},
-          {"word": "Prospect", "breakdown": "Pro 前 + spect 看", "definition": "前景"},
-          {"word": "Conspicuous", "breakdown": "Con 加強 + spic 看", "definition": "顯眼的/引人注目的"}
+          {"word": "Telescope", "breakdown": "Tele (遠) + scope (看)", "definition": "望遠鏡"},
+          {"word": "Invisible", "breakdown": "In (不) + vis (見)", "definition": "看不見的"},
+          {"word": "Evident", "breakdown": "E (出) + vid (看)", "definition": "顯而易見的"},
+          {"word": "Prospect", "breakdown": "Pro (前) + spect (看)", "definition": "前景/展望"},
+          {"word": "Conspicuous", "breakdown": "Con (加強) + spic (看)", "definition": "顯眼的/引人注目的"}
         ]
       },
       {
         "roots": ["aud", "audit", "phon", "son"],
         "meaning": "聽、聲",
         "vocabulary": [
-          {"word": "Audition", "breakdown": "Aud 聽 + ition 名詞尾", "definition": "試鏡/聽力"},
-          {"word": "Inaudible", "breakdown": "In 不 + aud 聽", "definition": "聽不見的"},
-          {"word": "Auditorium", "breakdown": "Audit 聽 + orium 場所", "definition": "禮堂/聽眾席"},
-          {"word": "Auditory", "breakdown": "Audit 聽 + ory 形容詞尾", "definition": "聽覺的"},
-          {"word": "Audience", "breakdown": "Audi 聽 + ence 名詞尾", "definition": "觀眾/聽眾"},
-          {"word": "Symphony", "breakdown": "Sym 共同 + phon 聲音", "definition": "交響樂/和聲"},
-          {"word": "Cacophony", "breakdown": "Caco 惡劣 + phon 聲音", "definition": "雜音/刺耳的聲音"},
-          {"word": "Microphone", "breakdown": "Micro 微小 + phon 聲音", "definition": "麥克風/擴音器"},
-          {"word": "Phonetic", "breakdown": "Phon 聲音 + etic 形容詞尾", "definition": "語音的/發音的"},
-          {"word": "Homophone", "breakdown": "Homo 相同 + phon 聲音", "definition": "同音字"},
-          {"word": "Resonate", "breakdown": "Re 再/加強 + son 聲音 + ate", "definition": "共鳴/迴響"},
-          {"word": "Sonic", "breakdown": "Son 聲音 + ic 形容詞尾", "definition": "音速的/聲音的"},
-          {"word": "Unison", "breakdown": "Uni 一 + son 聲音", "definition": "一致/齊唱"},
-          {"word": "Consonant", "breakdown": "Con 共同 + son 聲音 + ant", "definition": "子音/和諧的"}
+          {"word": "Audition", "breakdown": "Aud (聽) + ition (名詞尾)", "definition": "試鏡/聽力測試"},
+          {"word": "Inaudible", "breakdown": "In (不) + aud (聽)", "definition": "聽不見的"},
+          {"word": "Auditorium", "breakdown": "Audit (聽) + orium (場所)", "definition": "禮堂/觀眾席"},
+          {"word": "Symphony", "breakdown": "Sym (共同) + phon (聲)", "definition": "交響樂"},
+          {"word": "Resonate", "breakdown": "Re (再) + son (聲) + ate", "definition": "共鳴/迴響"}
         ]
       },
       {
         "roots": ["tact", "tang", "sens", "sent"],
         "meaning": "觸、感、情感",
         "vocabulary": [
-          {"word": "Contact", "breakdown": "Con 共同 + tact 觸", "definition": "接觸/聯繫"},
-          {"word": "Tangible", "breakdown": "Tang 觸 + ible 可...的", "definition": "有形的/可觸知的"},
-          {"word": "Intact", "breakdown": "In 不 + tact 觸", "definition": "原封不動的/未受損傷的"},
-          {"word": "Sentiment", "breakdown": "Sent 感覺 + iment 名詞尾", "definition": "感情/情緒"},
-          {"word": "Sensory", "breakdown": "Sens 感覺 + ory 形容詞尾", "definition": "感官的/知覺的"},
-          {"word": "Consent", "breakdown": "Con 共同 + sent 感覺", "definition": "同意"}
-        ]
-      },
-      {
-        "roots": ["odor", "sap", "sip"],
-        "meaning": "嗅、味",
-        "vocabulary": [
-          {"word": "Odorless", "breakdown": "Odor 氣味 + less 無", "definition": "無味的"},
-          {"word": "Deodorant", "breakdown": "De 除去 + odor 氣味 + ant 物質", "definition": "體香劑/除臭劑"},
-          {"word": "Insipid", "breakdown": "In 不 + sip 味", "definition": "枯燥乏味的/淡而無味的"},
-          {"word": "Sapient", "breakdown": "Sap 味/智慧 + ient", "definition": "睿智的"}
+          {"word": "Contact", "breakdown": "Con (共同) + tact (觸)", "definition": "接觸/聯繫"},
+          {"word": "Tangible", "breakdown": "Tang (觸) + ible (可...的)", "definition": "有形的/可觸知的"},
+          {"word": "Sentiment", "breakdown": "Sent (感覺) + iment (名詞尾)", "definition": "情緒/感傷"},
+          {"word": "Consent", "breakdown": "Con (共同) + sent (感)", "definition": "同意/答允"}
         ]
       }
     ]
@@ -104,10 +83,10 @@
         "roots": ["graph", "gram", "scrib", "scrip"],
         "meaning": "書寫、圖表、描繪",
         "vocabulary": [
-          {"word": "Autograph", "breakdown": "Auto 自己 + graph 寫", "definition": "親筆簽名"},
-          {"word": "Telegram", "breakdown": "Tele 遠 + gram 寫", "definition": "電報"},
-          {"word": "Prescribe", "breakdown": "Pre 預先 + scribe 寫", "definition": "處方/規定"},
-          {"word": "Describe", "breakdown": "De 下 + scribe 寫", "definition": "描寫"}
+          {"word": "Autograph", "breakdown": "Auto (自己) + graph (寫)", "definition": "親筆簽名"},
+          {"word": "Telegram", "breakdown": "Tele (遠) + gram (寫)", "definition": "電報"},
+          {"word": "Prescribe", "breakdown": "Pre (預先) + scribe (寫)", "definition": "開處方/規定"},
+          {"word": "Manuscript", "breakdown": "Manu (手) + script (寫)", "definition": "手稿/原稿"}
         ]
       }
     ]
@@ -119,258 +98,74 @@
         "roots": ["port"],
         "meaning": "拿、運、港口",
         "vocabulary": [
-          {"word": "Import", "breakdown": "Im 往內 + port 運", "definition": "進口"},
-          {"word": "Export", "breakdown": "Ex 往外 + port 運", "definition": "出口"},
-          {"word": "Portable", "breakdown": "Port 拿 + able 可...的", "definition": "手提式的/輕便的"},
-          {"word": "Transport", "breakdown": "Trans 跨越 + port 運", "definition": "運輸/運送"},
-          {"word": "Portfolio", "breakdown": "Port 拿 + folio 紙張", "definition": "檔案夾/作品集/投資組合"},
-          {"word": "Support", "breakdown": "Sup 在下面 + port 撐", "definition": "支持/支撐"}
+          {"word": "Import", "breakdown": "Im (入) + port (運)", "definition": "進口"},
+          {"word": "Export", "breakdown": "Ex (出) + port (運)", "definition": "出口"},
+          {"word": "Portable", "breakdown": "Port (拿) + able (可...的)", "definition": "輕便的/手提式的"},
+          {"word": "Portfolio", "breakdown": "Port (拿) + folio (葉/紙)", "definition": "作品集/投資組合"}
         ]
       },
       {
         "roots": ["tract"],
         "meaning": "拉、抽",
         "vocabulary": [
-          {"word": "Attract", "breakdown": "At 靠近 + tract 拉", "definition": "吸引"},
-          {"word": "Extract", "breakdown": "Ex 往外 + tract 拉", "definition": "抽出/提煉/萃取"},
-          {"word": "Distract", "breakdown": "Dis 分散 + tract 拉", "definition": "使分心"},
-          {"word": "Contract", "breakdown": "Con 共同 + tract 拉", "definition": "契約/收縮 (雙方拉到一起簽約)"},
-          {"word": "Abstract", "breakdown": "Ab 離開 + tract 拉", "definition": "抽象的/摘要 (從具體中拉出重點)"},
-          {"word": "Retract", "breakdown": "Re 往回 + tract 拉", "definition": "縮回/撤回言論"}
+          {"word": "Attract", "breakdown": "At (往) + tract (拉)", "definition": "吸引"},
+          {"word": "Extract", "breakdown": "Ex (出) + tract (拉)", "definition": "萃取/抽出"},
+          {"word": "Distract", "breakdown": "Dis (分散) + tract (拉)", "definition": "使分心"}
         ]
       },
       {
         "roots": ["ced", "ceed", "cess"],
         "meaning": "走、前進",
         "vocabulary": [
-          {"word": "Excess", "breakdown": "Ex 超出 + cess 走", "definition": "過度/過剩"},
-          {"word": "Precede", "breakdown": "Pre 預先 + cede 走", "definition": "在...之前發生"},
-          {"word": "Proceed", "breakdown": "Pro 向前 + ceed 走", "definition": "繼續進行"},
-          {"word": "Recession", "breakdown": "Re 往回 + cess 走", "definition": "經濟衰退/後退"},
-          {"word": "Concede", "breakdown": "Con 全部 + cede 走", "definition": "讓步/承認輸了 (全退一步)"},
-          {"word": "Access", "breakdown": "Ac 往 + cess 走", "definition": "管道/進入的權利"}
+          {"word": "Precede", "breakdown": "Pre (先) + cede (走)", "definition": "優先於/在...之前"},
+          {"word": "Proceed", "breakdown": "Pro (向月) + ceed (走)", "definition": "繼續進行"},
+          {"word": "Recession", "breakdown": "Re (後) + cess (走) + ion", "definition": "經濟衰退/後退"}
         ]
       }
     ]
   },
   {
-    "category": "方向、屬性與狀態",
+    "category": "醫學專區",
     "root_groups": [
       {
-        "roots": ["ad", "af", "ag", "at"],
-        "meaning": "朝向、增加、附加",
+        "roots": ["ophthalm", "ocul"],
+        "meaning": "眼睛 (Eye)",
         "vocabulary": [
-          {"word": "Add", "breakdown": "Ad 增加", "definition": "增加"},
-          {"word": "Address", "breakdown": "Ad 朝向 + dress 直/導向", "definition": "引導某人前往的地點/地址"},
-          {"word": "Admire", "breakdown": "Ad 朝向 + mire 驚奇/觀看", "definition": "欽佩/仰慕"},
-          {"word": "Advertisement", "breakdown": "Ad 朝向 + vert 轉動 + ment 名詞字尾", "definition": "將目光轉向某物/廣告"},
-          {"word": "Advice", "breakdown": "Ad 朝向 + vice/vid 名詞看", "definition": "給予觀點/勸告"},
-          {"word": "Advise", "breakdown": "Ad 朝向 + vise/vid 動詞看", "definition": "勸告/建議"},
-          {"word": "Affect", "breakdown": "Af/ad 朝向 + fect 做", "definition": "對...產生作用/影響"},
-          {"word": "Agree", "breakdown": "Ag/ad 朝向 + gr 喜悅", "definition": "產生好感/同意"},
-          {"word": "Adult", "breakdown": "Ad 朝向 + ult 終極的", "definition": "成人"}
+          {"word": "Ophthalmology", "breakdown": "Ophthalm (眼) + ology (學問)", "definition": "眼科學"},
+          {"word": "Binocular", "breakdown": "Bi (二) + ocul (眼) + ar", "definition": "雙筒鏡/雙眼的"}
         ]
       },
       {
-        "roots": ["a-"],
-        "meaning": "處於...狀態、在...之中",
+        "roots": ["pneumo", "pulmono"],
+        "meaning": "肺、呼吸 (Lungs/Breath)",
         "vocabulary": [
-          {"word": "Afraid", "breakdown": "A 處於 + fraid/frith 恐懼", "definition": "害怕的"},
-          {"word": "Alike", "breakdown": "A 狀態 + like 相似", "definition": "相同地"},
-          {"word": "Again", "breakdown": "A 在 + gain/gegen 對面/反對", "definition": "反覆/再度"},
-          {"word": "Against", "breakdown": "A 在 + gainst 對面", "definition": "靠著/反對"},
-          {"word": "Ahead", "breakdown": "A 在 + head 頭", "definition": "在前方/向前"},
-          {"word": "Ago", "breakdown": "A 在 + go 走過", "definition": "很久以前"}
+          {"word": "Pneumonia", "breakdown": "Pneumon (肺) + ia (病)", "definition": "肺炎"},
+          {"word": "Pulmonologist", "breakdown": "Pulmono (肺) + logist (專家)", "definition": "胸腔科醫師"}
+        ]
+      },
+      {
+        "roots": ["hepat"],
+        "meaning": "肝臟 (Liver)",
+        "vocabulary": [
+          {"word": "Hepatitis", "breakdown": "Hepat (肝) + itis (發炎)", "definition": "肝炎"},
+          {"word": "Hepatomegaly", "breakdown": "Hepato (肝) + megaly (巨大)", "definition": "肝腫大"}
+        ]
+      },
+      {
+        "roots": ["myo"],
+        "meaning": "肌肉 (Muscle)",
+        "vocabulary": [
+          {"word": "Myalgia", "breakdown": "My (肌) + algia (痛)", "definition": "肌肉痛"},
+          {"word": "Myocarditis", "breakdown": "Myo (肌) + card (心) + itis", "definition": "心肌炎"}
+        ]
+      },
+      {
+        "roots": ["glyc"],
+        "meaning": "糖、甜 (Sugar)",
+        "vocabulary": [
+          {"word": "Hyperglycemia", "breakdown": "Hyper (過高) + glyc (糖) + emia (血症)", "definition": "高血糖"}
         ]
       }
     ]
-  },
-  {
-    "category": "心理與生命",
-    "root_groups": [
-      {
-        "roots": ["viv", "vit"],
-        "meaning": "活、生命",
-        "vocabulary": [
-          {"word": "Vivid", "breakdown": "Viv 活 + id 形容詞尾", "definition": "活生生的/鮮艷的"},
-          {"word": "Survive", "breakdown": "Sur 超過 + vive 活", "definition": "倖存/活下來"},
-          {"word": "Vitality", "breakdown": "Vit 生命 + ality 名詞尾", "definition": "活力/生命力"}
-        ]
-      },
-      {
-        "roots": ["path"],
-        "meaning": "感受、病理",
-        "vocabulary": [
-          {"word": "Antipathy", "breakdown": "Anti 反 + pathy 感受", "definition": "反感"},
-          {"word": "Empathy", "breakdown": "Em 進入 + pathy 感受", "definition": "同理心"},
-          {"word": "Sympathy", "breakdown": "Sym 共同 + pathy 感受", "definition": "同情心"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "動作與修飾",
-    "root_groups": [
-      {
-        "roots": ["fac", "fec", "fic"],
-        "meaning": "做、製作",
-        "vocabulary": [
-          {"word": "Factory", "breakdown": "Fac 做 + tory 場所", "definition": "工廠"},
-          {"word": "Efficient", "breakdown": "Ex 出來 + fic 做", "definition": "效率高的 (能做出成果的)"},
-          {"word": "Deficit", "breakdown": "De 不足 + fic 做", "definition": "赤字/不足額"},
-          {"word": "Magnificent", "breakdown": "Magni 大 + fic 做", "definition": "宏偉的/極好的"}
-        ]
-      },
-      {
-        "roots": ["cap", "capt", "cept", "ceive"],
-        "meaning": "拿、取、收",
-        "vocabulary": [
-          {"word": "Capture", "breakdown": "Capt 拿 + ure 名詞尾", "definition": "捕獲/捕捉"},
-          {"word": "Accept", "breakdown": "Ac 朝向 + cept 拿", "definition": "接受"},
-          {"word": "Conceive", "breakdown": "Con 共同/完全 + ceive 拿", "definition": "構思/懷孕"},
-          {"word": "Deceptive", "breakdown": "De 錯誤 + cept 拿", "definition": "欺騙性的 (誤導你的認知)"},
-          {"word": "Accident", "breakdown": "Ac 朝向 + cid 掉落 + ent 名詞尾", "definition": "意外/突然發生的事"}
-        ]
-      },
-      {
-        "roots": ["pel", "puls"],
-        "meaning": "推、驅使",
-        "vocabulary": [
-          {"word": "Expel", "breakdown": "Ex 往外 + pel 推", "definition": "開除/驅逐"},
-          {"word": "Propel", "breakdown": "Pro 向前 + pel 推", "definition": "推進/驅動"},
-          {"word": "Compel", "breakdown": "Con 加強 + pel 推", "definition": "強迫"},
-          {"word": "Impulse", "breakdown": "Im 往內 + pulse 推", "definition": "衝動/脈衝"}
-        ]
-      },
-      {
-        "roots": ["act"],
-        "meaning": "做、行動、驅動",
-        "vocabulary": [
-          {"word": "Action", "breakdown": "Act 行動 + ion 名詞尾", "definition": "活動/行為"},
-          {"word": "Active", "breakdown": "Act 行動 + ive 形容詞尾", "definition": "積極的/活躍的"},
-          {"word": "Actually", "breakdown": "Act 做/事實 + ual 形容詞尾 + ly 副詞尾", "definition": "實際上/確實"},
-          {"word": "Actor", "breakdown": "Act 演戲/行動 + or 人", "definition": "男演員"},
-          {"word": "Actress", "breakdown": "Act 演戲/行動 + ress 女性字尾", "definition": "女演員"}
-        ]
-      },
-      {
-        "roots": ["able", "cross", "al", "alb"],
-        "meaning": "能力、橫跨、屬性狀態",
-        "vocabulary": [
-          {"word": "Able", "breakdown": "Able 能力", "definition": "有能力的"},
-          {"word": "Across", "breakdown": "A 在... + cross 十字/橫越", "definition": "在…對面/橫過"},
-          {"word": "Alarm", "breakdown": "Al 朝向 + arm 武器", "definition": "拿起武器/警報"},
-          {"word": "Album", "breakdown": "Alb 白色", "definition": "用來留白的收集冊/相簿"}
-        ]
-      }
-    ]
-  },
-    {
-  "category": "醫學",
-  "root_groups": [
-    {
-      "roots": ["ophthalm-", "ocul-"],
-      "meaning": "眼睛 (Eye)",
-      "vocabulary": [
-        {"word": "Ophthalmology", "breakdown": "ophthalm- + -ology", "definition": "眼科學"},
-        {"word": "Binocular", "breakdown": "bi- (two) + ocul- + -ar", "definition": "雙筒鏡；雙眼的"}
-      ]
-    },
-    {
-      "roots": ["pneumo-", "pulmono-"],
-      "meaning": "肺、呼吸 (Lungs/Breath)",
-      "vocabulary": [
-        {"word": "Pneumonia", "breakdown": "pneumon- (lung) + -ia (condition)", "definition": "肺炎"},
-        {"word": "Pulmonologist", "breakdown": "pulmono- + -logist (specialist)", "definition": "胸腔/肺科醫師"}
-      ]
-    },
-    {
-      "roots": ["encephal-", "encephalo-"],
-      "meaning": "腦 (Brain)",
-      "vocabulary": [
-        {"word": "Encephalitis", "breakdown": "encephal- + -itis (inflammation)", "definition": "腦炎"},
-        {"word": "Electroencephalogram (EEG)", "breakdown": "electro- + encephalo- + -gram (record)", "definition": "腦波圖"}
-      ]
-    },
-    {
-      "roots": ["nephr-", "reno-"],
-      "meaning": "腎臟 (Kidney)",
-      "vocabulary": [
-        {"word": "Nephrotic", "breakdown": "nephro- + -tic (pertaining to)", "definition": "腎病的"},
-        {"word": "Renal failure", "breakdown": "ren- + -al", "definition": "腎衰竭"}
-      ]
-    },
-    {
-      "roots": ["arthr-", "arthro-"],
-      "meaning": "關節 (Joint)",
-      "vocabulary": [
-        {"word": "Arthroscopy", "breakdown": "arthro- + -scopy (viewing)", "definition": "關節鏡檢查"},
-        {"word": "Arthritis", "breakdown": "arthr- + -itis", "definition": "關節炎"}
-      ]
-    },
-    {
-      "roots": ["rhin-", "rhino-"],
-      "meaning": "鼻子 (Nose)",
-      "vocabulary": [
-        {"word": "Rhinoplasty", "breakdown": "rhino- + -plasty (surgical repair)", "definition": "鼻整形術 (隆鼻)"},
-        {"word": "Rhinitis", "breakdown": "rhin- + -itis", "definition": "鼻炎"}
-      ]
-    },
-    {
-      "roots": ["ot-", "oto-"],
-      "meaning": "耳朵 (Ear)",
-      "vocabulary": [
-        {"word": "Otolaryngology", "breakdown": "oto- + laryng- (throat) + -ology", "definition": "耳鼻喉科學"},
-        {"word": "Otoscope", "breakdown": "oto- + -scope (instrument)", "definition": "耳鏡"}
-      ]
-    },
-    {
-      "roots": ["hepat-", "hepato-"],
-      "meaning": "肝臟 (Liver)",
-      "vocabulary": [
-        {"word": "Hepatitis", "breakdown": "hepat- + -itis", "definition": "肝炎"},
-        {"word": "Hepatomegaly", "breakdown": "hepato- + -megaly (enlargement)", "definition": "肝腫大"}
-      ]
-    },
-    {
-      "roots": ["my-", "myo-"],
-      "meaning": "肌肉 (Muscle)",
-      "vocabulary": [
-        {"word": "Myalgia", "breakdown": "my- + -algia (pain)", "definition": "肌肉痛"},
-        {"word": "Myocarditis", "breakdown": "myo- + cardi- + -itis", "definition": "心肌炎"}
-      ]
-    },
-    {
-      "roots": ["onc-", "onco-"],
-      "meaning": "腫瘤 (Tumor/Bulk)",
-      "vocabulary": [
-        {"word": "Oncology", "breakdown": "onco- + -ology", "definition": "腫瘤學"},
-        {"word": "Oncogene", "breakdown": "onco- + gene", "definition": "致癌基因"}
-      ]
-    },
-    {
-      "roots": ["path-", "patho-"],
-      "meaning": "疾病、痛苦 (Disease/Suffering)",
-      "vocabulary": [
-        {"word": "Pathology", "breakdown": "patho- + -ology", "definition": "病理學"},
-        {"word": "Pathogen", "breakdown": "patho- + -gen (producer)", "definition": "病原體"}
-      ]
-    },
-    {
-      "roots": ["leuk-", "leuko-"],
-      "meaning": "白色 (White)",
-      "vocabulary": [
-        {"word": "Leukocyte", "breakdown": "leuko- + -cyte (cell)", "definition": "白血球"},
-        {"word": "Leukemia", "breakdown": "leuk- + -emia (blood condition)", "definition": "白血病"}
-      ]
-    },
-    {
-      "roots": ["glyc-", "glyco-"],
-      "meaning": "糖、甜 (Sugar/Sweet)",
-      "vocabulary": [
-        {"word": "Glycemia", "breakdown": "glyc- + -emia", "definition": "血糖值"},
-        {"word": "Hyperglycemia", "breakdown": "hyper- (over) + glyc- + -emia", "definition": "高血糖"}
-      ]
-    }
-  ]
+  }
 ]
