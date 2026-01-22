@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 import random
-import merge_pending  # 匯入你寫好的腳本
 
 # ==========================================
 # 1. 核心配置與數據處理
@@ -11,19 +10,30 @@ DB_FILE = 'etymon_database.json'
 PENDING_FILE = 'pending_data.json'
 
 def load_db():
+    """從 JSON 讀取主資料庫，確保資料不會丟失"""
     if os.path.exists(DB_FILE):
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            try: return json.load(f)
-            except: return []
+        try:
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if not content:
+                    return []
+                return json.loads(content)
+        except Exception as e:
+            st.error(f"讀取資料庫失敗: {e}")
+            return []
     return []
 
 def get_stats(data):
+    """計算目前的分類與單字總數"""
+    if not data: return 0, 0
     total_cats = len(data)
     total_words = sum(len(g.get('vocabulary', [])) for cat in data for g in cat.get('root_groups', []))
     return total_cats, total_words
+
 def merge_logic(pending_data):
+    """將 Pending 數據合併至主資料庫並去重"""
     try:
-        main_db = load_db()
+        main_db = load_db()  # 這裡會正確讀取現有資料
         pending_list = [pending_data] if isinstance(pending_data, dict) else pending_data
         added_cats, added_groups, added_words = 0, 0, 0
 
@@ -59,12 +69,14 @@ def merge_logic(pending_data):
         
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(main_db, f, ensure_ascii=False, indent=2)
-        return True, f"新增了 {added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
+        return True, f"成功併入：{added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
     except Exception as e:
         return False, f"錯誤: {str(e)}"
+
 # ==========================================
 # 2. UI 頁面組件
 # ==========================================
+
 def ui_admin_page():
     st.title("🛠️ 數據管理後台")
     ADMIN_PASSWORD = "8787"
@@ -94,35 +106,27 @@ def ui_admin_page():
 
     with tab1:
         st.subheader(f"從 `{PENDING_FILE}` 自動合併")
-        
-        # 檢查 Pending 檔案狀態
         is_pending_ready = os.path.exists(PENDING_FILE) and os.path.getsize(PENDING_FILE) > 2
         
         if not is_pending_ready:
-            st.info(f"✨ 目前 `{PENDING_FILE}` 是空的，沒有待合併數據。")
+            st.info(f"✨ 目前 `{PENDING_FILE}` 是空的。")
         else:
-            st.warning(f"注意：合併成功後，系統將強制清空 `{PENDING_FILE}`。")
+            st.warning(f"注意：合併成功後將清空 `{PENDING_FILE}`。")
         
         if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary", disabled=not is_pending_ready):
             try:
-                # 1. 讀取數據
                 with open(PENDING_FILE, 'r', encoding='utf-8') as f:
                     new_data = json.load(f)
                 
-                # 2. 合併邏輯
                 success, msg = merge_logic(new_data)
                 
                 if success:
-                    # 3. 強制物理清空 (使用 'w' 模式並立即寫入)
                     with open(PENDING_FILE, 'w', encoding='utf-8') as f:
                         json.dump([], f)
                         f.flush()
-                        os.fsync(f.fileno()) # 確保作業系統確實把內容寫入磁碟
-                    
-                    st.success(f"✅ 合併成功！{msg}")
+                        os.fsync(f.fileno())
+                    st.success(f"✅ {msg}")
                     st.balloons()
-                    
-                    # 4. 清除 Streamlit 快取並重新導向
                     st.cache_data.clear()
                     st.rerun()
                 else:
@@ -132,7 +136,7 @@ def ui_admin_page():
 
     with tab2:
         st.subheader("手動輸入合併")
-        json_input = st.text_area("在此貼上 JSON 內容", height=300, placeholder='[{"category": "...", "root_groups": [...]}]')
+        json_input = st.text_area("在此貼上 JSON 內容", height=300)
         if st.button("確認手動合併", use_container_width=True):
             if json_input.strip():
                 try:
@@ -267,15 +271,9 @@ def ui_quiz_page(data):
 def main():
     st.set_page_config(page_title="Etymon 智選", layout="wide")
     
-    st.markdown("""
-        <style>
-            header[data-testid="stHeader"] { background-color: rgba(0,0,0,0) !important; }
-            [data-testid="stSidebar"] { border-right: 1px solid #e0e0e0; }
-            [data-testid="stMetricLabel"] { color: #31333f !important; }
-        </style>
-    """, unsafe_allow_html=True)
-
+    # 每次運行都重新從硬碟讀取最新資料
     data = load_db()
+    
     st.sidebar.title("Etymon")
     menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
     
