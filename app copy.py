@@ -259,12 +259,12 @@ def ui_quiz_page(data):
     else:
         c1, c2 = st.columns(2)
         # 左邊按鈕：改為翻回正面
-        if c1.button("⬅️ 翻回正面", use_container_width=True):
+        if c1.button("翻回正面", use_container_width=True):
             st.session_state.is_flipped = False
             st.rerun()
         
         # 右邊按鈕：下一題
-        if c2.button("下一題 ➡️", use_container_width=True):
+        if c2.button("下一題", use_container_width=True):
             if 'flash_q' in st.session_state: del st.session_state.flash_q
             st.session_state.is_flipped = False # 確保下一題從正面開始
             st.rerun()
