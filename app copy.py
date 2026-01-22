@@ -162,14 +162,28 @@ def ui_medical_page(med_data):
                 cols = st.columns(2)
                 for i, v in enumerate(group['vocabulary']):
                     with cols[i % 2]:
+                        # --- 醫學專區通用卡片樣式修正開始 ---
                         st.markdown(f"""
-                        <div style="padding:15px; border-radius:10px; border-left:5px solid #ff4b4b; background-color:#f0f2f6; margin-bottom:10px;">
-                            <h4 style="margin:0; color:#1f77b4;">{v['word']}</h4>
-                            <p style="margin:5px 0; font-size:0.9rem;"><b>結構：</b><code>{v['breakdown']}</code></p>
-                            <p style="margin:0; font-weight:bold;">釋義：{v['definition']}</p>
+                        <div style="
+                            padding: 20px; 
+                            border-radius: 12px; 
+                            border-left: 6px solid #ff4b4b; 
+                            background-color: #ffffff; 
+                            margin-bottom: 15px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                            color: #31333f !important; /* 強制文字為深灰色 */
+                        ">
+                            <h4 style="margin: 0; color: #1f77b4; font-size: 1.3rem;">{v['word']}</h4>
+                            <div style="margin: 10px 0;">
+                                <span style="font-size: 0.85rem; color: #666666; font-weight: bold;">結構分析：</span>
+                                <code style="color: #0366d6; background-color: #f0f7ff; padding: 2px 6px; border-radius: 4px;">{v['breakdown']}</code>
+                            </div>
+                            <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 1rem; color: #31333f;">
+                                釋義：{v['definition']}
+                            </p>
                         </div>
                         """, unsafe_allow_html=True)
-
+                        # --- 修正結束 ---
 def ui_search_page(data, selected_cat):
     st.title("字根導覽")
     relevant_cats = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
@@ -239,13 +253,37 @@ def ui_quiz_page(data):
         st.session_state.is_flipped = False
 
     q = st.session_state.flash_q
-    
-    # 卡片 CSS
+        
+    for cat in med_data:
+        for group in cat['root_groups']:
+            label = f"{' / '.join(group['roots'])} → {group['meaning']}"
+            with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
+                cols = st.columns(2)
+                for i, v in enumerate(group['vocabulary']):
+                    with cols[i % 2]:
+                        # 統一鎖定卡片內的文字顏色，確保手機/電腦不吃字
     st.markdown(f"""
-    <div style="background:white; padding:40px; border-radius:20px; border:2px solid #f0f2f6; text-align:center; min-height:250px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
-        <small style="color:#888;">{q['cat'].upper()}</small>
-        <h1 style="font-size:3.5rem; margin:20px 0;">{q['word']}</h1>
-        {f'<hr><p style="font-size:1.2rem; color:#0366d6;"><code>{q["breakdown"]}</code></p><h3>{q["definition"]}</h3>' if st.session_state.is_flipped else '<p style="color:#ccc;">點擊下方按鈕查看答案</p>'}
+    <div style="
+        background-color: #ffffff; 
+        padding: 40px; 
+        border-radius: 20px; 
+        border: 1px solid #e0e0e0; 
+        text-align: center; 
+        min-height: 280px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        color: #31333f; /* 強制設定卡片全域文字為深灰色 */
+    ">
+        <small style="color: #888888; font-weight: bold;">{q['cat'].upper()}</small>
+        
+        <h1 style="font-size: 3.5rem; margin: 20px 0; color: #1f77b4;">{q['word']}</h1>
+        
+        {f'''
+            <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 20px 0;">
+            <p style="font-size: 1.2rem; color: #0366d6; background: #f0f7ff; display: inline-block; padding: 2px 10px; border-radius: 5px;">
+                <code>{q["breakdown"]}</code>
+            </p>
+            <h3 style="color: #31333f; margin-top: 15px;">{q["definition"]}</h3>
+        ''' if st.session_state.is_flipped else '<p style="color: #cccccc; margin-top: 50px;">點擊下方按鈕查看答案</p>'}
     </div>
     """, unsafe_allow_html=True)
 
