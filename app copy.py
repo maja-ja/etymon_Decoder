@@ -66,7 +66,7 @@ def get_stats(data):
 def ui_domain_page(domain_data, title, theme_color, bg_color):
     st.title(title)
     if not domain_data:
-        st.info("💡 目前資料庫中尚未建立相關分類。")
+        st.info("目前資料庫中尚未建立相關分類。")
         return
 
     # 提取字根
@@ -76,7 +76,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map: root_map[label] = group
     
-    selected_label = st.selectbox("🎯 選擇要複習的字根", sorted(root_map.keys()), key=title)
+    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
         group = root_map[selected_label]
@@ -88,7 +88,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     display_color = "#FFD700" if "法律" in title else theme_color
                     st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
                 with col_btn:
-                    if st.button("🔊 播放", key=f"v_{v['word']}_{title}"):
+                    if st.button("播放", key=f"v_{v['word']}_{title}"):
                         speak(v['word'])
                 
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
@@ -159,7 +159,7 @@ def ui_quiz_page(data):
             st.session_state.voiced = True
             
         st.markdown(f"""
-            <div style="background-color: #E3F2FD; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid #1E88E5;">
+            <div style="background-color: #000; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid #1E88E5;">
                 <p style="font-size: 2em; margin-bottom: 10px; color: #000"><b>拆解：</b> <span style="color: #D32F2F;">{q['breakdown']}</span></p>
                 <p style="font-size: 1.5em; color: #000"><b>釋義：</b> {q['definition']}</p>
             </div>
