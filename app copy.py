@@ -83,51 +83,72 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     <div style="font-size: 1.3em; color: #333;"><b>中文定義：</b> {v['definition']}</div>
                 </div>
             """, unsafe_allow_html=True)
-
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
-    all_cats = sorted(list(set(c['category'] for c in data)))
-    selected_cat = st.selectbox("選擇練習範圍", ["全部顯示"] + all_cats)
+    
+    # 1. 建立一個帶有數量的選單列表 (優化顯示)
+    cat_options_map = {} # 用來對應「顯示名稱」與「原始名稱」
+    cat_options_list = ["全部練習"]
+    
+    for c in data:
+        w_count = sum(len(g['vocabulary']) for g in c['root_groups'])
+        display_name = f"{c['category']} ({w_count} 字)"
+        cat_options_list.append(display_name)
+        cat_options_map[display_name] = c['category']
+    
+    # 2. 只有一個 selectbox，並從 map 中還原原始 category 名稱
+    selected_raw = st.selectbox("選擇練習範圍", sorted(cat_options_list))
+    selected_cat = cat_options_map.get(selected_raw, "全部練習")
 
-    # 切換分類時重置題目
+    # 3. 切換分類時重置題目
     if st.session_state.get('last_quiz_cat') != selected_cat:
         st.session_state.last_quiz_cat = selected_cat
-        if 'flash_q' in st.session_state: del st.session_state.flash_q
+        if 'flash_q' in st.session_state: 
+            del st.session_state.flash_q
+        st.rerun()
 
+    # 4. 抽題邏輯
     if 'flash_q' not in st.session_state:
-        if selected_cat == "全部顯示":
+        if selected_cat == "全部練習":
             pool = [{**v, "cat": c['category']} for c in data for g in c['root_groups'] for v in g['vocabulary']]
         else:
             pool = [{**v, "cat": c['category']} for c in data if c['category'] == selected_cat for g in c['root_groups'] for v in g['vocabulary']]
         
-        if not pool: st.warning("此範圍無資料"); return
+        if not pool: 
+            st.warning("此範圍目前沒有單字數據。")
+            return
+            
         st.session_state.flash_q = random.choice(pool)
         st.session_state.flipped = False
 
+    # 5. UI 顯示卡片
     q = st.session_state.flash_q
     st.markdown(f"""
-        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd;">
-            <p style="color: #999;">{q['cat']}</p>
+        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px;">
+            <p style="color: #999; font-size: 1.2em;">[ {q['cat']} ]</p>
             <h1 style="font-size: 4.5em; margin: 0; color: #1E88E5;">{q['word']}</h1>
         </div>
     """, unsafe_allow_html=True)
 
+    # 6. 按鈕控制
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("查看答案", use_container_width=True, type="primary"): st.session_state.flipped = True
+        if st.button("查看答案", use_container_width=True, type="primary"): 
+            st.session_state.flipped = True
     with col2:
         if st.button("下一題", use_container_width=True): 
-            if 'flash_q' in st.session_state: del st.session_state.flash_q
+            if 'flash_q' in st.session_state: 
+                del st.session_state.flash_q
             st.rerun()
 
+    # 7. 顯示答案
     if st.session_state.get('flipped'):
         st.markdown(f"""
             <div style="background-color: #E3F2FD; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid #1E88E5;">
-                <p style="font-size: 1.8em; margin-bottom: 10px;"><b>拆解：</b> <span style="color: #D32F2F;">{q['breakdown']}</span></p>
+                <p style="font-size: 2em; margin-bottom: 10px;"><b>拆解：</b> <span style="color: #D32F2F;">{q['breakdown']}</span></p>
                 <p style="font-size: 1.5em;"><b>釋義：</b> {q['definition']}</p>
             </div>
         """, unsafe_allow_html=True)
-
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
@@ -157,22 +178,29 @@ def main():
     st.set_page_config(page_title="Etymon Decoder", layout="wide")
     data = load_db()
     
-    # 計算統計數據
-    _, total_words = get_stats(data)
+    # 1. 側邊欄標題
+    st.sidebar.title("tymon Decoder")
     
-    st.sidebar.title("Etymon Decoder")
+    # 2. 導覽選單
+    menu = st.sidebar.radio("導覽", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "管理區"])
     
-    # 這裡新增：在側邊欄顯示總量
-    st.sidebar.metric("資料庫總單字數", f"{total_words} Words")
     st.sidebar.divider()
     
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "管理區"])
-    
-    if st.sidebar.button("強制刷新數據"): 
+    # 3. 強制刷新按鈕
+    if st.sidebar.button("強制刷新雲端數據", use_container_width=True): 
         st.cache_data.clear()
         st.rerun()
+    
+    # 4. 在刷新按鈕下方顯示單字總量 (使用大字體樣式)
+    _, total_words = get_stats(data)
+    st.sidebar.markdown(f"""
+        <div style="text-align: center; padding: 10px; background-color: #f0f2f6; border-radius: 10px; margin-top: 10px;">
+            <p style="margin: 0; font-size: 0.9em; color: #666;">資料庫總計</p>
+            <p style="margin: 0; font-size: 1.8em; font-weight: bold; color: #1E88E5;">{total_words} <span style="font-size: 0.5em;">Words</span></p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # --- 以下為各區呼叫邏輯 ---
+    # --- 以下為各分頁呼叫邏輯 (維持不變) ---
     if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
