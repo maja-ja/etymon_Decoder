@@ -67,7 +67,7 @@ def get_stats(data):
 def ui_domain_page(domain_data, title, theme_color, bg_color):
     st.title(title)
     if not domain_data:
-        st.info("💡 目前資料庫中尚未建立相關分類。")
+        st.info("目前資料庫中尚未建立相關分類。")
         return
 
     root_map = {}
@@ -76,7 +76,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map: root_map[label] = group
     
-    selected_label = st.selectbox("🎯 選擇要複習的字根", sorted(root_map.keys()), key=title)
+    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
         group = root_map[selected_label]
@@ -88,7 +88,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                         <div style="font-size: 2.2em; font-weight: bold; color: {theme_color};">{v['word']}</div>
                     """, unsafe_allow_html=True)
                 with col_btn:
-                    if st.button("🔊 發音", key=f"v_{v['word']}"):
+                    if st.button("發音", key=f"v_{v['word']}"):
                         speak(v['word'])
                 
                 st.markdown(f"""
@@ -139,10 +139,10 @@ def ui_quiz_page(data):
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        if st.button("👀 查看答案", use_container_width=True, type="primary"): 
+        if st.button("查看答案", use_container_width=True): 
             st.session_state.flipped = True
     with col2:
-        if st.button("🔊 播放", use_container_width=True):
+        if st.button("播放", use_container_width=True):
             speak(q['word'])
     with col3:
         if st.button("➡️ 下一題", use_container_width=True): 
