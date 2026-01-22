@@ -2,6 +2,8 @@ import streamlit as st
 import json
 import os
 import random
+import streamlit as st
+import merge_pending  # 匯入你剛才寫好的腳本
 
 # ==========================================
 # 1. 核心配置與數據處理
@@ -69,9 +71,8 @@ def merge_logic(pending_data):
 # ==========================================
 # 2. UI 頁面組件
 # ==========================================
-
 def ui_admin_page():
-    st.title("數據管理後台")
+    st.title("🛠️ 數據管理後台")
     ADMIN_PASSWORD = "8787"
     
     if 'admin_authenticated' not in st.session_state:
@@ -87,53 +88,65 @@ def ui_admin_page():
                 st.error("密碼錯誤")
         return
 
-    # 管理介面
-    if st.button("登出管理台"):
-        st.session_state.admin_authenticated = False
-        st.rerun()
+    # 管理介面頂部資訊
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.write("目前登入：管理員 (Admin)")
+    with col2:
+        if st.button("登出管理台", use_container_width=True):
+            st.session_state.admin_authenticated = False
+            st.rerun()
 
-    tab1, tab2 = st.tabs(["方案 A：一鍵合併檔案", "方案 B：手動貼上 JSON"])
+    st.divider()
+
+    tab1, tab2 = st.tabs(["方案 A：一鍵合併 pending 檔案", "方案 B：手動貼上 JSON"])
 
     with tab1:
-        st.subheader("從 `pending_data.json` 合併")
-        if st.button("執行一鍵合併", use_container_width=True):
+        st.subheader("從 `pending_data.json` 自動合併")
+        st.markdown("""
+        1. 請確認新的單字 JSON 已經存在 `pending_data.json` 檔案中。
+        2. 點擊下方按鈕，系統會自動比對分類與字根組。
+        3. 重複的單字將會被自動跳過。
+        """)
+        
+        # 呼叫你獨立寫好的 merge_pending.py 邏輯
+        if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
             if not os.path.exists(PENDING_FILE):
-                st.error(f"找不到 `{PENDING_FILE}`")
+                st.error(f"❌ 找不到 `{PENDING_FILE}` 檔案")
             else:
                 try:
-                    with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                        content = json.load(f)
-                    if content:
-                        success, msg = merge_logic(content)
-                        if success:
-                            with open(PENDING_FILE, 'w', encoding='utf-8') as f:
-                                json.dump([], f)
-                            st.success(msg)
-                            st.cache_data.clear()
-                        else:
-                            st.warning(msg)
+                    # 直接呼叫 merge_pending.py 裡的函數
+                    # 注意：這會執行你在 merge_pending 裡寫的所有邏輯（含備份與清空檔案）
+                    merge_pending.merge_data() 
+                    
+                    st.success("✅ 資料庫一鍵合併完成！")
+                    st.balloons()
+                    st.cache_data.clear() # 清除 Streamlit 快取
+                    st.rerun() # 立即刷新顯示最新的數據統計
                 except Exception as e:
-                    st.error(f"處理失敗: {e}")
+                    st.error(f"合併過程中發生錯誤: {e}")
 
     with tab2:
-        json_input = st.text_area("在此貼上 JSON 內容", height=200)
-        if st.button("執行手動合併"):
-            try:
-                data = json.loads(json_input)
-                success, msg = merge_logic(data)
-                if success:
-                    st.success(msg)
-                    st.cache_data.clear()
-            except:
-                st.error("JSON 格式無效")
-
+        st.subheader("手動輸入合併")
+        json_input = st.text_area("在此貼上 JSON 內容", height=300, placeholder="[ { 'category': '...', ... } ]")
+        if st.button("執行手動合併", use_container_width=True):
+            if json_input.strip():
+                try:
+                    data = json.loads(json_input)
+                    success, msg = merge_logic(data)
+                    if success:
+                        st.success(msg)
+                        st.cache_data.clear()
+                        st.rerun()
+                    else:
+                        st.warning(msg)
+                except Exception as e:
+                    st.error(f"JSON 格式無效或處理失敗: {e}")
+            else:
+                st.warning("請輸入內容")
 def ui_medical_page(med_data):
     st.title("醫學術語專業區")
     st.info("醫學術語通常由字根(Root)、前綴(Prefix)與後綴(Suffix)組成。")
-    
-    # 插入醫學解剖輔助圖示
-    st.markdown("---")
-    
 
     all_med_roots = []
     for cat in med_data:
