@@ -57,7 +57,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
     """通用專業區域：醫學、法律、AI、高中均可共用"""
     st.title(title)
     if not domain_data:
-        st.info(f"💡 目前資料庫中尚未建立相關分類。")
+        st.info(f"目前資料庫中尚未建立相關分類。")
         return
 
     # 提取所有字根組合
@@ -67,7 +67,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map: root_map[label] = group
     
-    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
+    selected_label = st.selectbox("請選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
         group = root_map[selected_label]
