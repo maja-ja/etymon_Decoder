@@ -1,169 +1,185 @@
 [
   {
-    "category": "五感與行為",
+    "category": "高中英文常見字根",
     "root_groups": [
+      {
+        "roots": ["bio"],
+        "meaning": "生命",
+        "vocabulary": [
+          {"word": "biology", "breakdown": "bio(生命)+logy(學科)", "definition": "生物學"},
+          {"word": "biography", "breakdown": "bio(生命)+graphy(書寫)", "definition": "傳記"},
+          {"word": "biodegradable", "breakdown": "bio(生命)+degrade(分解)+able(能夠)", "definition": "可生物分解的"}
+        ]
+      },
+      {
+        "roots": ["geo"],
+        "meaning": "地球、土地",
+        "vocabulary": [
+          {"word": "geography", "breakdown": "geo(地球)+graphy(書寫)", "definition": "地理學"},
+          {"word": "geology", "breakdown": "geo(地球)+logy(學科)", "definition": "地質學"},
+          {"word": "geometry", "breakdown": "geo(土地)+metry(測量)", "definition": "幾何學"}
+        ]
+      },
+      {
+        "roots": ["tele"],
+        "meaning": "遠距",
+        "vocabulary": [
+          {"word": "telephone", "breakdown": "tele(遠)+phone(聲音)", "definition": "電話"},
+          {"word": "television", "breakdown": "tele(遠)+vision(看)", "definition": "電視"},
+          {"word": "telescope", "breakdown": "tele(遠)+scope(看)", "definition": "望遠鏡"}
+        ]
+      },
+      {
+        "roots": ["graph"],
+        "meaning": "書寫、圖表",
+        "vocabulary": [
+          {"word": "photograph", "breakdown": "photo(光)+graph(書寫)", "definition": "照片"},
+          {"word": "paragraph", "breakdown": "para(旁)+graph(書寫)", "definition": "段落"},
+          {"word": "autograph", "breakdown": "auto(自己)+graph(書寫)", "definition": "親筆簽名"}
+        ]
+      },
+      {
+        "roots": ["logy"],
+        "meaning": "學科、研究",
+        "vocabulary": [
+          {"word": "psychology", "breakdown": "psycho(心靈)+logy(學科)", "definition": "心理學"},
+          {"word": "sociology", "breakdown": "socio(社會)+logy(學科)", "definition": "社會學"},
+          {"word": "ecology", "breakdown": "eco(環境)+logy(學科)", "definition": "生態學"}
+        ]
+      },
+      {
+        "roots": ["photo"],
+        "meaning": "光",
+        "vocabulary": [
+          {"word": "photosynthesis", "breakdown": "photo(光)+synthesis(合成)", "definition": "光合作用"},
+          {"word": "photography", "breakdown": "photo(光)+graphy(書寫)", "definition": "攝影"},
+          {"word": "photocopier", "breakdown": "photo(光)+copy(複製)", "definition": "影印機"}
+        ]
+      },
+      {
+        "roots": ["micro"],
+        "meaning": "小",
+        "vocabulary": [
+          {"word": "microscope", "breakdown": "micro(小)+scope(看)", "definition": "顯微鏡"},
+          {"word": "microbiology", "breakdown": "micro(小)+bio(生命)+logy(學科)", "definition": "微生物學"},
+          {"word": "microchip", "breakdown": "micro(小)+chip(晶片)", "definition": "微晶片"}
+        ]
+      },
+      {
+        "roots": ["macro"],
+        "meaning": "大",
+        "vocabulary": [
+          {"word": "macroeconomics", "breakdown": "macro(大)+economics(經濟學)", "definition": "總體經濟學"},
+          {"word": "macrocosm", "breakdown": "macro(大)+cosm(宇宙)", "definition": "宏觀世界"},
+          {"word": "macrostructure", "breakdown": "macro(大)+structure(結構)", "definition": "宏觀結構"}
+        ]
+      },
+      {
+        "roots": ["auto"],
+        "meaning": "自己",
+        "vocabulary": [
+          {"word": "autobiography", "breakdown": "auto(自己)+bio(生命)+graphy(書寫)", "definition": "自傳"},
+          {"word": "automatic", "breakdown": "auto(自己)+matic(運作)", "definition": "自動的"},
+          {"word": "autonomous", "breakdown": "auto(自己)+nomous(管理)", "definition": "自治的"}
+        ]
+      },
+      {
+        "roots": ["chrono"],
+        "meaning": "時間",
+        "vocabulary": [
+          {"word": "chronology", "breakdown": "chrono(時間)+logy(學科)", "definition": "年代學"},
+          {"word": "chronic", "breakdown": "chrono(時間)+ic(形容詞)", "definition": "慢性的"},
+          {"word": "chronicle", "breakdown": "chrono(時間)+icle(記錄)", "definition": "編年史"}
+        ]
+      },
+      {
+        "roots": ["therm"],
+        "meaning": "熱",
+        "vocabulary": [
+          {"word": "thermometer", "breakdown": "therm(熱)+meter(測量)", "definition": "溫度計"},
+          {"word": "thermal", "breakdown": "therm(熱)+al(形容詞)", "definition": "熱的"},
+          {"word": "thermodynamics", "breakdown": "therm(熱)+dynamics(動力學)", "definition": "熱力學"}
+        ]
+      },
+      {
+        "roots": ["hydro"],
+        "meaning": "水",
+        "vocabulary": [
+          {"word": "hydrology", "breakdown": "hydro(水)+logy(學科)", "definition": "水文學"},
+          {"word": "hydroelectric", "breakdown": "hydro(水)+electric(電)", "definition": "水力發電的"},
+          {"word": "dehydrate", "breakdown": "de(去除)+hydro(水)", "definition": "脫水"}
+        ]
+      },
+      {
+        "roots": ["aero"],
+        "meaning": "空氣",
+        "vocabulary": [
+          {"word": "aeroplane", "breakdown": "aero(空氣)+plane(平面)", "definition": "飛機"},
+          {"word": "aerodynamics", "breakdown": "aero(空氣)+dynamics(動力學)", "definition": "空氣動力學"},
+          {"word": "aerospace", "breakdown": "aero(空氣)+space(太空)", "definition": "航太"}
+        ]
+      },
+      {
+        "roots": ["astro"],
+        "meaning": "星星、宇宙",
+        "vocabulary": [
+          {"word": "astronomy", "breakdown": "astro(星星)+nomy(學科)", "definition": "天文學"},
+          {"word": "astronaut", "breakdown": "astro(星星)+naut(水手)", "definition": "太空人"},
+          {"word": "astrophysics", "breakdown": "astro(宇宙)+physics(物理)", "definition": "天文物理學"}
+        ]
+      },
+      {
+        "roots": ["eco"],
+        "meaning": "環境",
+        "vocabulary": [
+          {"word": "ecosystem", "breakdown": "eco(環境)+system(系統)", "definition": "生態系"},
+          {"word": "ecology", "breakdown": "eco(環境)+logy(學科)", "definition": "生態學"},
+          {"word": "ecofriendly", "breakdown": "eco(環境)+friendly(友善的)", "definition": "環保的"}
+        ]
+      },
+      {
+        "roots": ["ped"],
+        "meaning": "腳",
+        "vocabulary": [
+          {"word": "pedestrian", "breakdown": "ped(腳)+ian(人)", "definition": "行人"},
+          {"word": "biped", "breakdown": "bi(二)+ped(腳)", "definition": "雙足動物"},
+          {"word": "pedal", "breakdown": "ped(腳)+al(名詞)", "definition": "踏板"}
+        ]
+      },
+      {
+        "roots": ["scrib"],
+        "meaning": "寫",
+        "vocabulary": [
+          {"word": "describe", "breakdown": "de(完全)+scrib(寫)", "definition": "描述"},
+          {"word": "manuscript", "breakdown": "manu(手)+script(寫)", "definition": "手稿"},
+          {"word": "inscription", "breakdown": "in(進入)+script(寫)", "definition": "銘文"}
+        ]
+      },
+      {
+        "roots": ["vid"],
+        "meaning": "看",
+        "vocabulary": [
+          {"word": "video", "breakdown": "vid(看)+eo(名詞)", "definition": "影片"},
+          {"word": "evidence", "breakdown": "e(出)+vid(看)+ence(名詞)", "definition": "證據"},
+          {"word": "vision", "breakdown": "vis(看)+ion(名詞)", "definition": "視力"}
+        ]
+      },
       {
         "roots": ["dict"],
-        "meaning": "說、話、言論",
+        "meaning": "說",
         "vocabulary": [
-          {"word": "Contradict", "breakdown": "Contra (相反) + dict (說)", "definition": "矛盾/反駁"},
-          {"word": "Predict", "breakdown": "Pre (預先) + dict (說)", "definition": "預測/預言"},
-          {"word": "Verdict", "breakdown": "Ver (真實) + dict (說)", "definition": "判決/定論"},
-          {"word": "Dictator", "breakdown": "Dict (說) + ator (者)", "definition": "獨裁者"},
-          {"word": "Indict", "breakdown": "In (進入) + dict (說)", "definition": "起訴/控告"}
+          {"word": "dictionary", "breakdown": "dict(說)+ionary(工具)", "definition": "字典"},
+          {"word": "predict", "breakdown": "pre(之前)+dict(說)", "definition": "預測"},
+          {"word": "dictate", "breakdown": "dict(說)+ate(動詞)", "definition": "口述"}
         ]
       },
-      {
-        "roots": ["log", "loqu"],
-        "meaning": "說話、言語",
-        "vocabulary": [
-          {"word": "Dialogue", "breakdown": "Dia (兩者間) + log (說)", "definition": "對話"},
-          {"word": "Apology", "breakdown": "Apo (遠離/辯解) + log (說)", "definition": "道歉/辯白"},
-          {"word": "Eloquent", "breakdown": "E (出) + loqu (說)", "definition": "雄辯的/口才流利的"},
-          {"word": "Loquacious", "breakdown": "Loqu (說) + acious (多...的)", "definition": "滔滔不絕的"},
-          {"word": "Monologue", "breakdown": "Mono (單一) + log (說)", "definition": "獨白"}
-        ]
-      },
-      {
-        "roots": ["claim", "clam"],
-        "meaning": "大喊、宣稱",
-        "vocabulary": [
-          {"word": "Exclaim", "breakdown": "Ex (出) + claim (喊)", "definition": "驚叫/呼喊"},
-          {"word": "Proclaim", "breakdown": "Pro (向前) + claim (喊)", "definition": "宣布/公告"},
-          {"word": "Reclaim", "breakdown": "Re (回) + claim (喊)", "definition": "拿回/開墾"}
-        ]
-      },
-      {
-        "roots": ["voc", "vok"],
-        "meaning": "聲音、召喚",
-        "vocabulary": [
-          {"word": "Advocate", "breakdown": "Ad (往) + voc (說/聲)", "definition": "擁護/提倡"},
-          {"word": "Provoke", "breakdown": "Pro (向前) + vok (呼)", "definition": "激怒/挑釁"},
-          {"word": "Equivocal", "breakdown": "Equi (平等) + voc (聲)", "definition": "模稜兩可的"}
-        ]
-      },
-      {
-        "roots": ["scop", "vis", "vid", "spect", "spic"],
-        "meaning": "看、觀察",
-        "vocabulary": [
-          {"word": "Telescope", "breakdown": "Tele (遠) + scope (看)", "definition": "望遠鏡"},
-          {"word": "Invisible", "breakdown": "In (不) + vis (見)", "definition": "看不見的"},
-          {"word": "Evident", "breakdown": "E (出) + vid (看)", "definition": "顯而易見的"},
-          {"word": "Prospect", "breakdown": "Pro (前) + spect (看)", "definition": "前景/展望"},
-          {"word": "Conspicuous", "breakdown": "Con (加強) + spic (看)", "definition": "顯眼的/引人注目的"}
-        ]
-      },
-      {
-        "roots": ["aud", "audit", "phon", "son"],
-        "meaning": "聽、聲",
-        "vocabulary": [
-          {"word": "Audition", "breakdown": "Aud (聽) + ition (名詞尾)", "definition": "試鏡/聽力測試"},
-          {"word": "Inaudible", "breakdown": "In (不) + aud (聽)", "definition": "聽不見的"},
-          {"word": "Auditorium", "breakdown": "Audit (聽) + orium (場所)", "definition": "禮堂/觀眾席"},
-          {"word": "Symphony", "breakdown": "Sym (共同) + phon (聲)", "definition": "交響樂"},
-          {"word": "Resonate", "breakdown": "Re (再) + son (聲) + ate", "definition": "共鳴/迴響"}
-        ]
-      },
-      {
-        "roots": ["tact", "tang", "sens", "sent"],
-        "meaning": "觸、感、情感",
-        "vocabulary": [
-          {"word": "Contact", "breakdown": "Con (共同) + tact (觸)", "definition": "接觸/聯繫"},
-          {"word": "Tangible", "breakdown": "Tang (觸) + ible (可...的)", "definition": "有形的/可觸知的"},
-          {"word": "Sentiment", "breakdown": "Sent (感覺) + iment (名詞尾)", "definition": "情緒/感傷"},
-          {"word": "Consent", "breakdown": "Con (共同) + sent (感)", "definition": "同意/答允"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "寫與畫",
-    "root_groups": [
-      {
-        "roots": ["graph", "gram", "scrib", "scrip"],
-        "meaning": "書寫、圖表、描繪",
-        "vocabulary": [
-          {"word": "Autograph", "breakdown": "Auto (自己) + graph (寫)", "definition": "親筆簽名"},
-          {"word": "Telegram", "breakdown": "Tele (遠) + gram (寫)", "definition": "電報"},
-          {"word": "Prescribe", "breakdown": "Pre (預先) + scribe (寫)", "definition": "開處方/規定"},
-          {"word": "Manuscript", "breakdown": "Manu (手) + script (寫)", "definition": "手稿/原稿"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "移動與空間",
-    "root_groups": [
       {
         "roots": ["port"],
-        "meaning": "拿、運、港口",
+        "meaning": "搬運、帶",
         "vocabulary": [
-          {"word": "Import", "breakdown": "Im (入) + port (運)", "definition": "進口"},
-          {"word": "Export", "breakdown": "Ex (出) + port (運)", "definition": "出口"},
-          {"word": "Portable", "breakdown": "Port (拿) + able (可...的)", "definition": "輕便的/手提式的"},
-          {"word": "Portfolio", "breakdown": "Port (拿) + folio (葉/紙)", "definition": "作品集/投資組合"}
-        ]
-      },
-      {
-        "roots": ["tract"],
-        "meaning": "拉、抽",
-        "vocabulary": [
-          {"word": "Attract", "breakdown": "At (往) + tract (拉)", "definition": "吸引"},
-          {"word": "Extract", "breakdown": "Ex (出) + tract (拉)", "definition": "萃取/抽出"},
-          {"word": "Distract", "breakdown": "Dis (分散) + tract (拉)", "definition": "使分心"}
-        ]
-      },
-      {
-        "roots": ["ced", "ceed", "cess"],
-        "meaning": "走、前進",
-        "vocabulary": [
-          {"word": "Precede", "breakdown": "Pre (先) + cede (走)", "definition": "優先於/在...之前"},
-          {"word": "Proceed", "breakdown": "Pro (向月) + ceed (走)", "definition": "繼續進行"},
-          {"word": "Recession", "breakdown": "Re (後) + cess (走) + ion", "definition": "經濟衰退/後退"}
-        ]
-      }
-    ]
-  },
-  {
-    "category": "醫學專區",
-    "root_groups": [
-      {
-        "roots": ["ophthalm", "ocul"],
-        "meaning": "眼睛 (Eye)",
-        "vocabulary": [
-          {"word": "Ophthalmology", "breakdown": "Ophthalm (眼) + ology (學問)", "definition": "眼科學"},
-          {"word": "Binocular", "breakdown": "Bi (二) + ocul (眼) + ar", "definition": "雙筒鏡/雙眼的"}
-        ]
-      },
-      {
-        "roots": ["pneumo", "pulmono"],
-        "meaning": "肺、呼吸 (Lungs/Breath)",
-        "vocabulary": [
-          {"word": "Pneumonia", "breakdown": "Pneumon (肺) + ia (病)", "definition": "肺炎"},
-          {"word": "Pulmonologist", "breakdown": "Pulmono (肺) + logist (專家)", "definition": "胸腔科醫師"}
-        ]
-      },
-      {
-        "roots": ["hepat"],
-        "meaning": "肝臟 (Liver)",
-        "vocabulary": [
-          {"word": "Hepatitis", "breakdown": "Hepat (肝) + itis (發炎)", "definition": "肝炎"},
-          {"word": "Hepatomegaly", "breakdown": "Hepato (肝) + megaly (巨大)", "definition": "肝腫大"}
-        ]
-      },
-      {
-        "roots": ["myo"],
-        "meaning": "肌肉 (Muscle)",
-        "vocabulary": [
-          {"word": "Myalgia", "breakdown": "My (肌) + algia (痛)", "definition": "肌肉痛"},
-          {"word": "Myocarditis", "breakdown": "Myo (肌) + card (心) + itis", "definition": "心肌炎"}
-        ]
-      },
-      {
-        "roots": ["glyc"],
-        "meaning": "糖、甜 (Sugar)",
-        "vocabulary": [
-          {"word": "Hyperglycemia", "breakdown": "Hyper (過高) + glyc (糖) + emia (血症)", "definition": "高血糖"}
+          {"word": "transport", "breakdown": "trans(跨越)+port(搬運)", "definition": "運輸"},
+          {"word": "portable", "breakdown": "port(帶)+able(能夠)", "definition": "可攜式的"},
+          {"word": "export", "breakdown": "ex(出)+port(帶)", "definition": "出口"}
         ]
       }
     ]
