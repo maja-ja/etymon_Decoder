@@ -3,7 +3,22 @@ import json
 import os
 import random
 import pandas as pd
-
+def speak(text):
+    """將文字轉為語音並播放"""
+    try:
+        tts = gTTS(text=text, lang='en')
+        fp = BytesIO()
+        tts.write_to_fp(fp)
+        fp.seek(0)
+        audio_base64 = base64.b64encode(fp.read()).decode()
+        audio_html = f"""
+            <audio autoplay>
+                <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+            </audio>
+        """
+        st.components.v1.html(audio_html, height=0)
+    except Exception as e:
+        st.error(f"語音功能暫時失效: {e}")
 # ==========================================
 # 1. 核心配置與雲端同步
 # ==========================================
