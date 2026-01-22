@@ -149,15 +149,16 @@ def ui_medical_page(med_data):
     st.info("醫學術語通常由字根(Root)、前綴(Prefix)與後綴(Suffix)組成。")
 
     all_med_roots = []
+    # 這裡開始縮進第一層 (4個空格)
     for cat in med_data:
-        # 修正：這裡必須縮進
+        # 這裡必須縮進第二層 (8個空格)
         for group in cat.get('root_groups', []):
             all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
     
     selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
     
+    # 這裡同樣要注意縮進
     for cat in med_data:
-        # 修正：這裡必須縮進
         for group in cat.get('root_groups', []):
             label = f"{' / '.join(group['roots'])} → {group['meaning']}"
             with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
