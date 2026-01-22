@@ -1,39 +1,111 @@
-# 詞根宇宙 (Etymon Universe) V1.1
-> **利用 AI 協作開發與模糊論邏輯，重構語言學習的底層系統。**
+# 🧠 Etymon Decoder 程式邏輯說明（繁中）
 
-🔗 https://etymon-universe.streamlit.app/
+本專案是一個基於 **Streamlit** 開發的英語字根學習工具，結合了 **Google Sheets 雲端同步** 與 **在地化資料管理** 的雙軌邏輯。
 
-## 🚀 專案願景
-「學習不該是痛苦的記憶碎片，而是有跡可循的解碼過程。」
-詞根宇宙是一個基於 Python 與 AI 技術開發的教育工具，旨在透過字根字首的邏輯拆解，配合動態校準系統，協助學習者建立結構化的單字記憶體系。
+## 🏗️ 核心架構邏輯
 
-## 🛠 技術架構
-本專案採用 **由下而上 (Bottom-Up)** 的開發思維，透過 AI 輔助進行全棧開發與快速迭代。
+### 1. 資料雙軌同步 (Sync Logic)
 
-- **前端框架**: Streamlit (用於快速構建互動式數據 Web App)
-- **核心邏輯**: Python (處理數據過濾、隨機演算法與測驗機制)
-- **數據管理**: JSON (優化單字儲存格式，確保跨平台讀取的相容性與擴充性)
-- **開發模式**: AI-Assisted Development (透過精準提示詞工程管理代碼產出與除錯)
+程式採用「雲端為主，在地為輔」的設計：
 
+* **雲端讀取**：啟動時透過 `pandas` 直接讀取公開的 Google Sheets CSV 連結。
+* **在地備援**：若網路斷線或雲端讀取失敗，程式會自動切換讀取本地的 `etymon_database.json`。
+* **格式轉換**：將扁平的試算表表格（Table）轉化為巢狀的 JSON 結構，以對應「分類 > 字根組 > 單字」的層級關係。
 
+### 2. 資料層級設計 (Data Hierarchy)
 
-## ✨ 核心功能
-* **導覽解碼 (Decoder)**: 結構化呈現字根資訊，將複雜單字拆解為可理解的元件。
-* **隨機單字卡 (Quiz)**: 動態生成測驗內容，提供即時反饋。
-* **數據校準系統**: 持續優化數據儲存格式，提升系統檢索效能。
-* **模糊論指標 (Beta)**: 正在開發中的核心功能，利用指標理論評斷使用者對單字的掌握度權重，而非傳統的二分法判定。
-* **GitHub API 自動化同步**：整合 GitHub API 實現數據動態更新機制，確保測驗數據與字根庫能透過 API 進行遠端版本控管與即時校準。
+資料在程式內部以以下邏輯組織：
 
-## 📈 版本迭代紀錄
-* **V1.1**: 優化測驗反饋體驗、統一 JSON 數據存儲格式、新增「希望單字」協作區。
-* **V1.0**: 建立基礎 Decoder 邏輯與 Streamlit 網頁架構。
+* **Category (分類)**：如「高中常見字根」、「專業醫學術語」。
+* **Root Group (字根組)**：包含同義的多個字根（如 `vis/vid`）及其核心意義。
+* **Vocabulary (單字庫)**：包含單字、拆解（Breakdown）及釋義。
 
-## 💡 關於開發者：Kadowsella 
-我是一名非學校型態自學生，擅長利用 AI 工具進行系統性的開發與自學。我的開發風格強調「結構化」與「共情設計」，致力於將複雜的學科邏輯（如古語言、機器人系統 ROS）轉化為直觀的技術應用。
+### 3. 功能模組邏輯
+
+#### 🔍 字根導覽 (Search Engine)
+
+* **篩選邏輯**：支援按「分類」過濾，並提供即時關鍵字檢索。
+* **展示邏輯**：使用 `st.expander` 摺疊顯示，保持介面簡潔。
+
+#### 🧠 學習區 (Flashcard Logic)
+
+* **隨機算法**：從當前所有資料中隨機抽樣（Random Sampling）一個單字。
+* **狀態管理**：利用 `st.session_state` 紀錄目前抽到的題目與卡片翻轉狀態（正面/背面），確保頁面重整時題目不會消失。
+
+#### 🏥 醫學專區 (Niche Filtering)
+
+* **自動分流**：程式會自動篩選分類名稱中包含「醫學」關鍵字的資料夾，獨立展示在專業區塊。
+
+#### 🛠️ 管理後台 (Admin & Merge Logic)
+
+* **身份驗證**：簡單的密碼雜湊與 Session 鎖定。
+* **資料合併 (Merge)**：提供「一鍵合併」功能，將 `pending_data.json`（外部匯入的新單字）併入主資料庫，並具備**重複單字過濾**機制。
+* **逆向導出**：支援將 JSON 結構重新攤平成 CSV 表格，方便管理員下載並更新回 Google Sheets。
+# -----------
+# 🧠 Etymon Decoder 程序逻辑说明 (简体中文)
+
+本项目是一个基于 **Streamlit** 开发的英语词根学习工具，采用 **Google Sheets 云端同步** 与 **本地化数据管理** 的双轨逻辑。
+
+### 🏗️ 核心架构逻辑
+
+#### 1. 数据双轨同步 (Sync Logic)
+
+程序采用“云端为主，本地为辅”的设计：
+
+* **云端读取**：启动时通过 `pandas` 直接读取公开的 Google Sheets CSV 链接。
+* **本地备援**：若网络故障或云端读取失败，程序会自动切换读取本地的 `etymon_database.json`。
+* **格式转换**：将扁平的电子表格（Table）转化为嵌套的 JSON 结构，以对应“分类 > 词根组 > 单词”的层级关系。
+
+#### 2. 数据层级设计 (Data Hierarchy)
+
+数据在程序内部通过以下逻辑组织：
+
+* **Category (分类)**：如“高中常见词根”、“专业医学术语”。
+* **Root Group (词根组)**：包含同义的多个词根（如 `vis/vid`）及其核心意义。
+* **Vocabulary (单词库)**：包含单词、拆解（Breakdown）及释义。
+
+#### 3. 功能模块逻辑
+
+* **🔍 词根导览 (Search Engine)**：支持按分类过滤，并利用即时关键词检索功能。使用 `st.expander` 折叠显示，保持界面简洁。
+* **🧠 学习区 (Flashcard Logic)**：从当前数据中随机抽样（Random Sampling）单词。利用 `st.session_state` 记录题目与卡片翻转状态，确保页面刷新时进度不丢失。
+* **🏥 医学专区 (Niche Filtering)**：程序自动筛选分类名称中包含“医学”关键字的数据，进行独立展示。
+* **🛠️ 管理后台 (Admin & Merge Logic)**：提供“一键合并”功能，将 `pending_data.json` 里的新数据并入主数据库，并具备**重复单词过滤**机制。
 
 ---
-© 2026 Kadowsella. 開發日誌持續更新中。
-<img width="1920" height="1080" alt="截圖 2026-01-18 下午4 52 25" src="https://github.com/user-attachments/assets/f764a185-fc1f-4db5-8c15-1d41d2f7bec2" />
-<img width="1920" height="1080" alt="截圖 2026-01-18 下午4 52 32" src="https://github.com/user-attachments/assets/9f70195c-06c1-44f8-8eaf-632d26cac29e" />
-<img width="1920" height="1080" alt="截圖 2026-01-18 下午4 52 36" src="https://github.com/user-attachments/assets/4c02cce8-2ff1-4def-9bb8-f3537b9e8a9d" />
+# 🧠 Etymon Decoder – Logic & Architecture (English Version)
 
+Etymon Decoder is an English etymology learning tool built with **Streamlit**. It features a hybrid data architecture combining **Google Sheets Cloud Sync** with **Local JSON management**.
+
+### 🏗️ Core Logic Flow
+
+#### 1. Dual-Track Data Sync
+
+The program follows a "Cloud-First, Local-Backup" strategy:
+
+* **Cloud Fetching**: Upon startup, the app uses `pandas` to fetch live data from a public Google Sheets CSV export link.
+* **Local Fallback**: If the network is unavailable or the cloud link fails, the system automatically switches to the local `etymon_database.json`.
+* **Data Transformation**: It transforms flat spreadsheet rows into a nested JSON object to handle the "Category > Root Group > Vocabulary" hierarchy.
+
+#### 2. Data Hierarchy Design
+
+Data is structured within the application as follows:
+
+* **Category**: High-level grouping (e.g., "High School Vocabulary").
+* **Root Group**: Clusters of synonymous roots (e.g., `vis / vid`) and their core meaning (e.g., "to see").
+* **Vocabulary**: Individual words including their structural breakdown and definition.
+
+#### 3. Functional Modules
+
+* **🔍 Root Explorer (Search Engine)**: Supports filtering by Category and real-time keyword searching. Uses `st.expander` to keep the interface clean while browsing large datasets.
+* **🧠 Learning Center (Flashcard Logic)**: Uses randomized sampling to present words. Utilizes `st.session_state` to track the current card and its "flipped" status, preventing data loss during page re-runs.
+* **🏥 Medical Specialty Zone**: The system automatically filters any category containing the keyword "Medical" and displays it in a dedicated professional layout.
+* **🛠️ Admin & Merge Logic**: Features a "One-Click Merge" function that integrates new words from `pending_data.json` into the main database with a **duplicate-check mechanism**.
+
+---
+
+### 🛠️ Technical Stack
+
+* **Frontend**: Streamlit
+* **Data Handling**: Pandas, JSON
+* **Cloud Integration**: Google Sheets API (via CSV endpoint)
+* **Language**: Python 3.13
