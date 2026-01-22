@@ -4,9 +4,10 @@ import os
 import random
 
 # ==========================================
-# 1. 核心配置
+# 1. 核心配置與數據處理
 # ==========================================
 DB_FILE = 'etymon_database.json'
+PENDING_FILE = 'pending_data.json'
 
 def load_db():
     if os.path.exists(DB_FILE):
@@ -20,53 +21,34 @@ def get_stats(data):
     total_words = sum(len(g.get('vocabulary', [])) for cat in data for g in cat.get('root_groups', []))
     return total_cats, total_words
 
-# ==========================================
-# 2. UI 組件
-# ==========================================
-# ==========================================
-# 數據合併核心邏輯
-# ==========================================
-# ==========================================
-# 3. 數據合併核心邏輯 (這段是你漏掉的關鍵)
-# ==========================================
-
 def merge_logic(pending_data):
     try:
-        # 讀取目前的主資料庫
         main_db = load_db()
-        
-        # 統一輸入格式：不管是單一個分類物件還是串列，都轉成串列處理
         pending_list = [pending_data] if isinstance(pending_data, dict) else pending_data
-
         added_cats, added_groups, added_words = 0, 0, 0
 
         for new_cat in pending_list:
             cat_name = new_cat.get("category", "").strip()
             if not cat_name: continue
             
-            # 尋找現有分類是否已存在
             target_cat = next((c for c in main_db if c["category"] == cat_name), None)
             
             if not target_cat:
-                # 分類不存在，直接整塊新增
                 main_db.append(new_cat)
                 added_cats += 1
                 for g in new_cat.get("root_groups", []):
                     added_words += len(g.get("vocabulary", []))
             else:
-                # 分類已存在，檢查字根組
                 for new_group in new_cat.get("root_groups", []):
                     new_roots = set(new_group.get("roots", []))
                     target_group = next((g for g in target_cat.get("root_groups", []) 
                                        if set(g.get("roots", [])) == new_roots), None)
                     
                     if not target_group:
-                        # 分類在，但這組字根不在 -> 新增字根組
                         target_cat["root_groups"].append(new_group)
                         added_groups += 1
                         added_words += len(new_group.get("vocabulary", []))
                     else:
-                        # 分類和字根都在 -> 合併單字並去重
                         existing_words = {v["word"].lower().strip() for v in target_group.get("vocabulary", [])}
                         for v in new_group.get("vocabulary", []):
                             word_clean = v["word"].lower().strip()
@@ -75,113 +57,108 @@ def merge_logic(pending_data):
                                 existing_words.add(word_clean)
                                 added_words += 1
         
-        # 如果完全沒有新單字，回報失敗
         if added_cats == 0 and added_groups == 0 and added_words == 0:
-            return False, "資料庫中已存在相同的資料，未進行更新。"
+            return False, "資料庫中已存在相同的資料。"
 
-        # 存檔至 etymon_database.json
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(main_db, f, ensure_ascii=False, indent=2)
-            
         return True, f"新增了 {added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
-
     except Exception as e:
-        return False, f"合併邏輯出錯: {str(e)}"
+        return False, f"錯誤: {str(e)}"
+
+# ==========================================
+# 2. UI 頁面組件
+# ==========================================
+
 def ui_admin_page():
-    st.title("數據管理後台")
-    
-    # --- 權限驗證 ---
-    ADMIN_PASSWORD = "8787"  # 👈 你的密碼
+    st.title("🛠️ 數據管理後台")
+    ADMIN_PASSWORD = "8787"
     
     if 'admin_authenticated' not in st.session_state:
         st.session_state.admin_authenticated = False
 
     if not st.session_state.admin_authenticated:
-        st.info("此區域受密碼保護")
         pwd_input = st.text_input("請輸入管理員密碼", type="password")
         if st.button("登入"):
             if pwd_input == ADMIN_PASSWORD:
                 st.session_state.admin_authenticated = True
-                st.success("身分驗證成功！")
                 st.rerun()
             else:
-                st.error("密碼錯誤，請重新輸入。")
+                st.error("密碼錯誤")
         return
 
-    # --- 通過驗證後的管理介面 ---
-    col_header, col_logout = st.columns([4, 1])
-    col_header.markdown("數據導入與合併")
-    if col_logout.button("登出管理台"):
+    # 管理介面
+    if st.button("登出管理台"):
         st.session_state.admin_authenticated = False
         st.rerun()
-# --- 方案 A：自動合併現有檔案 ---
-    st.subheader("方案 A：一鍵快速合併 (File to Database)")
-    
-    # 💡 必須先定義變數，才能在下方的 markdown 或 logic 中使用
-    PENDING_FILE = 'pending_data.json'
-    
-    st.markdown(f"將 `{PENDING_FILE}` 的內容直接合併至主資料庫並清空原檔案。")
-    
-    if st.button("🚀 執行一鍵合併", use_container_width=True, type="secondary"):
-        if not os.path.exists(PENDING_FILE):
-            st.error(f"❌ 錯誤：找不到 `{PENDING_FILE}` 檔案。")
-        else:
-            try:
-                with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                    content = json.load(f)
-                
-                # 檢查內容是否有效
-                if not content or (isinstance(content, list) and len(content) == 0):
-                    st.warning(f"標記：`{PENDING_FILE}` 目前是空的，無需合併。")
-                else:
-                    # 1. 執行核心合併邏輯 (會自動寫入 etymon_database.json)
-                    success, msg = merge_logic(content) 
-                    
-                    if success:
-                        # 2. 合併成功後，清空 pending_data.json 檔案
-                        with open(PENDING_FILE, 'w', encoding='utf-8') as f:
-                            json.dump([], f, ensure_ascii=False, indent=2)
-                        
-                        st.success(f"✅ 合併成功！{msg}")
-                        st.info(f"系統已自動清空 `{PENDING_FILE}`。")
-                        
-                        # 3. 強制刷新快取並重新整理頁面，確保側邊欄統計數據同步更新
-                        st.cache_data.clear()
-                        st.rerun()
-                    else:
-                        st.error(f"合併失敗：{msg}")
-                        
-            except json.JSONDecodeError:
-                st.error(f"❌ 錯誤：`{PENDING_FILE}` 格式不是有效的 JSON。")
-            except Exception as e:
-                st.error(f"發生意外錯誤: {e}")
-    # --- 方案 B：原有的貼上 JSON 合併 ---
-    st.subheader("方案 B：手動貼上數據")
-    st.markdown("在此貼上新的 JSON 數據，系統將自動去重並合併。")
-    json_input = st.text_area("JSON 數據輸入", height=200, 
-                             placeholder='{"category": "醫學術語", "root_groups": [...] }')
-    
-    if st.button("執行手動合併", type="primary"):
-        if json_input.strip():
-            try:
-                pending_data = json.loads(json_input)
-                success, msg = merge_logic(pending_data) 
-                if success:
-                    st.success(f"✅ {msg}")
-                    st.cache_data.clear() 
-                else:
-                    st.error(msg)
-            except json.JSONDecodeError:
-                st.error("❌ JSON 格式錯誤。")
-        else:
-            st.warning("⚠️ 貼上內容不能為空。")
 
-    with st.expander("查看範例結構"):
-        st.code('{"category": "醫學", "root_groups": [{"roots": ["..."], "meaning": "...", "vocabulary": [...]}]}', language="json")
-def ui_search_page(data, selected_cat):
-    st.title("字根導覽")
+    tab1, tab2 = st.tabs(["方案 A：一鍵合併檔案", "方案 B：手動貼上 JSON"])
+
+    with tab1:
+        st.subheader("從 `pending_data.json` 合併")
+        if st.button("🚀 執行一鍵合併", use_container_width=True):
+            if not os.path.exists(PENDING_FILE):
+                st.error(f"找不到 `{PENDING_FILE}`")
+            else:
+                try:
+                    with open(PENDING_FILE, 'r', encoding='utf-8') as f:
+                        content = json.load(f)
+                    if content:
+                        success, msg = merge_logic(content)
+                        if success:
+                            with open(PENDING_FILE, 'w', encoding='utf-8') as f:
+                                json.dump([], f)
+                            st.success(msg)
+                            st.cache_data.clear()
+                        else:
+                            st.warning(msg)
+                except Exception as e:
+                    st.error(f"處理失敗: {e}")
+
+    with tab2:
+        json_input = st.text_area("在此貼上 JSON 內容", height=200)
+        if st.button("執行手動合併"):
+            try:
+                data = json.loads(json_input)
+                success, msg = merge_logic(data)
+                if success:
+                    st.success(msg)
+                    st.cache_data.clear()
+            except:
+                st.error("JSON 格式無效")
+
+def ui_medical_page(med_data):
+    st.title("🏥 醫學術語專業區")
+    st.info("醫學術語通常由字根(Root)、前綴(Prefix)與後綴(Suffix)組成。")
     
-    # 1. 根據大類過濾
+    # 插入醫學解剖輔助圖示
+    st.markdown("---")
+    
+
+    all_med_roots = []
+    for cat in med_data:
+        for group in cat['root_groups']:
+            all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
+    
+    selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
+    
+    for cat in med_data:
+        for group in cat['root_groups']:
+            label = f"{' / '.join(group['roots'])} → {group['meaning']}"
+            with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
+                cols = st.columns(2)
+                for i, v in enumerate(group['vocabulary']):
+                    with cols[i % 2]:
+                        st.markdown(f"""
+                        <div style="padding:15px; border-radius:10px; border-left:5px solid #ff4b4b; background-color:#f0f2f6; margin-bottom:10px;">
+                            <h4 style="margin:0; color:#1f77b4;">{v['word']}</h4>
+                            <p style="margin:5px 0; font-size:0.9rem;"><b>結構：</b><code>{v['breakdown']}</code></p>
+                            <p style="margin:0; font-weight:bold;">釋義：{v['definition']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+def ui_search_page(data, selected_cat):
+    st.title("🔍 字根導覽")
     relevant_cats = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
     
     root_options = []
@@ -192,79 +169,36 @@ def ui_search_page(data, selected_cat):
             root_options.append(label)
             root_to_group[label] = (cat['category'], group)
     
-    # 2. 字根快選
-    selected_root_label = st.selectbox(f"字根選單 ({selected_cat})", ["顯示全部"] + root_options)
-    
+    selected_root_label = st.selectbox("選擇字根組", ["顯示全部"] + root_options)
     st.divider()
 
-    # 3. 顯示邏輯 (移除所有 random.choice 相關代碼)
     if selected_root_label == "顯示全部":
-        query = st.text_input("檢索單字", placeholder="在目前範圍內搜尋...").lower().strip()
+        query = st.text_input("檢索單字", placeholder="輸入單字搜尋...").lower().strip()
         for label in root_options:
             cat_name, group = root_to_group[label]
             matched_v = [v for v in group['vocabulary'] if query in v['word'].lower()] if query else group['vocabulary']
-            
             if matched_v:
-                st.markdown(f"### {label}")
+                st.markdown(f"#### {label}")
                 for v in matched_v:
-                    # 確保 is_expanded 是布林值
                     with st.expander(f"{v['word']}", expanded=bool(query)):
                         st.write(f"結構: `{v['breakdown']}`")
                         st.write(f"釋義: {v['definition']}")
     else:
-        # 顯示單一字根組
         cat_name, group = root_to_group[selected_root_label]
-        st.subheader(f"分類：{cat_name}")
+        st.caption(f"分類：{cat_name}")
         for v in group['vocabulary']:
-            with st.expander(f"{v['word']}", expanded=False):
+            with st.expander(f"{v['word']}", expanded=True):
                 st.write(f"結構: `{v['breakdown']}`")
                 st.write(f"釋義: {v['definition']}")
-def ui_medical_page(med_data):
-    st.title("醫學術語專業區")
-    st.markdown("醫學單字是由精確的**構詞元件**組成的，掌握字根即可推導出複雜術語。")
-    
-    # 建立側邊欄過濾或上方索引
-    all_med_roots = []
-    for cat in med_data:
-        for group in cat['root_groups']:
-            all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
-    
-    selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
-    
-    st.divider()
-    
-    # 顯示內容
-    for cat in med_data:
-        for group in cat['root_groups']:
-            # 如果符合選取的字根則展開，否則預設折疊
-            label = f"{' / '.join(group['roots'])} → {group['meaning']}"
-            is_expanded = (label == selected_med)
-            
-            with st.expander(f"核心字根：{label}", expanded=is_expanded):
-                cols = st.columns(2)
-                for i, v in enumerate(group['vocabulary']):
-                    with cols[i % 2]:
-                        st.markdown(f"""
-                        <div style="padding:15px; border-radius:10px; border-left:5px solid #ff4b4b; background-color:#f0f2f6; margin-bottom:10px;">
-                            <h4 style="margin:0; color:#1f77b4;">{v['word']}</h4>
-                            <p style="margin:5px 0; font-size:0.9rem;"><b>拆解：</b><code>{v['breakdown']}</code></p>
-                            <p style="margin:0; font-weight:bold;">釋義：{v['definition']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-def ui_quiz_page(data):
-    # 0. 基礎狀態初始化
-    if 'failed_words' not in st.session_state:
-        st.session_state.failed_words = set()
-    if 'quiz_active' not in st.session_state:
-        st.session_state.quiz_active = False
 
-    # 1. 初始設定畫面
+def ui_quiz_page(data):
+    if 'failed_words' not in st.session_state: st.session_state.failed_words = set()
+    if 'quiz_active' not in st.session_state: st.session_state.quiz_active = False
+
     if not st.session_state.quiz_active:
-        st.title("記憶卡片")
+        st.title("🎴 記憶卡片")
         categories = ["全部隨機"] + sorted([c['category'] for c in data])
         selected_quiz_cat = st.selectbox("選擇練習範圍", categories)
-        
-        st.divider()
         if st.button("開始練習", use_container_width=True):
             st.session_state.selected_quiz_cat = selected_quiz_cat
             st.session_state.quiz_active = True
@@ -272,152 +206,80 @@ def ui_quiz_page(data):
             st.rerun()
         return
 
-    # 2. 練習模式：頂部工具欄
-    st.title("記憶卡片")
+    # 練習介面
     col_t1, col_t2 = st.columns([4, 1])
-    col_t1.caption(f"目前範圍: {st.session_state.selected_quiz_cat}")
-    if col_t2.button("結束", use_container_width=True):
+    col_t1.caption(f"範圍: {st.session_state.selected_quiz_cat}")
+    if col_t2.button("結束"):
         st.session_state.quiz_active = False
-        if 'flash_q' in st.session_state: del st.session_state.flash_q
         st.rerun()
 
-    # 3. 準備題目池
-    if st.session_state.selected_quiz_cat == "全部隨機":
-        relevant_data = data
-    else:
-        relevant_data = [c for c in data if c['category'] == st.session_state.selected_quiz_cat]
-
-    all_words = [{**v, "cat": cat['category']} for cat in relevant_data 
-                 for group in cat.get('root_groups', []) 
-                 for v in group.get('vocabulary', [])]
+    relevant_data = data if st.session_state.selected_quiz_cat == "全部隨機" else [c for c in data if c['category'] == st.session_state.selected_quiz_cat]
+    all_words = [{**v, "cat": cat['category']} for cat in relevant_data for group in cat.get('root_groups', []) for v in group.get('vocabulary', [])]
 
     if not all_words:
-        st.warning("查無單字。")
-        if st.button("返回"):
-            st.session_state.quiz_active = False
-            st.rerun()
+        st.warning("查無資料")
+        st.session_state.quiz_active = False
         return
 
-    # 4. 智慧抽題邏輯
     if 'flash_q' not in st.session_state:
-        st.session_state.is_review = False
-        if st.session_state.failed_words and random.random() > 0.5:
-            failed_pool = [w for w in all_words if w['word'] in st.session_state.failed_words]
-            if failed_pool:
-                st.session_state.flash_q = random.choice(failed_pool)
-                st.session_state.is_review = True
-            else:
-                st.session_state.flash_q = random.choice(all_words)
-        else:
-            st.session_state.flash_q = random.choice(all_words)
+        st.session_state.flash_q = random.choice(all_words)
         st.session_state.is_flipped = False
 
     q = st.session_state.flash_q
-    is_review = st.session_state.get('is_review', False)
-    is_flipped_class = "flipped" if st.session_state.is_flipped else ""
-
-    # 建立複習標籤
-    review_tag = '<span style="background-color:#ffeef0;color:#d73a49;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:bold;margin-left:10px;border:1px solid #f9c2c7;">複習</span>' if is_review else ""
-
-    # 5. 卡片渲染
-    card_html = f"""
-    <style>
-    .flip-card {{ background-color: transparent; width: 100%; height: 350px; perspective: 1000px; }}
-    .flip-card-inner {{ position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }}
-    .flipped {{ transform: rotateY(180deg); }}
-    .flip-card-front, .flip-card-back {{ 
-        position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
-        border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        background: white; border: 1px solid #e1e4e8; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }}
-    .flip-card-back {{ transform: rotateY(180deg); padding: 40px; }}
-    </style>
-    <div class="flip-card">
-        <div class="flip-card-inner {is_flipped_class}">
-            <div class="flip-card-front">
-                <div style="display:flex; align-items:center; justify-content:center;">
-                    <small style="color:#888;">{q['cat'].upper()}</small>{review_tag}
-                </div>
-                <h1 style="font-size:3.2rem; font-weight:700; margin:15px 0; color:#1a1a1a;">{q['word']}</h1>
-                <div style="font-size:0.7rem; color:#ccc;">等待翻轉...</div>
-            </div>
-            <div class="flip-card-back">
-                <div style="text-align:left; width:100%;">
-                    <div style="font-size:0.8rem; color:#888;">STRUCTURE</div>
-                    <div style="font-family:monospace; font-size:1.1rem; color:#0366d6; margin-bottom:20px;">{q['breakdown']}</div>
-                    <div style="font-size:0.8rem; color:#888;">MEANING</div>
-                    <div style="font-size:1.4rem; font-weight:700; color:#24292e;">{q['definition']}</div>
-                </div>
-            </div>
-        </div>
+    
+    # 卡片 CSS
+    st.markdown(f"""
+    <div style="background:white; padding:40px; border-radius:20px; border:2px solid #f0f2f6; text-align:center; min-height:250px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+        <small style="color:#888;">{q['cat'].upper()}</small>
+        <h1 style="font-size:3.5rem; margin:20px 0;">{q['word']}</h1>
+        {f'<hr><p style="font-size:1.2rem; color:#0366d6;"><code>{q["breakdown"]}</code></p><h3>{q["definition"]}</h3>' if st.session_state.is_flipped else '<p style="color:#ccc;">點擊下方按鈕查看答案</p>'}
     </div>
-    """
-    st.markdown(card_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    # 6. 控制按鈕 (整合翻回功能)
     st.write("")
     if not st.session_state.is_flipped:
-        if st.button("查看答案", use_container_width=True):
+        if st.button("翻轉卡片", use_container_width=True, type="primary"):
             st.session_state.is_flipped = True
             st.rerun()
     else:
-        # 當卡片翻開時，顯示三個功能按鈕
-        c1, c2, c3 = st.columns([1, 1, 1])
-        
-        if c1.button("標記陌生", use_container_width=True):
+        c1, c2 = st.columns(2)
+        if c1.button("下一題", use_container_width=True):
+            if 'flash_q' in st.session_state: del st.session_state.flash_q
+            st.rerun()
+        if c2.button("標記陌生", use_container_width=True):
             st.session_state.failed_words.add(q['word'])
             if 'flash_q' in st.session_state: del st.session_state.flash_q
             st.rerun()
-            
-        if c2.button("翻回正面", use_container_width=True):
-            st.session_state.is_flipped = False
-            st.rerun()
-            
-        if c3.button("標記熟練", use_container_width=True):
-            st.session_state.failed_words.discard(q['word'])
-            if 'flash_q' in st.session_state: del st.session_state.flash_q
-            st.rerun()
+
 # ==========================================
-# 3. 主程序
+# 3. 主程序入口
 # ==========================================
 
 def main():
-    st.set_page_config(page_title="Etymon", layout="wide")
+    st.set_page_config(page_title="Etymon 智選", layout="wide")
     data = load_db()
     
-    st.sidebar.title("Etymon")
+    st.sidebar.title("🧬 Etymon")
+    menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
     
-    # 導航功能
-    menu_options = ["字根導覽", "記憶卡片", "醫學專區", "管理後台"]
-    choice = st.sidebar.radio("功能選單", menu_options)
-    
-    # 分類選單 (僅在導覽頁顯示，或作為全域過濾)
     st.sidebar.divider()
     categories = ["全部顯示"] + sorted([c['category'] for c in data])
-    selected_cat = st.sidebar.selectbox("選擇分類", categories)
+    selected_cat = st.sidebar.selectbox("全域過濾分類", categories)
     
-    # 數據統計
     c_count, w_count = get_stats(data)
-    st.sidebar.divider()
-    st.sidebar.write("**統計**")
-    st.sidebar.text(f"分類總數: {c_count}")
-    st.sidebar.text(f"單字總量: {w_count}")
-    # 在 main() 函數中修改導航功能
-    
-    if choice == "字根導覽":
-        ui_search_page(data, selected_cat)
-    elif choice == "記憶卡片":
-        ui_quiz_page(data)
-    elif choice == "醫學專區":
-        # 直接過濾出醫學分類
-        med_data = [c for c in data if "醫學" in c['category']]
-        if med_data:
-            ui_medical_page(med_data)
-        else:
-            st.info("目前資料庫中尚無醫學分類資料。請在 JSON 中新增標籤為 '醫學' 的分類。")
-    elif choice == "管理後台":
-        ui_admin_page() # 呼叫新功能
+    st.sidebar.metric("目前分類", c_count)
+    st.sidebar.metric("總單字量", w_count)
 
+    if menu == "字根導覽":
+        ui_search_page(data, selected_cat)
+    elif menu == "記憶卡片":
+        ui_quiz_page(data)
+    elif menu == "醫學專區":
+        med_data = [c for c in data if "醫學" in c['category']]
+        if med_data: ui_medical_page(med_data)
+        else: st.info("尚未導入醫學分類數據")
+    elif menu == "管理後台":
+        ui_admin_page()
 
 if __name__ == "__main__":
     main()
