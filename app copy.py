@@ -182,7 +182,7 @@ def main():
     st.sidebar.title("tymon Decoder")
     
     # 2. 導覽選單
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"])
+    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區"])
     
     st.sidebar.divider()
     
