@@ -198,24 +198,55 @@ def ui_admin_page():
         st.dataframe(df_export, use_container_width=True)
         csv = df_export.to_csv(index=False).encode('utf-8-sig')
         st.download_button("下載備份 CSV", csv, "etymon_backup.csv", "text/csv")
-
 def ui_medical_page(med_data):
-    st.title("醫學區")
+    st.title("🩺 醫學專業術語區")
+    
+    if not med_data:
+        st.info("尚未包含醫學相關分類。")
+        return
+
+    # 1. 提取醫學分類下的所有字根
+    root_options = []
+    root_map = {} 
+
     for cat in med_data:
-        st.caption(f"分類: {cat['category']}")
         for group in cat.get('root_groups', []):
-            label = f"{' / '.join(group['roots'])} -> {group['meaning']}"
-            with st.expander(label):
-                cols = st.columns(2)
-                for i, v in enumerate(group.get('vocabulary', [])):
-                    with cols[i % 2]:
-                        st.markdown(f"""
-                        <div style="border:1px solid #ddd; padding:10px; border-radius:10px; margin-bottom:10px;">
-                            <h4 style="margin:0;">{v['word']}</h4>
-                            <p style="font-size:0.8em; color:#888;">拆解: {v['breakdown']}</p>
-                            <p style="margin-top:5px;">{v['definition']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+            label = f"{'/'.join(group['roots'])} ({group['meaning']})"
+            if label not in root_map:
+                root_map[label] = group
+                root_options.append(label)
+    
+    root_options.sort()
+
+    # 2. 字根選擇器
+    selected_label = st.selectbox("🔍 選擇醫學字根 (Root/Combining Form)", root_options)
+    
+    if selected_label:
+        selected_group = root_map[selected_label]
+        
+        # 顯示該字根的核心意義
+        st.success(f"**核心字根內容：{selected_label}**")
+        
+        # 3. 呈現醫學單字卡
+        for v in selected_group.get('vocabulary', []):
+            st.markdown(f"""
+                <div style="border: 2px solid #e0e0e0; padding: 20px; border-radius: 15px; margin-bottom: 15px; background-color: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 2em; font-weight: bold; color: #007BFF;">{v['word']}</span>
+                    </div>
+                    <hr style="margin: 10px 0;">
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-size: 1.1em; font-weight: bold; color: #555;">構造拆解：</span>
+                        <span style="font-size: 1.6em; color: #D32F2F; font-family: monospace; background: #FFF3E0; padding: 2px 8px; border-radius: 5px;">
+                            {v['breakdown']}
+                        </span>
+                    </div>
+                    <div>
+                        <span style="font-size: 1.1em; font-weight: bold; color: #555;">中文定義：</span>
+                        <span style="font-size: 1.3em; color: #333;">{v['definition']}</span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 
 def ui_search_page(data, selected_cat):
     st.title("字根區")
