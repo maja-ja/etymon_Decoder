@@ -26,65 +26,7 @@ def get_stats(data):
 # ==========================================
 # 數據合併核心邏輯
 # ==========================================
-
-def merge_logic(pending_data):
-    """
-    處理 JSON 合併的核心邏輯：
-    1. 支援單一物件 {} 或 物件串列 []
-    2. 自動檢查分類 (category) 是否存在
-    3. 自動檢查字根組 (roots) 是否存在
-    4. 自動對單字 (word) 進行去重
-    """
-    try:
-        # 1. 讀取現有資料庫
-        main_db = load_db()
-        
-        # 2. 統一輸入格式為串列
-        if isinstance(pending_data, dict):
-            pending_list = [pending_data]
-        else:
-            pending_list = pending_data
-
-        added_cats = 0
-        added_groups = 0
-        added_words = 0
-
-        for new_cat in pending_list:
-            cat_name = new_cat.get("category")
-            # 尋找現有分類
-            target_cat = next((c for c in main_db if c["category"] == cat_name), None)
-            
-            if not target_cat:
-                main_db.append(new_cat)
-                added_cats += 1
-            else:
-                # 分類已存在，遍歷字根組
-                for new_group in new_cat.get("root_groups", []):
-                    new_roots = set(new_group["roots"])
-                    target_group = next((g for g in target_cat["root_groups"] 
-                                       if set(g["roots"]) == new_roots), None)
-                    
-                    if not target_group:
-                        target_cat["root_groups"].append(new_group)
-                        added_groups += 1
-                    else:
-                        # 字根組已存在，合併單字並去重
-                        existing_words = {v["word"].lower() for v in target_group["vocabulary"]}
-                        for v in new_group["vocabulary"]:
-                            if v["word"].lower() not in existing_words:
-                                target_group["vocabulary"].append(v)
-                                existing_words.add(v["word"].lower())
-                                added_words += 1
-        
-        # 3. 寫回資料庫檔案
-        with open(DB_FILE, 'w', encoding='utf-8') as f:
-            json.dump(main_db, f, ensure_ascii=False, indent=2)
-            
-        summary = f"新增了 {added_cats} 個分類, {added_groups} 組字根, {added_words} 個單字。"
-        return True, summary
-
-    except Exception as e:
-        return False, f"合併過程中發生錯誤: {str(e)}"
+etymon_database.json
 
 def ui_admin_page():
     st.title("數據管理後台")
