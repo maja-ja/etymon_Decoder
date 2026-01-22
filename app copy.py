@@ -150,19 +150,19 @@ def ui_medical_page(med_data):
 
     all_med_roots = []
     for cat in med_data:
-        for group in cat['root_groups']:
+        for group in cat.get('root_groups', []):
             all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
     
     selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
     
+    # --- 這裡開始是修正縮進的重點區域 ---
     for cat in med_data:
-        for group in cat['root_groups']:
+        for group in cat.get('root_groups', []):
             label = f"{' / '.join(group['roots'])} → {group['meaning']}"
             with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
                 cols = st.columns(2)
-                for i, v in enumerate(group['vocabulary']):
+                for i, v in enumerate(group.get('vocabulary', [])):
                     with cols[i % 2]:
-                        # --- 醫學專區通用卡片樣式修正開始 ---
                         st.markdown(f"""
                         <div style="
                             padding: 20px; 
@@ -171,7 +171,7 @@ def ui_medical_page(med_data):
                             background-color: #ffffff; 
                             margin-bottom: 15px;
                             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                            color: #31333f !important; /* 強制文字為深灰色 */
+                            color: #31333f !important;
                         ">
                             <h4 style="margin: 0; color: #1f77b4; font-size: 1.3rem;">{v['word']}</h4>
                             <div style="margin: 10px 0;">
@@ -183,7 +183,6 @@ def ui_medical_page(med_data):
                             </p>
                         </div>
                         """, unsafe_allow_html=True)
-                        # --- 修正結束 ---
 def ui_search_page(data, selected_cat):
     st.title("字根導覽")
     relevant_cats = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
