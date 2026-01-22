@@ -26,6 +26,67 @@ def get_stats(data):
 # ==========================================
 # 數據合併核心邏輯
 # ==========================================
+# ==========================================
+# 3. 數據合併核心邏輯 (這段是你漏掉的關鍵)
+# ==========================================
+
+def merge_logic(pending_data):
+    try:
+        # 讀取目前的主資料庫
+        main_db = load_db()
+        
+        # 統一輸入格式：不管是單一個分類物件還是串列，都轉成串列處理
+        pending_list = [pending_data] if isinstance(pending_data, dict) else pending_data
+
+        added_cats, added_groups, added_words = 0, 0, 0
+
+        for new_cat in pending_list:
+            cat_name = new_cat.get("category", "").strip()
+            if not cat_name: continue
+            
+            # 尋找現有分類是否已存在
+            target_cat = next((c for c in main_db if c["category"] == cat_name), None)
+            
+            if not target_cat:
+                # 分類不存在，直接整塊新增
+                main_db.append(new_cat)
+                added_cats += 1
+                for g in new_cat.get("root_groups", []):
+                    added_words += len(g.get("vocabulary", []))
+            else:
+                # 分類已存在，檢查字根組
+                for new_group in new_cat.get("root_groups", []):
+                    new_roots = set(new_group.get("roots", []))
+                    target_group = next((g for g in target_cat.get("root_groups", []) 
+                                       if set(g.get("roots", [])) == new_roots), None)
+                    
+                    if not target_group:
+                        # 分類在，但這組字根不在 -> 新增字根組
+                        target_cat["root_groups"].append(new_group)
+                        added_groups += 1
+                        added_words += len(new_group.get("vocabulary", []))
+                    else:
+                        # 分類和字根都在 -> 合併單字並去重
+                        existing_words = {v["word"].lower().strip() for v in target_group.get("vocabulary", [])}
+                        for v in new_group.get("vocabulary", []):
+                            word_clean = v["word"].lower().strip()
+                            if word_clean not in existing_words:
+                                target_group["vocabulary"].append(v)
+                                existing_words.add(word_clean)
+                                added_words += 1
+        
+        # 如果完全沒有新單字，回報失敗
+        if added_cats == 0 and added_groups == 0 and added_words == 0:
+            return False, "資料庫中已存在相同的資料，未進行更新。"
+
+        # 存檔至 etymon_database.json
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(main_db, f, ensure_ascii=False, indent=2)
+            
+        return True, f"新增了 {added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
+
+    except Exception as e:
+        return False, f"合併邏輯出錯: {str(e)}"
 def ui_admin_page():
     st.title("數據管理後台")
     
