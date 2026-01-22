@@ -2,27 +2,27 @@ import streamlit as st
 import json
 import os
 import random
+import pandas as pd
 
-# ==========================================
-# 1. 核心配置與數據處理
-# ==========================================
-DB_FILE = 'etymon_database.json'
-PENDING_FILE = 'pending_data.json'
+# 你的試算表 ID
+SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
+# CSV 下載連結
+GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 
 def load_db():
-    """從 JSON 讀取主資料庫，確保資料不會丟失"""
-    if os.path.exists(DB_FILE):
-        try:
+    # 嘗試從 Google Sheets 讀取最新的 JSON 備份
+    try:
+        df = pd.read_csv(GSHEET_URL)
+        # 假設我們把整份 JSON 存放在第一行第一列
+        json_str = df.columns[0] 
+        return json.loads(json_str)
+    except:
+        # 如果雲端失敗，才讀取本地檔案 (原本的 60 個單字)
+        if os.path.exists(DB_FILE):
             with open(DB_FILE, 'r', encoding='utf-8') as f:
-                content = f.read().strip()
-                if not content:
-                    return []
-                return json.loads(content)
-        except Exception as e:
-            st.error(f"讀取資料庫失敗: {e}")
-            return []
+                try: return json.load(f)
+                except: return []
     return []
-
 def get_stats(data):
     """計算目前的分類與單字總數"""
     if not data: return 0, 0
