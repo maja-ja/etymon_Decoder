@@ -93,7 +93,37 @@ def merge_logic(pending_data):
 # ==========================================
 # 2. UI 頁面組件
 # ==========================================
+def ui_highschool_page(hs_data):
+    st.title("高中 7000 單字區")
+    
+    if not hs_data:
+        st.info("💡 目前資料庫中尚無標記為『高中』或『7000』的分類。請在 Google Sheets 的 category 欄位中標註。")
+        return
 
+    # 讓使用者選擇特定的級別（Level 1-6 或分類）
+    hs_cats = sorted(list(set(c['category'] for c in hs_data)))
+    selected_subcat = st.selectbox("選擇級別/範圍", hs_cats)
+    
+    display_data = [c for c in hs_data if c['category'] == selected_subcat]
+
+    for cat in display_data:
+        for group in cat.get('root_groups', []):
+            # 顯示字根核心資訊
+            root_text = " / ".join(group['roots'])
+            st.markdown(f"### 核心字根：{root_text} ({group['meaning']})")
+            
+            # 使用表格呈現單字，更適合快速背誦
+            words_list = []
+            for v in group.get('vocabulary', []):
+                words_list.append({
+                    "單字": v['word'],
+                    "拆解": v['breakdown'],
+                    "中文定義": v['definition']
+                })
+            
+            if words_list:
+                st.table(pd.DataFrame(words_list))
+            st.divider()
 def ui_admin_page():
     st.title("管理區")
     if 'admin_authenticated' not in st.session_state:
@@ -247,11 +277,13 @@ def main():
     data = load_db()
     
     st.sidebar.title("Etymon Decoder")
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "醫學區", "管理區"])
+    # 在這裡新增 "高中 7000 區"
+    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "管理區"])
     
     _, w_count = get_stats(data)
     st.sidebar.divider()
     st.sidebar.metric("單字總量", w_count)
+    
     if st.sidebar.button("強制刷新雲端數據"):
         st.cache_data.clear()
         st.rerun()
@@ -263,12 +295,15 @@ def main():
         ui_search_page(data, st.sidebar.selectbox("篩選分類", cats))
     elif menu == "學習區":
         ui_quiz_page(data)
+    elif menu == "高中 7000 區":
+        # 篩選分類名稱中包含 "高中" 或 "7000" 的數據
+        hs_data = [c for c in data if "高中" in c['category'] or "7000" in c['category']]
+        ui_highschool_page(hs_data)
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
         if med:
             ui_medical_page(med)
         else:
             st.info("尚未包含醫學相關分類。")
-
 if __name__ == "__main__":
     main()
