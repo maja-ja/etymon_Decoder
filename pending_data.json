@@ -1,38 +1,13 @@
-[
+{
+  "category": "醫學術語",
+  "root_groups": [
     {
-        "category": "宏觀視野",
-        "root_groups": [
-            {
-                "roots": [
-                    "spec"
-                ],
-                "meaning": "看",
-                "vocabulary": [
-                    {
-                        "word": "prospect",
-                        "breakdown": "(pro",
-                        "definition": "待審核"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        "category": "心靈感知",
-        "root_groups": [
-            {
-                "roots": [
-                    "path"
-                ],
-                "meaning": "感覺/感情",
-                "vocabulary": [
-                    {
-                        "word": "sympathy",
-                        "breakdown": "(sym",
-                        "definition": "待審核"
-                    }
-                ]
-            }
-        ]
+      "roots": ["ophthalm-", "ocul-"],
+      "meaning": "眼睛 (Eye)",
+      "vocabulary": [
+        {"word": "Ophthalmology", "breakdown": "ophthalm- + -ology", "definition": "眼科學"},
+        {"word": "Binocular", "breakdown": "bi- (two) + ocul- + -ar", "definition": "雙筒鏡；雙眼的"}
+      ]
     }
-]
+  ]
+}
