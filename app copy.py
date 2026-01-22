@@ -114,37 +114,46 @@ def ui_admin_page():
         st.session_state.admin_authenticated = False
         st.rerun()
 
-    # --- 方案 A：自動合併現有檔案 ---
-    st.subheader("方案 A：自動從 pending_data.json 合併")
+# --- 方案 A：自動合併現有檔案 ---
+    st.subheader("方案 A：一鍵快速合併 (File to Database)")
+    st.markdown(f"將 `{PENDING_FILE}` 的內容直接合併至主資料庫並清空原檔案。")
+    
     PENDING_FILE = 'pending_data.json'
     
-    if st.button("執行檔案合併", use_container_width=True):
+    if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
         if not os.path.exists(PENDING_FILE):
-            st.error(f"提示：找不到 `{PENDING_FILE}`。請確認檔案已放置於目錄中。")
+            st.error(f"❌ 錯誤：找不到 `{PENDING_FILE}` 檔案。")
         else:
             try:
                 with open(PENDING_FILE, 'r', encoding='utf-8') as f:
                     content = json.load(f)
                 
-                # 檢查是否為空內容 (空 list 或 空 dict)
+                # 檢查內容是否有效
                 if not content or (isinstance(content, list) and len(content) == 0):
-                    st.warning(f"提示：`{PENDING_FILE}` 內沒有數據內容。")
+                    st.warning(f"標記：`{PENDING_FILE}` 目前是空的，無需合併。")
                 else:
-                    success, msg = merge_logic(content) # 呼叫你的合併邏輯
+                    # 1. 執行核心合併邏輯 (會自動寫入 etymon_database.json)
+                    success, msg = merge_logic(content) 
+                    
                     if success:
-                        st.success(f"成功自檔案合併！{msg}")
-                        # 合併成功後，為了避免重複合併，建議清空該檔案
+                        # 2. 合併成功後，清空 pending_data.json
                         with open(PENDING_FILE, 'w', encoding='utf-8') as f:
-                            json.dump([], f)
-                        st.info("檔案內容已在合併後自動清空。")
+                            json.dump([], f, ensure_ascii=False, indent=2)
+                        
+                        st.success(f"✅ 合併成功！{msg}")
+                        st.info(f"系統已自動清空 `{PENDING_FILE}`。")
+                        
+                        # 3. 強制刷新快取，讓搜尋頁面立即看到新單字
                         st.cache_data.clear()
+                        # 視情況可以使用 st.rerun() 刷新統計數據
+                        st.rerun()
                     else:
-                        st.error(msg)
+                        st.error(f"合併失敗：{msg}")
+                        
+            except json.JSONDecodeError:
+                st.error(f"❌ 錯誤：`{PENDING_FILE}` 格式不是有效的 JSON。")
             except Exception as e:
-                st.error(f"處理檔案時發生錯誤: {e}")
-
-    st.divider()
-
+                st.error(f"發生意外錯誤: {e}")
     # --- 方案 B：原有的貼上 JSON 合併 ---
     st.subheader("方案 B：手動貼上數據")
     st.markdown("在此貼上新的 JSON 數據，系統將自動去重並合併。")
