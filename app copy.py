@@ -2,8 +2,7 @@ import streamlit as st
 import json
 import os
 import random
-import streamlit as st
-import merge_pending  # 匯入你剛才寫好的腳本
+import merge_pending  # 匯入你寫好的腳本
 
 # ==========================================
 # 1. 核心配置與數據處理
@@ -59,9 +58,6 @@ def merge_logic(pending_data):
                                 existing_words.add(word_clean)
                                 added_words += 1
         
-        if added_cats == 0 and added_groups == 0 and added_words == 0:
-            return False, "資料庫中已存在相同的資料。"
-
         with open(DB_FILE, 'w', encoding='utf-8') as f:
             json.dump(main_db, f, ensure_ascii=False, indent=2)
         return True, f"新增了 {added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
@@ -71,6 +67,7 @@ def merge_logic(pending_data):
 # ==========================================
 # 2. UI 頁面組件
 # ==========================================
+
 def ui_admin_page():
     st.title("🛠️ 數據管理後台")
     ADMIN_PASSWORD = "8787"
@@ -88,76 +85,56 @@ def ui_admin_page():
                 st.error("密碼錯誤")
         return
 
-    # 管理介面頂部資訊
     col1, col2 = st.columns([3, 1])
-    with col1:
-        st.write("目前登入：管理員 (Admin)")
+    with col1: st.write("目前登入：管理員 (Admin)")
     with col2:
         if st.button("登出管理台", use_container_width=True):
             st.session_state.admin_authenticated = False
             st.rerun()
 
     st.divider()
-
-    tab1, tab2 = st.tabs(["方案 A：一鍵合併 pending 檔案", "方案 B：手動貼上 JSON 合併"])
+    tab1, tab2 = st.tabs(["方案 A：一鍵合併 pending", "方案 B：手動貼上 JSON"])
 
     with tab1:
         st.subheader(f"從 `{PENDING_FILE}` 自動合併")
-        st.markdown(f"""
-        1. 確認新的 JSON 數據已存入 `{PENDING_FILE}`。
-        2. 點擊按鈕，系統會將其併入 `{DB_FILE}`。
-        """)
-        
         if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
             if not os.path.exists(PENDING_FILE):
                 st.error(f"❌ 找不到 `{PENDING_FILE}` 檔案")
             else:
                 try:
-                    # 這裡調用你外部腳本的邏輯
                     merge_pending.merge_data() 
-                    st.success(f"✅ 已成功合併至 {DB_FILE}！")
-                    st.balloons()
+                    st.success(f"✅ 已合併至 {DB_FILE}！")
                     st.cache_data.clear()
                     st.rerun()
                 except Exception as e:
-                    st.error(f"合併過程中發生錯誤: {e}")
+                    st.error(f"合併錯誤: {e}")
 
     with tab2:
         st.subheader(f"手動輸入並合併至 `{DB_FILE}`")
-        st.info("請貼上標準 JSON 格式，系統會自動比對並排除重複單字。")
-        json_input = st.text_area("在此貼上 JSON 內容", height=300, placeholder='[ { "category": "...", "root_groups": [...] } ]')
-        
-        if st.button("確認合併至主資料庫", use_container_width=True):
+        json_input = st.text_area("在此貼上 JSON 內容", height=300)
+        if st.button("確認手動合併", use_container_width=True):
             if json_input.strip():
                 try:
                     data = json.loads(json_input)
-                    # 調用你的 merge_logic，它會讀寫 DB_FILE
                     success, msg = merge_logic(data)
                     if success:
-                        st.success(f"✅ {msg}")
+                        st.success(msg)
                         st.cache_data.clear()
-                        # 給使用者一點反應時間再刷新
                         st.rerun()
-                    else:
-                        st.warning(msg)
-                except Exception as e:
-                    st.error(f"JSON 格式無效: {e}")
-            else:
-                st.warning("請輸入內容")
+                    else: st.warning(msg)
+                except Exception as e: st.error(f"JSON 無效: {e}")
+
 def ui_medical_page(med_data):
     st.title("醫學術語專業區")
-    st.info("醫學術語通常由字根(Root)、前綴(Prefix)與後綴(Suffix)組成。")
+    st.info("醫學術語由字根、前綴與後綴組成。")
 
     all_med_roots = []
-    # 這裡開始縮進第一層 (4個空格)
     for cat in med_data:
-        # 這裡必須縮進第二層 (8個空格)
         for group in cat.get('root_groups', []):
             all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
     
     selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
     
-    # 這裡同樣要注意縮進
     for cat in med_data:
         for group in cat.get('root_groups', []):
             label = f"{' / '.join(group['roots'])} → {group['meaning']}"
@@ -166,25 +143,13 @@ def ui_medical_page(med_data):
                 for i, v in enumerate(group.get('vocabulary', [])):
                     with cols[i % 2]:
                         st.markdown(f"""
-                        <div style="
-                            padding: 20px; 
-                            border-radius: 12px; 
-                            border-left: 6px solid #ff4b4b; 
-                            background-color: #ffffff; 
-                            margin-bottom: 15px;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                            color: #31333f !important;
-                        ">
-                            <h4 style="margin: 0; color: #1f77b4; font-size: 1.3rem;">{v['word']}</h4>
-                            <div style="margin: 10px 0;">
-                                <span style="font-size: 0.85rem; color: #666666; font-weight: bold;">結構分析：</span>
-                                <code style="color: #0366d6; background-color: #f0f7ff; padding: 2px 6px; border-radius: 4px;">{v['breakdown']}</code>
-                            </div>
-                            <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 1rem; color: #31333f;">
-                                釋義：{v['definition']}
-                            </p>
+                        <div style="padding:20px; border-radius:12px; border-left:6px solid #ff4b4b; background-color:#ffffff; margin-bottom:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05); color:#31333f !important;">
+                            <h4 style="margin:0; color:#1f77b4;">{v['word']}</h4>
+                            <p style="margin:10px 0; font-size:0.9rem; color:#666;">結構：<code>{v['breakdown']}</code></p>
+                            <p style="margin:0; font-weight:bold; color:#31333f;">釋義：{v['definition']}</p>
                         </div>
                         """, unsafe_allow_html=True)
+
 def ui_search_page(data, selected_cat):
     st.title("字根導覽")
     relevant_cats = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
@@ -198,8 +163,7 @@ def ui_search_page(data, selected_cat):
             root_to_group[label] = (cat['category'], group)
     
     selected_root_label = st.selectbox("選擇字根組", ["顯示全部"] + root_options)
-    st.divider()
-
+    
     if selected_root_label == "顯示全部":
         query = st.text_input("檢索單字", placeholder="輸入單字搜尋...").lower().strip()
         for label in root_options:
@@ -220,7 +184,6 @@ def ui_search_page(data, selected_cat):
                 st.write(f"釋義: {v['definition']}")
 
 def ui_quiz_page(data):
-    if 'failed_words' not in st.session_state: st.session_state.failed_words = set()
     if 'quiz_active' not in st.session_state: st.session_state.quiz_active = False
 
     if not st.session_state.quiz_active:
@@ -234,7 +197,6 @@ def ui_quiz_page(data):
             st.rerun()
         return
 
-    # 練習介面
     col_t1, col_t2 = st.columns([4, 1])
     col_t1.caption(f"範圍: {st.session_state.selected_quiz_cat}")
     if col_t2.button("結束"):
@@ -254,85 +216,46 @@ def ui_quiz_page(data):
         st.session_state.is_flipped = False
 
     q = st.session_state.flash_q
-        
-    for cat in med_data:
-    for group in cat['root_groups']:
-        label = f"{' / '.join(group['roots'])} → {group['meaning']}"
-        with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
-            cols = st.columns(2)
-            for i, v in enumerate(group['vocabulary']):
-                with cols[i % 2]:
-                    # 注意：這裡必須有縮進（通常是 4 個空格）
-                    st.markdown(f"""
-                    <div style="
-                        padding: 20px; 
-                        border-radius: 12px; 
-                        border-left: 6px solid #ff4b4b; 
-                        background-color: #ffffff; 
-                        margin-bottom: 15px;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                        color: #31333f !important;
-                    ">
-                        <h4 style="margin: 0; color: #1f77b4; font-size: 1.3rem;">{v['word']}</h4>
-                        <div style="margin: 10px 0;">
-                            <span style="font-size: 0.85rem; color: #666666; font-weight: bold;">結構分析：</span>
-                            <code style="color: #0366d6; background-color: #f0f7ff; padding: 2px 6px; border-radius: 4px;">{v['breakdown']}</code>
-                        </div>
-                        <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 1rem; color: #31333f;">
-                            釋義：{v['definition']}
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-    st.write("")
     
-    # --- 按鈕邏輯修改區 ---
+    # 鎖定顏色避免手機吃字
+    st.markdown(f"""
+    <div style="background-color:#ffffff; padding:40px; border-radius:20px; border:1px solid #e0e0e0; text-align:center; min-height:280px; box-shadow:0 4px 15px rgba(0,0,0,0.05); color:#31333f !important;">
+        <small style="color:#888;">{q['cat'].upper()}</small>
+        <h1 style="font-size:3.5rem; margin:20px 0; color:#1f77b4;">{q['word']}</h1>
+        {f'<hr style="border-top:1px solid #eee;"><p style="font-size:1.2rem; color:#0366d6;"><code>{q["breakdown"]}</code></p><h3 style="color:#31333f;">{q["definition"]}</h3>' if st.session_state.is_flipped else '<p style="color:#ccc; margin-top:50px;">點擊下方按鈕查看答案</p>'}
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("")
     if not st.session_state.is_flipped:
         if st.button("查看答案", use_container_width=True):
             st.session_state.is_flipped = True
             st.rerun()
     else:
         c1, c2 = st.columns(2)
-        # 左邊按鈕：改為翻回正面
         if c1.button("⬅️ 翻回正面", use_container_width=True):
             st.session_state.is_flipped = False
             st.rerun()
-        
-        # 右邊按鈕：下一題
         if c2.button("下一題 ➡️", use_container_width=True):
             if 'flash_q' in st.session_state: del st.session_state.flash_q
-            st.session_state.is_flipped = False # 確保下一題從正面開始
+            st.session_state.is_flipped = False
             st.rerun()
+
 # ==========================================
 # 3. 主程序入口
 # ==========================================
 def main():
-    # 務必確保 set_page_config 是第一個 Streamlit 指令
     st.set_page_config(page_title="Etymon 智選", layout="wide")
     
-    # 簡化後的 CSS，僅處理視覺層次
     st.markdown("""
         <style>
-            /* 讓手機端的 Header 保持透明，不要有黑條 */
-            header[data-testid="stHeader"] {
-                background-color: rgba(0,0,0,0) !important;
-            }
-
-            /* 側邊欄與主區域的視覺分割線 */
-            [data-testid="stSidebar"] {
-                border-right: 1px solid #e0e0e0;
-            }
-
-            /* 修正手機版 Metric 標籤顯示 */
-            [data-testid="stMetricLabel"] {
-                color: #31333f !important;
-            }
+            header[data-testid="stHeader"] { background-color: rgba(0,0,0,0) !important; }
+            [data-testid="stSidebar"] { border-right: 1px solid #e0e0e0; }
+            [data-testid="stMetricLabel"] { color: #31333f !important; }
         </style>
     """, unsafe_allow_html=True)
 
-    # 讀取資料
     data = load_db()
-    # ... 其餘邏輯
-    # ... 後續程式碼
     st.sidebar.title("Etymon")
     menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
     
@@ -344,16 +267,13 @@ def main():
     st.sidebar.metric("目前分類", c_count)
     st.sidebar.metric("總單字量", w_count)
 
-    # 頁面切換邏輯
-    if menu == "字根導覽":
-        ui_search_page(data, selected_cat)
-    elif menu == "記憶卡片":
-        ui_quiz_page(data)
+    if menu == "字根導覽": ui_search_page(data, selected_cat)
+    elif menu == "記憶卡片": ui_quiz_page(data)
     elif menu == "醫學專區":
         med_data = [c for c in data if "醫學" in (c.get('category') or "")]
         if med_data: ui_medical_page(med_data)
         else: st.info("尚未導入醫學分類數據")
-    elif menu == "管理後台":
-        ui_admin_page()
+    elif menu == "管理後台": ui_admin_page()
+
 if __name__ == "__main__":
     main()
