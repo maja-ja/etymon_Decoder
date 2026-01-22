@@ -237,11 +237,11 @@ def main():
     elif menu == "心理與社會區":
         psy = [c for c in data if any(k in c['category'] for k in ["心理", "社會", "Psych", "Soc"])]
         count = sum(len(g['vocabulary']) for c in psy for g in c['root_groups'])
-        ui_domain_page(psy, f"🧠 心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC") # 桃紅色系
+        ui_domain_page(psy, f"心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC") # 桃紅色系
         
     elif menu == "生物與自然區":
         bio = [c for c in data if any(k in c['category'] for k in ["生物", "自然", "科學", "Bio", "Sci"])]
         count = sum(len(g['vocabulary']) for c in bio for g in c['root_groups'])
-        ui_domain_page(bio, f"🌿 生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9") # 深綠色系
+        ui_domain_page(bio, f"生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9") # 深綠色系
 if __name__ == "__main__":
     main()
