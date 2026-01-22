@@ -8,7 +8,7 @@
         {"word": "Ophthalmology", "breakdown": "ophthalm- + -ology", "definition": "眼科學"},
         {"word": "Binocular", "breakdown": "bi- (two) + ocul- + -ar", "definition": "雙筒鏡；雙眼的"}
       ]
-    }
+    },
     {
       "roots": ["pneumo-", "pulmono-"],
       "meaning": "肺、呼吸 (Lungs/Breath)",
@@ -31,6 +31,78 @@
       "vocabulary": [
         {"word": "Nephrotic", "breakdown": "nephro- + -tic (pertaining to)", "definition": "腎病的"},
         {"word": "Renal failure", "breakdown": "ren- + -al", "definition": "腎衰竭"}
+      ]
+    },
+    {
+      "roots": ["arthr-", "arthro-"],
+      "meaning": "關節 (Joint)",
+      "vocabulary": [
+        {"word": "Arthroscopy", "breakdown": "arthro- + -scopy (viewing)", "definition": "關節鏡檢查"},
+        {"word": "Arthritis", "breakdown": "arthr- + -itis", "definition": "關節炎"}
+      ]
+    },
+    {
+      "roots": ["rhin-", "rhino-"],
+      "meaning": "鼻子 (Nose)",
+      "vocabulary": [
+        {"word": "Rhinoplasty", "breakdown": "rhino- + -plasty (surgical repair)", "definition": "鼻整形術 (隆鼻)"},
+        {"word": "Rhinitis", "breakdown": "rhin- + -itis", "definition": "鼻炎"}
+      ]
+    },
+    {
+      "roots": ["ot-", "oto-"],
+      "meaning": "耳朵 (Ear)",
+      "vocabulary": [
+        {"word": "Otolaryngology", "breakdown": "oto- + laryng- (throat) + -ology", "definition": "耳鼻喉科學"},
+        {"word": "Otoscope", "breakdown": "oto- + -scope (instrument)", "definition": "耳鏡"}
+      ]
+    },
+    {
+      "roots": ["hepat-", "hepato-"],
+      "meaning": "肝臟 (Liver)",
+      "vocabulary": [
+        {"word": "Hepatitis", "breakdown": "hepat- + -itis", "definition": "肝炎"},
+        {"word": "Hepatomegaly", "breakdown": "hepato- + -megaly (enlargement)", "definition": "肝腫大"}
+      ]
+    },
+    {
+      "roots": ["my-", "myo-"],
+      "meaning": "肌肉 (Muscle)",
+      "vocabulary": [
+        {"word": "Myalgia", "breakdown": "my- + -algia (pain)", "definition": "肌肉痛"},
+        {"word": "Myocarditis", "breakdown": "myo- + cardi- + -itis", "definition": "心肌炎"}
+      ]
+    },
+    {
+      "roots": ["onc-", "onco-"],
+      "meaning": "腫瘤 (Tumor/Bulk)",
+      "vocabulary": [
+        {"word": "Oncology", "breakdown": "onco- + -ology", "definition": "腫瘤學"},
+        {"word": "Oncogene", "breakdown": "onco- + gene", "definition": "致癌基因"}
+      ]
+    },
+    {
+      "roots": ["path-", "patho-"],
+      "meaning": "疾病、痛苦 (Disease/Suffering)",
+      "vocabulary": [
+        {"word": "Pathology", "breakdown": "patho- + -ology", "definition": "病理學"},
+        {"word": "Pathogen", "breakdown": "patho- + -gen (producer)", "definition": "病原體"}
+      ]
+    },
+    {
+      "roots": ["leuk-", "leuko-"],
+      "meaning": "白色 (White)",
+      "vocabulary": [
+        {"word": "Leukocyte", "breakdown": "leuko- + -cyte (cell)", "definition": "白血球"},
+        {"word": "Leukemia", "breakdown": "leuk- + -emia (blood condition)", "definition": "白血病"}
+      ]
+    },
+    {
+      "roots": ["glyc-", "glyco-"],
+      "meaning": "糖、甜 (Sugar/Sweet)",
+      "vocabulary": [
+        {"word": "Glycemia", "breakdown": "glyc- + -emia", "definition": "血糖值"},
+        {"word": "Hyperglycemia", "breakdown": "hyper- (over) + glyc- + -emia", "definition": "高血糖"}
       ]
     }
   ]
