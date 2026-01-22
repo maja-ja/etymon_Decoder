@@ -1,28 +1,37 @@
 import streamlit as st
 import json
 import os
-import random
 import pandas as pd
 
-# 你的試算表 ID
+# --- 1. 所有的常數定義必須放在最前面 ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(BASE_DIR, 'etymon_database.json')
+
+# 你的 Google 試算表 ID
 SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
-# CSV 下載連結
+# CSV 下載連結（讓 load_db 永遠優先讀取雲端，就不會變回 60 個單字）
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 
+# --- 2. 數據讀取函數 ---
 def load_db():
-    # 嘗試從 Google Sheets 讀取最新的 JSON 備份
+    # 策略：優先讀取 Google Sheets 上的備份，失敗才讀本地 JSON
     try:
         df = pd.read_csv(GSHEET_URL)
-        # 假設我們把整份 JSON 存放在第一行第一列
+        # 假設你把 JSON 文字貼在 Google 試算表第一格
         json_str = df.columns[0] 
         return json.loads(json_str)
-    except:
-        # 如果雲端失敗，才讀取本地檔案 (原本的 60 個單字)
+    except Exception as e:
+        # 如果雲端沒東西，讀取本地檔案
         if os.path.exists(DB_FILE):
             with open(DB_FILE, 'r', encoding='utf-8') as f:
-                try: return json.load(f)
-                except: return []
+                try:
+                    return json.load(f)
+                except:
+                    return []
     return []
+
+# --- 3. 其他邏輯與 UI 函數 (merge_logic, ui_admin_page 等等) ---
+# ... 接下來放你原本的其他程式碼 ...
 def get_stats(data):
     """計算目前的分類與單字總數"""
     if not data: return 0, 0
