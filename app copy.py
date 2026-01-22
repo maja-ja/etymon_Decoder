@@ -99,49 +99,49 @@ def ui_admin_page():
 
     st.divider()
 
-    tab1, tab2 = st.tabs(["方案 A：一鍵合併 pending 檔案", "方案 B：手動貼上 JSON"])
+    tab1, tab2 = st.tabs(["方案 A：一鍵合併 pending 檔案", "方案 B：手動貼上 JSON 合併"])
 
     with tab1:
-        st.subheader("從 `pending_data.json` 自動合併")
-        st.markdown("""
-        1. 請確認新的單字 JSON 已經存在 `pending_data.json` 檔案中。
-        2. 點擊下方按鈕，系統會自動比對分類與字根組。
-        3. 重複的單字將會被自動跳過。
+        st.subheader(f"從 `{PENDING_FILE}` 自動合併")
+        st.markdown(f"""
+        1. 確認新的 JSON 數據已存入 `{PENDING_FILE}`。
+        2. 點擊按鈕，系統會將其併入 `{DB_FILE}`。
         """)
         
-        # 呼叫你獨立寫好的 merge_pending.py 邏輯
         if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
             if not os.path.exists(PENDING_FILE):
                 st.error(f"❌ 找不到 `{PENDING_FILE}` 檔案")
             else:
                 try:
-                    # 直接呼叫 merge_pending.py 裡的函數
-                    # 注意：這會執行你在 merge_pending 裡寫的所有邏輯（含備份與清空檔案）
+                    # 這裡調用你外部腳本的邏輯
                     merge_pending.merge_data() 
-                    
-                    st.success("✅ 資料庫一鍵合併完成！")
+                    st.success(f"✅ 已成功合併至 {DB_FILE}！")
                     st.balloons()
-                    st.cache_data.clear() # 清除 Streamlit 快取
-                    st.rerun() # 立即刷新顯示最新的數據統計
+                    st.cache_data.clear()
+                    st.rerun()
                 except Exception as e:
                     st.error(f"合併過程中發生錯誤: {e}")
 
     with tab2:
-        st.subheader("手動輸入合併")
-        json_input = st.text_area("在此貼上 JSON 內容", height=300, placeholder="[ { 'category': '...', ... } ]")
-        if st.button("執行手動合併", use_container_width=True):
+        st.subheader(f"手動輸入並合併至 `{DB_FILE}`")
+        st.info("請貼上標準 JSON 格式，系統會自動比對並排除重複單字。")
+        json_input = st.text_area("在此貼上 JSON 內容", height=300, placeholder='[ { "category": "...", "root_groups": [...] } ]')
+        
+        if st.button("確認合併至主資料庫", use_container_width=True):
             if json_input.strip():
                 try:
                     data = json.loads(json_input)
+                    # 調用你的 merge_logic，它會讀寫 DB_FILE
                     success, msg = merge_logic(data)
                     if success:
-                        st.success(msg)
+                        st.success(f"✅ {msg}")
                         st.cache_data.clear()
+                        # 給使用者一點反應時間再刷新
                         st.rerun()
                     else:
                         st.warning(msg)
                 except Exception as e:
-                    st.error(f"JSON 格式無效或處理失敗: {e}")
+                    st.error(f"JSON 格式無效: {e}")
             else:
                 st.warning("請輸入內容")
 def ui_medical_page(med_data):
