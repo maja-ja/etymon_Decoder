@@ -272,43 +272,32 @@ def ui_quiz_page(data):
 # 3. 主程序入口
 # ==========================================
 def main():
+    # 務必確保 set_page_config 是第一個 Streamlit 指令
     st.set_page_config(page_title="Etymon 智選", layout="wide")
     
-    # --- 修正版 CSS：強制文字顏色 ---
+    # 簡化後的 CSS，僅處理視覺層次
     st.markdown("""
         <style>
-            /* 1. 全域文字顏色強制設定 */
-            html, body, [data-testid="stWidgetLabel"], .stText, p, h1, h2, h3, h4, h5, h6 {
-                color: #31333f !important; /* 深灰色字體 */
-            }
-
-            /* 2. 主內容區域背景 */
-            .stApp {
-                background-color: #f8f9fa !important;
-            }
-
-            /* 3. 側邊欄背景與文字 */
-            [data-testid="stSidebar"] {
-                background-color: #ffffff !important;
-            }
-            [data-testid="stSidebar"] * {
-                color: #31333f !important;
-            }
-
-            /* 4. 頂部導航欄透明 */
+            /* 讓手機端的 Header 保持透明，不要有黑條 */
             header[data-testid="stHeader"] {
                 background-color: rgba(0,0,0,0) !important;
             }
-            
-            /* 5. 修正輸入框等組件的文字顏色 */
-            .stTextInput input {
+
+            /* 側邊欄與主區域的視覺分割線 */
+            [data-testid="stSidebar"] {
+                border-right: 1px solid #e0e0e0;
+            }
+
+            /* 修正手機版 Metric 標籤顯示 */
+            [data-testid="stMetricLabel"] {
                 color: #31333f !important;
             }
         </style>
     """, unsafe_allow_html=True)
-    # --- CSS 結束 ---
 
+    # 讀取資料
     data = load_db()
+    # ... 其餘邏輯
     # ... 後續程式碼
     st.sidebar.title("Etymon")
     menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
