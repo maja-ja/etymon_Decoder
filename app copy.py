@@ -12,34 +12,58 @@ SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 DB_FILE = 'etymon_database.json'
 PENDING_FILE = 'pending_data.json'
-
 def load_db():
-    """從 Google Sheets 讀取表格並轉換為程式需要的格式"""
+    """從 Google Sheets 讀取表格並轉換為結構化數據"""
     try:
+        # 讀取試算表
         df = pd.read_csv(GSHEET_URL)
-        # 確保欄位名稱沒有空格
+        
+        # 檢查表格是否為空
+        if df.empty:
+            return []
+
+        # 確保欄位名稱都是小寫且無空格，避免讀取失敗
         df.columns = [c.strip().lower() for c in df.columns]
         
-        # 將平面的表格重新組裝成你原本的 JSON 巢狀結構
         structured_data = []
+        # 1. 根據分類 (category) 分組
         for cat_name, cat_group in df.groupby('category'):
             root_groups = []
+            
+            # 2. 根據字根 (roots) 和 意義 (meaning) 分組
             for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
-                vocabulary = group_df[['word', 'breakdown', 'definition']].to_dict('records')
+                # 3. 整理該字根下的所有單字
+                vocabulary = []
+                for _, row in group_df.iterrows():
+                    vocabulary.append({
+                        "word": str(row['word']),
+                        "breakdown": str(row['breakdown']),
+                        "definition": str(row['definition'])
+                    })
+                
                 root_groups.append({
                     "roots": [r.strip() for r in str(roots).split('/')],
-                    "meaning": meaning,
+                    "meaning": str(meaning),
                     "vocabulary": vocabulary
                 })
+            
             structured_data.append({
-                "category": cat_name,
+                "category": str(cat_name),
                 "root_groups": root_groups
             })
         return structured_data
-    except Exception as e:
-        st.sidebar.error(f"雲端讀取失敗: {e}")
-        return []
 
+    except Exception as e:
+        # 如果報錯，在側邊欄顯示原因方便偵錯
+        st.sidebar.warning(f"目前讀取不到雲端資料: {e}")
+        # 備援：嘗試讀取本地 JSON
+        if os.path.exists(DB_FILE):
+            try:
+                with open(DB_FILE, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return []
+        return []
 def get_stats(data):
     """計算單字量"""
     total_words = 0
