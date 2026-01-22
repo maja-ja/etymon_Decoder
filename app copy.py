@@ -271,9 +271,41 @@ def ui_quiz_page(data):
 # ==========================================
 # 3. 主程序入口
 # ==========================================
-
 def main():
-    st.set_page_config(page_title="Etymon 智選", layout="wide")
+    # 1. 必須放在最首行，且只能出現一次
+    st.set_page_config(
+        page_title="Etymon 智選", 
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
+    # 2. 注入 CSS (統一背景顏色並處理手機端邊界)
+    st.markdown("""
+        <style>
+            /* 主內容背景顏色 */
+            .stApp {
+                background-color: #f8f9fa; 
+            }
+
+            /* 側邊欄背景顏色 */
+            [data-testid="stSidebar"] {
+                background-color: #ffffff !important;
+            }
+
+            /* 移除手機端頂部導航條的陰影與背景色差 */
+            header[data-testid="stHeader"] {
+                background-color: rgba(0,0,0,0) !important;
+                border-bottom: none;
+            }
+
+            /* 強制設定手機端選單按鈕的背景色（選配） */
+            [data-testid="stSidebarNav"] {
+                background-color: #ffffff;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 3. 讀取資料與邏輯
     data = load_db()
     
     st.sidebar.title("Etymon")
@@ -287,16 +319,16 @@ def main():
     st.sidebar.metric("目前分類", c_count)
     st.sidebar.metric("總單字量", w_count)
 
+    # 頁面切換邏輯
     if menu == "字根導覽":
         ui_search_page(data, selected_cat)
     elif menu == "記憶卡片":
         ui_quiz_page(data)
     elif menu == "醫學專區":
-        med_data = [c for c in data if "醫學" in c['category']]
+        med_data = [c for c in data if "醫學" in (c.get('category') or "")]
         if med_data: ui_medical_page(med_data)
         else: st.info("尚未導入醫學分類數據")
     elif menu == "管理後台":
         ui_admin_page()
-
 if __name__ == "__main__":
     main()
