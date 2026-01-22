@@ -101,18 +101,18 @@ def ui_highschool_page(hs_data):
         return
 
     # 1. 提取所有高中分類下的字根組合
-    # 格式化為: "roots (meaning)"，方便使用者選擇
     root_options = []
-    root_map = {} # 用來存放選單字串與實際資料的對應
+    root_map = {} 
 
     for cat in hs_data:
         for group in cat.get('root_groups', []):
+            # 建立選單顯示用的標籤
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map:
                 root_map[label] = group
                 root_options.append(label)
     
-    root_options.sort() # 按字母排序
+    root_options.sort()
 
     # 2. 讓使用者選擇字根
     selected_label = st.selectbox("🎯 選擇要複習的字根", root_options)
@@ -120,11 +120,9 @@ def ui_highschool_page(hs_data):
     if selected_label:
         selected_group = root_map[selected_label]
         
-        # 顯示標題與視覺裝飾
         st.subheader(f"字根探索：{selected_label}")
         
         # 3. 呈現該字根下的所有單字
-        # 使用欄位來呈現，讓畫面更活潑
         for v in selected_group.get('vocabulary', []):
             with st.container():
                 col1, col2 = st.columns([1, 3])
@@ -135,8 +133,16 @@ def ui_highschool_page(hs_data):
                     st.markdown(f"**中文定義：** {v['definition']}")
                 st.divider()
 
-        # 4. 額外的小提示
-        st.caption(f"此字根收錄於：{', '.join(set(c['category'] for c in hs_data if selected_label in [f{'/'.join(g['roots'])} ({g['meaning']})' for g in c.get('root_groups', [])]))}")
+        # 4. 顯示來源分類 (修正原本報錯的地方)
+        source_categories = []
+        for cat in hs_data:
+            # 檢查該分類中是否包含目前選中的字根標籤
+            cat_labels = [f"{'/'.join(g['roots'])} ({g['meaning']})" for g in cat.get('root_groups', [])]
+            if selected_label in cat_labels:
+                source_categories.append(cat['category'])
+        
+        if source_categories:
+            st.caption(f"此字根收錄於：{', '.join(set(source_categories))}")
 def ui_admin_page():
     st.title("管理區")
     if 'admin_authenticated' not in st.session_state:
