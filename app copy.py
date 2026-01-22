@@ -114,7 +114,7 @@ def ui_admin_page():
         st.session_state.admin_authenticated = False
         st.rerun()
 
-# --- 方案 A：自動合併現有檔案 ---
+    # --- 方案 A：自動合併現有檔案 ---
     st.subheader("方案 A：一鍵快速合併 (File to Database)")
     st.markdown(f"將 `{PENDING_FILE}` 的內容直接合併至主資料庫並清空原檔案。")
     
