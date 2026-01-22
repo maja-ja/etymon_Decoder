@@ -66,16 +66,17 @@ def get_stats(data):
 def ui_domain_page(domain_data, title, theme_color, bg_color):
     st.title(title)
     if not domain_data:
-        st.info("目前資料庫中尚未建立相關分類。")
+        st.info("💡 目前資料庫中尚未建立相關分類。")
         return
 
+    # 提取字根
     root_map = {}
     for cat in domain_data:
         for group in cat.get('root_groups', []):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map: root_map[label] = group
     
-    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
+    selected_label = st.selectbox("🎯 選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
         group = root_map[selected_label]
@@ -83,22 +84,24 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
             with st.container():
                 col_word, col_btn = st.columns([4, 1])
                 with col_word:
-                    st.markdown(f"""
-                        <div style="font-size: 2.2em; font-weight: bold; color: {theme_color};">{v['word']}</div>
-                    """, unsafe_allow_html=True)
+                    # 如果是法律區，單字也用金色
+                    display_color = "#FFD700" if "法律" in title else theme_color
+                    st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
                 with col_btn:
-                    if st.button("發音", key=f"v_{v['word']}"):
+                    if st.button("🔊 播放", key=f"v_{v['word']}_{title}"):
                         speak(v['word'])
                 
+                # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
                     <div style="margin-bottom: 15px;">
-                        <span style="font-size: 1.1em; color: #000; font-family: monospace; background: {bg_color}; padding: 2px 10px; border-radius: 5px;">構造拆解：</span>
-                        <span style="font-size: 1.6em; color: #D32F2F; font-family: monospace; background: {bg_color}; padding: 2px 10px; border-radius: 5px;">{v['breakdown']}</span>
-                        <div style="font-size: 1.3em; color: #000; margin-top: 5px; font-family: monospace; background: {bg_color}; padding: 2px 10px; border-radius: 5px;"><b>中文定義：</b> {v['definition']}</div>
+                        <span style="font-size: 1.1em; color: #888;">構造拆解：</span>
+                        <span style="font-size: 1.6em; color: #FFD700; font-family: 'Courier New', monospace; font-weight: bold; background: #262730; padding: 4px 12px; border-radius: 8px; border: 1px solid #FFD700; text-shadow: 1px 1px 2px black;">
+                            {v['breakdown']}
+                        </span>
+                        <div style="font-size: 1.3em; color: #DDD; margin-top: 10px;"><b>中文定義：</b> {v['definition']}</div>
                     </div>
-                    <hr>
+                    <hr style="border-color: #444;">
                 """, unsafe_allow_html=True)
-
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
     cat_options_map = {"全部練習": "全部練習"}
