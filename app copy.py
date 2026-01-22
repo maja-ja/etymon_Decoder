@@ -67,7 +67,6 @@ def merge_logic(pending_data):
 # ==========================================
 # 2. UI 頁面組件
 # ==========================================
-
 def ui_admin_page():
     st.title("🛠️ 數據管理後台")
     ADMIN_PASSWORD = "8787"
@@ -93,24 +92,45 @@ def ui_admin_page():
             st.rerun()
 
     st.divider()
-    tab1, tab2 = st.tabs(["方案 A：一鍵合併 pending", "方案 B：手動貼上 JSON"])
+    tab1, tab2 = st.tabs(["方案 A：一鍵合併並清空 Pending", "方案 B：手動貼上 JSON"])
 
     with tab1:
         st.subheader(f"從 `{PENDING_FILE}` 自動合併")
+        st.warning(f"注意：合併成功後，`{PENDING_FILE}` 將會被清空以防重複合併。")
+        
         if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
-            if not os.path.exists(PENDING_FILE):
-                st.error(f"❌ 找不到 `{PENDING_FILE}` 檔案")
+            # 檢查檔案是否存在且不為空
+            if not os.path.exists(PENDING_FILE) or os.path.getsize(PENDING_FILE) == 0:
+                st.error(f"❌ 找不到 `{PENDING_FILE}` 或檔案內容為空。")
             else:
                 try:
-                    merge_pending.merge_data() 
-                    st.success(f"✅ 已合併至 {DB_FILE}！")
-                    st.cache_data.clear()
-                    st.rerun()
+                    # 1. 讀取 Pending 數據
+                    with open(PENDING_FILE, 'r', encoding='utf-8') as f:
+                        new_data = json.load(f)
+                    
+                    if not new_data:
+                        st.warning("Pending 檔案內沒有有效的數據。")
+                    else:
+                        # 2. 調用 merge_logic 執行合併並寫入 DB_FILE
+                        success, msg = merge_logic(new_data)
+                        
+                        if success:
+                            # 3. 合併成功後，清空 Pending 檔案
+                            with open(PENDING_FILE, 'w', encoding='utf-8') as f:
+                                json.dump([], f, ensure_ascii=False, indent=2)
+                            
+                            st.success(f"✅ 合併成功！{msg}")
+                            st.info(f"♻️ `{PENDING_FILE}` 已自動清空。")
+                            st.balloons()
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error(f"合併失敗：{msg}")
                 except Exception as e:
-                    st.error(f"合併錯誤: {e}")
+                    st.error(f"處理過程中發生錯誤: {e}")
 
     with tab2:
-        st.subheader(f"手動輸入並合併至 `{DB_FILE}`")
+        st.subheader("手動輸入合併")
         json_input = st.text_area("在此貼上 JSON 內容", height=300)
         if st.button("確認手動合併", use_container_width=True):
             if json_input.strip():
@@ -123,7 +143,6 @@ def ui_admin_page():
                         st.rerun()
                     else: st.warning(msg)
                 except Exception as e: st.error(f"JSON 無效: {e}")
-
 def ui_medical_page(med_data):
     st.title("醫學術語專業區")
     st.info("醫學術語由字根、前綴與後綴組成。")
