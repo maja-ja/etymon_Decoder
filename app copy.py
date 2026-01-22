@@ -253,7 +253,7 @@ def ui_quiz_page(data):
     
     # --- 按鈕邏輯修改區 ---
     if not st.session_state.is_flipped:
-        if st.button("查看答案", use_container_width=True, type="primary"):
+        if st.button("查看答案", use_container_width=True):
             st.session_state.is_flipped = True
             st.rerun()
     else:
@@ -264,7 +264,7 @@ def ui_quiz_page(data):
             st.rerun()
         
         # 右邊按鈕：下一題
-        if c2.button("下一題 ➡️", use_container_width=True, type="primary"):
+        if c2.button("下一題 ➡️", use_container_width=True):
             if 'flash_q' in st.session_state: del st.session_state.flash_q
             st.session_state.is_flipped = False # 確保下一題從正面開始
             st.rerun()
