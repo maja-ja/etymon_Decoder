@@ -49,11 +49,3 @@
 * **數據處理**: Pandas, JSON
 * **雲端驅動**: Google Sheets API (via CSV export)
 * **程式語言**: Python 3.13
-
----
-
-## 📖 如何更新單字表？
-
-1. **編輯雲端表格**：直接在指定的 Google Sheets 中新增單字。
-2. **欄位規範**：請確保試算表具備以下小寫欄位名：`category`, `roots`, `meaning`, `word`, `breakdown`, `definition`。
-3. **強制刷新**：在網頁側邊欄點擊「強制刷新雲端數據」即可看見更新成果。
