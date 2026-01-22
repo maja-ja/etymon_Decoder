@@ -115,7 +115,7 @@ def ui_highschool_page(hs_data):
     root_options.sort()
 
     # 2. 讓使用者選擇字根
-    selected_label = st.selectbox("🎯 選擇要複習的字根", root_options)
+    selected_label = st.selectbox("選擇要複習的字根", root_options)
     
     if selected_label:
         selected_group = root_map[selected_label]
