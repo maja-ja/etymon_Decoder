@@ -150,13 +150,14 @@ def ui_medical_page(med_data):
 
     all_med_roots = []
     for cat in med_data:
+        # 修正：這裡必須縮進
         for group in cat.get('root_groups', []):
             all_med_roots.append(f"{' / '.join(group['roots'])} → {group['meaning']}")
     
     selected_med = st.selectbox("快速定位醫學字根", all_med_roots)
     
-    # --- 這裡開始是修正縮進的重點區域 ---
     for cat in med_data:
+        # 修正：這裡必須縮進
         for group in cat.get('root_groups', []):
             label = f"{' / '.join(group['roots'])} → {group['meaning']}"
             with st.expander(f"核心字根：{label}", expanded=(label == selected_med)):
