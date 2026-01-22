@@ -97,33 +97,46 @@ def ui_highschool_page(hs_data):
     st.title("高中 7000 單字區")
     
     if not hs_data:
-        st.info("💡 目前資料庫中尚無標記為『高中』或『7000』的分類。請在 Google Sheets 的 category 欄位中標註。")
+        st.info("💡 目前資料庫中尚無標記為『高中』或『7000』的分類。")
         return
 
-    # 讓使用者選擇特定的級別（Level 1-6 或分類）
-    hs_cats = sorted(list(set(c['category'] for c in hs_data)))
-    selected_subcat = st.selectbox("選擇級別/範圍", hs_cats)
-    
-    display_data = [c for c in hs_data if c['category'] == selected_subcat]
+    # 1. 提取所有高中分類下的字根組合
+    # 格式化為: "roots (meaning)"，方便使用者選擇
+    root_options = []
+    root_map = {} # 用來存放選單字串與實際資料的對應
 
-    for cat in display_data:
+    for cat in hs_data:
         for group in cat.get('root_groups', []):
-            # 顯示字根核心資訊
-            root_text = " / ".join(group['roots'])
-            st.markdown(f"### 核心字根：{root_text} ({group['meaning']})")
-            
-            # 使用表格呈現單字，更適合快速背誦
-            words_list = []
-            for v in group.get('vocabulary', []):
-                words_list.append({
-                    "單字": v['word'],
-                    "拆解": v['breakdown'],
-                    "中文定義": v['definition']
-                })
-            
-            if words_list:
-                st.table(pd.DataFrame(words_list))
-            st.divider()
+            label = f"{'/'.join(group['roots'])} ({group['meaning']})"
+            if label not in root_map:
+                root_map[label] = group
+                root_options.append(label)
+    
+    root_options.sort() # 按字母排序
+
+    # 2. 讓使用者選擇字根
+    selected_label = st.selectbox("🎯 選擇要複習的字根", root_options)
+    
+    if selected_label:
+        selected_group = root_map[selected_label]
+        
+        # 顯示標題與視覺裝飾
+        st.subheader(f"字根探索：{selected_label}")
+        
+        # 3. 呈現該字根下的所有單字
+        # 使用欄位來呈現，讓畫面更活潑
+        for v in selected_group.get('vocabulary', []):
+            with st.container():
+                col1, col2 = st.columns([1, 3])
+                with col1:
+                    st.markdown(f"### **{v['word']}**")
+                with col2:
+                    st.markdown(f"**拆解：** `{v['breakdown']}`")
+                    st.markdown(f"**中文定義：** {v['definition']}")
+                st.divider()
+
+        # 4. 額外的小提示
+        st.caption(f"此字根收錄於：{', '.join(set(c['category'] for c in hs_data if selected_label in [f{'/'.join(g['roots'])} ({g['meaning']})' for g in c.get('root_groups', [])]))}")
 def ui_admin_page():
     st.title("管理區")
     if 'admin_authenticated' not in st.session_state:
@@ -296,8 +309,8 @@ def main():
     elif menu == "學習區":
         ui_quiz_page(data)
     elif menu == "高中 7000 區":
-        # 篩選分類名稱中包含 "高中" 或 "7000" 的數據
-        hs_data = [c for c in data if "高中" in c['category'] or "7000" in c['category']]
+        # 篩選 category 包含 "高中" 或 "7000" 的資料
+        hs_data = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
         ui_highschool_page(hs_data)
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
