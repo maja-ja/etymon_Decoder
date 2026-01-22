@@ -94,8 +94,8 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
                     <div style="margin-bottom: 15px;">
-                        <span style="font-size: 1.1em; color: #000;">構造拆解：</span>
-                        <span style="font-size: 1.6em; color: #FFD700; font-family: 'Courier New', monospace; font-weight: bold; background: #262730; padding: 4px 12px; border-radius: 8px; border: 1px solid #FFD700; text-shadow: 1px 1px 2px black;">
+                        <span style="font-size: 1.1em; color: #888;">構造拆解：</span>
+                        <span style="font-size: 1.6em; color: #FFD700; font-family: 'Courier New', monospace; font-weight: bold; background: #888; padding: 4px 12px; border-radius: 8px; border: 1px solid #FFD700; text-shadow: 1px 1px 2px black;">
                             {v['breakdown']}
                         </span>
                         <div style="font-size: 1.3em; color: #DDD; margin-top: 10px;"><b>中文定義：</b> {v['definition']}</div>
