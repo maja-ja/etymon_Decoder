@@ -113,7 +113,7 @@ def ui_admin_page():
             success, msg = merge_logic(new_data)
             if success:
                 st.success(msg)
-                st.rerun()"
+                st.rerun()
 def ui_medical_page(med_data):
     st.title("醫學術語專業區")
     st.info("醫學術語由字根、前綴與後綴組成。")
