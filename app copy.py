@@ -14,21 +14,31 @@ DB_FILE = 'etymon_database.json'
 PENDING_FILE = 'pending_data.json'
 
 def load_db():
-    """優先讀取 Google 試算表 A1 的資料，失敗則讀本地 JSON"""
+    """加強版讀取：處理 Google Sheets 讀取時可能產生的引號問題"""
     try:
-        # 讀取試算表（不需要 API Key）
+        # 讀取試算表
         df = pd.read_csv(GSHEET_URL)
-        # 抓取 A1 儲存格的內容
+        if df.columns.empty:
+            return []
+            
+        # 取得 A1 的原始內容
         json_str = df.columns[0]
+        
+        # 關鍵修正：移除 Google Sheets CSV 可能自動包裹的外部引號
+        json_str = json_str.strip()
+        if json_str.startswith('"') and json_str.endswith('"'):
+            json_str = json_str[1:-1].replace('""', '"')
+            
         return json.loads(json_str)
     except Exception as e:
-        # 如果雲端失敗，讀取本地檔案
+        # 可以在畫面上印出錯誤（除錯用，穩定後可刪除）
+        # st.sidebar.error(f"雲端讀取失敗: {e}") 
+        
         if os.path.exists(DB_FILE):
             with open(DB_FILE, 'r', encoding='utf-8') as f:
                 try: return json.load(f)
                 except: return []
     return []
-
 def get_stats(data):
     if not data: return 0, 0
     total_cats = len(data)
