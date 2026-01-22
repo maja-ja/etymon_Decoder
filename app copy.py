@@ -126,21 +126,29 @@ def ui_admin_page():
     
     st.subheader("🚀 雲端資料同步")
     st.write(f"目前單字總量：**{w_count}**")
+    # 在 ui_admin_page 裡
+    # 將目前數據轉回表格格式供使用者複製
+    flat_list = []
+    for cat in data:
+        for group in cat.get('root_groups', []):
+            for v in group.get('vocabulary', []):
+                flat_list.append({
+                    "category": cat['category'],
+                    "roots": "/".join(group['roots']),
+                    "meaning": group['meaning'],
+                    "word": v['word'],
+                    "breakdown": v['breakdown'],
+                    "definition": v['definition']
+                })
     
-    # 顯示 JSON 供複製到 Google Sheets
-    json_text = json.dumps(data, ensure_ascii=False, indent=2)
-    st.info("合併後，請點擊下方按鈕複製，並貼回 Google 試算表的 A1 儲存格，資料才不會在改程式時消失。")
-    st.code(json_text, language="json")
-    
-    # 合併功能
-    if st.button("🚀 從 Pending 檔案執行合併"):
-        if os.path.exists(PENDING_FILE):
-            with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                new_data = json.load(f)
-            success, msg = merge_logic(new_data)
-            if success:
-                st.success(msg)
-                st.rerun()
+    if flat_list:
+        export_df = pd.DataFrame(flat_list)
+        st.write("合併成功後，請複製下方表格內容，貼進 Google 試算表：")
+        st.dataframe(export_df) # 網頁上可以直接看
+        
+        # 額外提供 CSV 下載，讓你直接用 Excel 打開再貼上
+        csv = export_df.to_csv(index=False).encode('utf-8-sig')
+        st.download_button("📥 下載最新的單字表 (CSV)", csv, "words.csv", "text/csv")
 def ui_medical_page(med_data):
     st.title("醫學術語專業區")
     st.info("醫學術語由字根、前綴與後綴組成。")
