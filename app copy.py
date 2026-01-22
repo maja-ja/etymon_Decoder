@@ -14,22 +14,39 @@ DB_FILE = 'etymon_database.json'
 PENDING_FILE = 'pending_data.json'
 
 def load_db():
-    """加強版讀取：處理 Google Sheets 讀取時可能產生的引號問題"""
+    """從 Google Sheets 讀取表格並轉換為程式需要的格式"""
     try:
-        # 讀取試算表
         df = pd.read_csv(GSHEET_URL)
-        if df.columns.empty:
-            return []
-            
-        # 取得 A1 的原始內容
-        json_str = df.columns[0]
+        # 確保欄位名稱沒有空格
+        df.columns = [c.strip().lower() for c in df.columns]
         
-        # 關鍵修正：移除 Google Sheets CSV 可能自動包裹的外部引號
-        json_str = json_str.strip()
-        if json_str.startswith('"') and json_str.endswith('"'):
-            json_str = json_str[1:-1].replace('""', '"')
-            
-        return json.loads(json_str)
+        # 將平面的表格重新組裝成你原本的 JSON 巢狀結構
+        structured_data = []
+        for cat_name, cat_group in df.groupby('category'):
+            root_groups = []
+            for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
+                vocabulary = group_df[['word', 'breakdown', 'definition']].to_dict('records')
+                root_groups.append({
+                    "roots": [r.strip() for r in str(roots).split('/')],
+                    "meaning": meaning,
+                    "vocabulary": vocabulary
+                })
+            structured_data.append({
+                "category": cat_name,
+                "root_groups": root_groups
+            })
+        return structured_data
+    except Exception as e:
+        st.sidebar.error(f"雲端讀取失敗: {e}")
+        return []
+
+def get_stats(data):
+    """計算單字量"""
+    total_words = 0
+    for cat in data:
+        for group in cat.get('root_groups', []):
+            total_words += len(group.get('vocabulary', []))
+    return len(data), total_words
     except Exception as e:
         # 可以在畫面上印出錯誤（除錯用，穩定後可刪除）
         # st.sidebar.error(f"雲端讀取失敗: {e}") 
