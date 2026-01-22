@@ -71,7 +71,7 @@ def merge_logic(pending_data):
 # ==========================================
 
 def ui_admin_page():
-    st.title("🛠️ 數據管理後台")
+    st.title("數據管理後台")
     ADMIN_PASSWORD = "8787"
     
     if 'admin_authenticated' not in st.session_state:
@@ -96,7 +96,7 @@ def ui_admin_page():
 
     with tab1:
         st.subheader("從 `pending_data.json` 合併")
-        if st.button("🚀 執行一鍵合併", use_container_width=True):
+        if st.button("執行一鍵合併", use_container_width=True):
             if not os.path.exists(PENDING_FILE):
                 st.error(f"找不到 `{PENDING_FILE}`")
             else:
@@ -128,7 +128,7 @@ def ui_admin_page():
                 st.error("JSON 格式無效")
 
 def ui_medical_page(med_data):
-    st.title("🏥 醫學術語專業區")
+    st.title("醫學術語專業區")
     st.info("醫學術語通常由字根(Root)、前綴(Prefix)與後綴(Suffix)組成。")
     
     # 插入醫學解剖輔助圖示
@@ -158,7 +158,7 @@ def ui_medical_page(med_data):
                         """, unsafe_allow_html=True)
 
 def ui_search_page(data, selected_cat):
-    st.title("🔍 字根導覽")
+    st.title("字根導覽")
     relevant_cats = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
     
     root_options = []
@@ -196,7 +196,7 @@ def ui_quiz_page(data):
     if 'quiz_active' not in st.session_state: st.session_state.quiz_active = False
 
     if not st.session_state.quiz_active:
-        st.title("🎴 記憶卡片")
+        st.title("記憶卡片")
         categories = ["全部隨機"] + sorted([c['category'] for c in data])
         selected_quiz_cat = st.selectbox("選擇練習範圍", categories)
         if st.button("開始練習", use_container_width=True):
@@ -259,7 +259,7 @@ def main():
     st.set_page_config(page_title="Etymon 智選", layout="wide")
     data = load_db()
     
-    st.sidebar.title("🧬 Etymon")
+    st.sidebar.title("Etymon")
     menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
     
     st.sidebar.divider()
