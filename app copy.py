@@ -229,7 +229,7 @@ def main():
     elif menu == "法律區":
         law = [c for c in data if "法律" in c['category']]
         count = sum(len(g['vocabulary']) for c in law for g in c['root_groups'])
-        ui_domain_page(law, f"法律術語區 ({count} 字)", "#4527A0", "#EDE7F6")
+        ui_domain_page(law, f"法律術語區 ({count} 字)", "#FFD700", "#1A1A1A")
     elif menu == "人工智慧區":
         ai = [c for c in data if "人工智慧" in c['category'] or "AI" in c['category']]
         count = sum(len(g['vocabulary']) for c in ai for g in c['root_groups'])
