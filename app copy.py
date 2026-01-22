@@ -3,6 +3,10 @@ import json
 import os
 import random
 import pandas as pd
+from gtts import gTTS
+import base64
+from io import BytesIO
+
 def speak(text):
     """將文字轉為語音並播放"""
     try:
