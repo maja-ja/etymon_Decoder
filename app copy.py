@@ -231,7 +231,5 @@ def main():
         bio = [c for c in data if any(k in c['category'] for k in ["生物", "自然", "科學", "Bio", "Sci"])]
         count = sum(len(g['vocabulary']) for c in bio for g in c['root_groups'])
         ui_domain_page(bio, f"🌿 生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9") # 深綠色系
-    elif menu == "管理區":
-        ui_admin_page(data)
 if __name__ == "__main__":
     main()
