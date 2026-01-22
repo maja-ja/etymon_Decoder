@@ -210,7 +210,7 @@ def ui_search_page(data, selected_cat):
                 st.write(f"結構: `{v['breakdown']}`")
                 st.write(f"釋義: {v['definition']}")
 def ui_medical_page(med_data):
-    st.title("🏥 醫學術語專業區")
+    st.title("醫學術語專業區")
     st.markdown("醫學單字是由精確的**構詞元件**組成的，掌握字根即可推導出複雜術語。")
     
     # 建立側邊欄過濾或上方索引
@@ -230,7 +230,7 @@ def ui_medical_page(med_data):
             label = f"{' / '.join(group['roots'])} → {group['meaning']}"
             is_expanded = (label == selected_med)
             
-            with st.expander(f"🧬 核心字根：{label}", expanded=is_expanded):
+            with st.expander(f"核心字根：{label}", expanded=is_expanded):
                 cols = st.columns(2)
                 for i, v in enumerate(group['vocabulary']):
                     with cols[i % 2]:
