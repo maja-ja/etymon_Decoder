@@ -21,6 +21,50 @@ def get_stats(data):
     total_cats = len(data)
     total_words = sum(len(g.get('vocabulary', [])) for cat in data for g in cat.get('root_groups', []))
     return total_cats, total_words
+def merge_logic(pending_data):
+    try:
+        main_db = load_db()
+        pending_list = [pending_data] if isinstance(pending_data, dict) else pending_data
+        added_cats, added_groups, added_words = 0, 0, 0
+
+        for new_cat in pending_list:
+            cat_name = new_cat.get("category", "").strip()
+            if not cat_name: continue
+            
+            target_cat = next((c for c in main_db if c["category"] == cat_name), None)
+            
+            if not target_cat:
+                main_db.append(new_cat)
+                added_cats += 1
+                for g in new_cat.get("root_groups", []):
+                    added_words += len(g.get("vocabulary", []))
+            else:
+                for new_group in new_cat.get("root_groups", []):
+                    new_roots = set(new_group.get("roots", []))
+                    target_group = next((g for g in target_cat.get("root_groups", []) 
+                                       if set(g.get("roots", [])) == new_roots), None)
+                    
+                    if not target_group:
+                        target_cat["root_groups"].append(new_group)
+                        added_groups += 1
+                        added_words += len(new_group.get("vocabulary", []))
+                    else:
+                        existing_words = {v["word"].lower().strip() for v in target_group.get("vocabulary", [])}
+                        for v in new_group.get("vocabulary", []):
+                            word_clean = v["word"].lower().strip()
+                            if word_clean not in existing_words:
+                                target_group["vocabulary"].append(v)
+                                existing_words.add(word_clean)
+                                added_words += 1
+        
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(main_db, f, ensure_ascii=False, indent=2)
+        return True, f"新增了 {added_cats} 分類, {added_groups} 字根組, {added_words} 單字。"
+    except Exception as e:
+        return False, f"錯誤: {str(e)}"
+# ==========================================
+# 2. UI 頁面組件
+# ==========================================
 def ui_admin_page():
     st.title("🛠️ 數據管理後台")
     ADMIN_PASSWORD = "8787"
@@ -89,85 +133,6 @@ def ui_admin_page():
     with tab2:
         st.subheader("手動輸入合併")
         json_input = st.text_area("在此貼上 JSON 內容", height=300, placeholder='[{"category": "...", "root_groups": [...]}]')
-        if st.button("確認手動合併", use_container_width=True):
-            if json_input.strip():
-                try:
-                    data = json.loads(json_input)
-                    success, msg = merge_logic(data)
-                    if success:
-                        st.success(msg)
-                        st.cache_data.clear()
-                        st.rerun()
-                    else: st.warning(msg)
-                except Exception as e: st.error(f"JSON 無效: {e}")
-# ==========================================
-# 2. UI 頁面組件
-# ==========================================
-def ui_admin_page():
-    st.title("🛠️ 數據管理後台")
-    ADMIN_PASSWORD = "8787"
-    
-    if 'admin_authenticated' not in st.session_state:
-        st.session_state.admin_authenticated = False
-
-    if not st.session_state.admin_authenticated:
-        pwd_input = st.text_input("請輸入管理員密碼", type="password")
-        if st.button("登入"):
-            if pwd_input == ADMIN_PASSWORD:
-                st.session_state.admin_authenticated = True
-                st.rerun()
-            else:
-                st.error("密碼錯誤")
-        return
-
-    col1, col2 = st.columns([3, 1])
-    with col1: st.write("目前登入：管理員 (Admin)")
-    with col2:
-        if st.button("登出管理台", use_container_width=True):
-            st.session_state.admin_authenticated = False
-            st.rerun()
-
-    st.divider()
-    tab1, tab2 = st.tabs(["方案 A：一鍵合併並清空 Pending", "方案 B：手動貼上 JSON"])
-
-    with tab1:
-        st.subheader(f"從 `{PENDING_FILE}` 自動合併")
-        st.warning(f"注意：合併成功後，`{PENDING_FILE}` 將會被清空以防重複合併。")
-        
-        if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
-            # 檢查檔案是否存在且不為空
-            if not os.path.exists(PENDING_FILE) or os.path.getsize(PENDING_FILE) == 0:
-                st.error(f"❌ 找不到 `{PENDING_FILE}` 或檔案內容為空。")
-            else:
-                try:
-                    # 1. 讀取 Pending 數據
-                    with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                        new_data = json.load(f)
-                    
-                    if not new_data:
-                        st.warning("Pending 檔案內沒有有效的數據。")
-                    else:
-                        # 2. 調用 merge_logic 執行合併並寫入 DB_FILE
-                        success, msg = merge_logic(new_data)
-                        
-                        if success:
-                            # 3. 合併成功後，清空 Pending 檔案
-                            with open(PENDING_FILE, 'w', encoding='utf-8') as f:
-                                json.dump([], f, ensure_ascii=False, indent=2)
-                            
-                            st.success(f"✅ 合併成功！{msg}")
-                            st.info(f"♻️ `{PENDING_FILE}` 已自動清空。")
-                            st.balloons()
-                            st.cache_data.clear()
-                            st.rerun()
-                        else:
-                            st.error(f"合併失敗：{msg}")
-                except Exception as e:
-                    st.error(f"處理過程中發生錯誤: {e}")
-
-    with tab2:
-        st.subheader("手動輸入合併")
-        json_input = st.text_area("在此貼上 JSON 內容", height=300)
         if st.button("確認手動合併", use_container_width=True):
             if json_input.strip():
                 try:
