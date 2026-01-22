@@ -21,8 +21,6 @@ def speak(text):
             </audio>
         """
         st.components.v1.html(audio_html, height=0)
-    except Exception as e:
-        st.error(f"語音功能暫時失效: {e}")
 # ==========================================
 # 1. 核心配置與雲端同步
 # ==========================================
@@ -142,7 +140,8 @@ def ui_quiz_page(data):
         if st.button("查看答案", use_container_width=True): 
             st.session_state.flipped = True
     with col2:
-        if st.button("播放", use_container_width=True):
+        # 這個按鈕點了就會「一直唸」
+        if st.button("播放發音", use_container_width=True):
             speak(q['word'])
     with col3:
         if st.button("➡️ 下一題", use_container_width=True): 
