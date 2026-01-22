@@ -121,7 +121,7 @@ def ui_admin_page():
     
     st.markdown(f"將 `{PENDING_FILE}` 的內容直接合併至主資料庫並清空原檔案。")
     
-    if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
+    if st.button("🚀 執行一鍵合併", use_container_width=True, type="secondary"):
         if not os.path.exists(PENDING_FILE):
             st.error(f"❌ 錯誤：找不到 `{PENDING_FILE}` 檔案。")
         else:
