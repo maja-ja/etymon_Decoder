@@ -196,7 +196,7 @@ def main():
     st.sidebar.markdown(f"""
         <div style="text-align: center; padding: 10px; background-color: #f0f2f6; border-radius: 10px; margin-top: 10px;">
             <p style="margin: 0; font-size: 0.9em; color: #000;">資料庫總計</p>
-            <p style="margin: 0; font-size: 1.8em; font-weight: bold; color: #1E88E5;">{total_words} <span style="font-size: 0.5em;">Words</span></p>
+            <p style="margin: 0; font-size: 1.8em; font-weight: bold; color: #000;">{total_words} <span style="font-size: 0.5em;">Words</span></p>
         </div>
     """, unsafe_allow_html=True)
 
