@@ -189,12 +189,12 @@ def main():
     _, w = get_stats(data)
     st.sidebar.metric("總單字量", w)
 
-    if menu == "管理後台": ui_admin_page()
-    elif menu == "字根導覽":
+    if menu == "管理區": ui_admin_page()
+    elif menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類", cats))
-    elif menu == "記憶卡片": ui_quiz_page(data)
-    elif menu == "醫學專區":
+    elif menu == "學習區": ui_quiz_page(data)
+    elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
         ui_medical_page(med) if med else st.info("尚無醫學數據")
 
