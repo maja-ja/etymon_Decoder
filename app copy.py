@@ -98,7 +98,7 @@ def merge_logic(pending_data):
 # ==========================================
 
 def ui_admin_page():
-    st.title("🛠️ 數據管理後台")
+    st.title("管理區")
     if 'admin_authenticated' not in st.session_state:
         st.session_state.admin_authenticated = False
 
@@ -138,7 +138,7 @@ def ui_admin_page():
         st.download_button("📥 下載最新的單字表 (CSV)", csv, "words.csv", "text/csv")
 
 def ui_medical_page(med_data):
-    st.title("🏥 醫學術語專區")
+    st.title("醫學區")
     for cat in med_data:
         for group in cat.get('root_groups', []):
             label = f"{' / '.join(group['roots'])} → {group['meaning']}"
@@ -149,7 +149,7 @@ def ui_medical_page(med_data):
                         st.markdown(f"**{v['word']}** \n`{v['breakdown']}`  \n{v['definition']}")
 
 def ui_search_page(data, selected_cat):
-    st.title("🔍 字根導覽")
+    st.title("字根區")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
     query = st.text_input("搜尋單字...")
     for cat in relevant:
@@ -161,7 +161,7 @@ def ui_search_page(data, selected_cat):
                         st.write(f"**{v['word']}**: {v['definition']} (`{v['breakdown']}`)")
 
 def ui_quiz_page(data):
-    st.title("🧠 記憶卡片")
+    st.title("學習區")
     if 'flash_q' not in st.session_state:
         all_words = [{**v, "cat": c['category']} for c in data for g in c.get('root_groups', []) for v in g.get('vocabulary', [])]
         if not all_words: st.warning("目前無單字"); return
@@ -181,10 +181,10 @@ def ui_quiz_page(data):
 # 3. 主程序入口
 # ==========================================
 def main():
-    st.set_page_config(page_title="Etymon 智選", layout="wide")
+    st.set_page_config(page_title="Etymon", layout="wide")
     data = load_db()
     st.sidebar.title("Etymon")
-    menu = st.sidebar.radio("導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
+    menu = st.sidebar.radio("導航", ["字根區", "學習區", "醫學區", "管理區"])
     
     _, w = get_stats(data)
     st.sidebar.metric("總單字量", w)
