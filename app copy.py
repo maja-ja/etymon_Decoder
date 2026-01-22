@@ -157,8 +157,8 @@ def ui_quiz_page(data):
             
         st.markdown(f"""
             <div style="background-color: #E3F2FD; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid #1E88E5;">
-                <p style="font-size: 2em; margin-bottom: 10px;"><b>拆解：</b> <span style="color: #D32F2F;">{q['breakdown']}</span></p>
-                <p style="font-size: 1.5em;"><b>釋義：</b> {q['definition']}</p>
+                <p style="font-size: 2em; margin-bottom: 10px; color: #000"><b>拆解：</b> <span style="color: #D32F2F;">{q['breakdown']}</span></p>
+                <p style="font-size: 1.5em; color: #000"><b>釋義：</b> {q['definition']}</p>
             </div>
         """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
