@@ -140,10 +140,8 @@ def ui_highschool_page(hs_data):
                         <div style="font-size: 1.2em; margin-top: 5px;">
                             <b>中文定義：</b> {v['definition']}
                         </div>
-                    """, unsafe_allow_html=True)with col2:
-                                    st.markdown(f"**拆解：** `{v['breakdown']}`")
-                                    st.markdown(f"**中文定義：** {v['definition']}")
-                                    st.divider()
+                    """, unsafe_allow_html=True)
+                    st.divider()
 
         # 4. 顯示來源分類 (修正原本報錯的地方)
         source_categories = []
