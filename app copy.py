@@ -236,16 +236,40 @@ def ui_quiz_page(data):
 # ==========================================
 def main():
     st.set_page_config(page_title="Etymon 智選", layout="wide")
+    
+    # 1. 讀取數據
     data = load_db()
     
-    st.sidebar.title("Etymon")
-    menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "管理後台"])
+    # 2. 側邊欄選單
+    st.sidebar.title("Etymon Decoder")
+    menu = st.sidebar.radio("功能導航", ["字根導覽", "記憶卡片", "醫學專區", "管理後台"])
     
+    # 3. 顯示統計數據
     c, w = get_stats(data)
+    st.sidebar.divider()
     st.sidebar.metric("總單字量", w)
+    st.sidebar.caption("數據同步：Google Sheets")
 
-    if menu == "管理後台": ui_admin_page()
-    # elif ... 其他頁面邏輯
+    # 4. 根據選單切換頁面
+    if menu == "管理後台":
+        ui_admin_page()
+        
+    elif menu == "字根導覽":
+        # 取得所有分類供篩選
+        cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
+        selected_cat = st.sidebar.selectbox("篩選分類", cats)
+        ui_search_page(data, selected_cat)
+        
+    elif menu == "記憶卡片":
+        ui_quiz_page(data)
+        
+    elif menu == "醫學專區":
+        # 過濾出包含「醫學」關鍵字的分類數據
+        med_data = [c for c in data if "醫學" in c['category']]
+        if med_data:
+            ui_medical_page(med_data)
+        else:
+            st.info("目前資料庫中尚無醫學分類數據。")
 
 if __name__ == "__main__":
     main()
