@@ -157,12 +157,22 @@ def main():
     st.set_page_config(page_title="Etymon Decoder", layout="wide")
     data = load_db()
     
-    st.sidebar.title("🧬 Etymon Decoder")
+    # 計算統計數據
+    _, total_words = get_stats(data)
+    
+    st.sidebar.title("Etymon Decoder")
+    
+    # 這裡新增：在側邊欄顯示總量
+    st.sidebar.metric("資料庫總單字數", f"{total_words} Words")
+    st.sidebar.divider()
+    
     menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "管理區"])
     
-    st.sidebar.divider()
-    if st.sidebar.button("強制刷新數據"): st.cache_data.clear(); st.rerun()
+    if st.sidebar.button("強制刷新數據"): 
+        st.cache_data.clear()
+        st.rerun()
 
+    # --- 以下為各區呼叫邏輯 ---
     if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
@@ -170,18 +180,21 @@ def main():
         ui_quiz_page(data)
     elif menu == "高中 7000 區":
         hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
-        ui_domain_page(hs, "🎓 高中核心字根", "#2E7D32", "#E8F5E9")
+        count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
+        ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
-        ui_domain_page(med, "🩺 醫學專業術語", "#C62828", "#FFEBEE")
+        count = sum(len(g['vocabulary']) for c in med for g in c['root_groups'])
+        ui_domain_page(med, f"醫學專業區 ({count} 字)", "#C62828", "#FFEBEE")
     elif menu == "法律區":
         law = [c for c in data if "法律" in c['category']]
-        ui_domain_page(law, "⚖️ 法律術語區", "#4527A0", "#EDE7F6")
+        count = sum(len(g['vocabulary']) for c in law for g in c['root_groups'])
+        ui_domain_page(law, f"法律術語區 ({count} 字)", "#4527A0", "#EDE7F6")
     elif menu == "人工智慧區":
         ai = [c for c in data if "人工智慧" in c['category'] or "AI" in c['category']]
-        ui_domain_page(ai, "🤖 AI 與技術區", "#1565C0", "#E3F2FD")
+        count = sum(len(g['vocabulary']) for c in ai for g in c['root_groups'])
+        ui_domain_page(ai, f"AI 技術區 ({count} 字)", "#1565C0", "#E3F2FD")
     elif menu == "管理區":
         ui_admin_page(data)
-
 if __name__ == "__main__":
     main()
