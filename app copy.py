@@ -113,12 +113,13 @@ def ui_admin_page():
     if col_logout.button("登出管理台"):
         st.session_state.admin_authenticated = False
         st.rerun()
-
-    # --- 方案 A：自動合併現有檔案 ---
+# --- 方案 A：自動合併現有檔案 ---
     st.subheader("方案 A：一鍵快速合併 (File to Database)")
-    st.markdown(f"將 `{PENDING_FILE}` 的內容直接合併至主資料庫並清空原檔案。")
     
+    # 💡 必須先定義變數，才能在下方的 markdown 或 logic 中使用
     PENDING_FILE = 'pending_data.json'
+    
+    st.markdown(f"將 `{PENDING_FILE}` 的內容直接合併至主資料庫並清空原檔案。")
     
     if st.button("🚀 執行一鍵合併", use_container_width=True, type="primary"):
         if not os.path.exists(PENDING_FILE):
@@ -136,16 +137,15 @@ def ui_admin_page():
                     success, msg = merge_logic(content) 
                     
                     if success:
-                        # 2. 合併成功後，清空 pending_data.json
+                        # 2. 合併成功後，清空 pending_data.json 檔案
                         with open(PENDING_FILE, 'w', encoding='utf-8') as f:
                             json.dump([], f, ensure_ascii=False, indent=2)
                         
                         st.success(f"✅ 合併成功！{msg}")
                         st.info(f"系統已自動清空 `{PENDING_FILE}`。")
                         
-                        # 3. 強制刷新快取，讓搜尋頁面立即看到新單字
+                        # 3. 強制刷新快取並重新整理頁面，確保側邊欄統計數據同步更新
                         st.cache_data.clear()
-                        # 視情況可以使用 st.rerun() 刷新統計數據
                         st.rerun()
                     else:
                         st.error(f"合併失敗：{msg}")
