@@ -11,3 +11,32 @@
     }
   ]
 }
+{
+  "category": "醫學術語",
+  "root_groups": [
+    {
+      "roots": ["pneumo-", "pulmono-"],
+      "meaning": "肺、呼吸 (Lungs/Breath)",
+      "vocabulary": [
+        {"word": "Pneumonia", "breakdown": "pneumon- (lung) + -ia (condition)", "definition": "肺炎"},
+        {"word": "Pulmonologist", "breakdown": "pulmono- + -logist (specialist)", "definition": "胸腔/肺科醫師"}
+      ]
+    },
+    {
+      "roots": ["encephal-", "encephalo-"],
+      "meaning": "腦 (Brain)",
+      "vocabulary": [
+        {"word": "Encephalitis", "breakdown": "encephal- + -itis (inflammation)", "definition": "腦炎"},
+        {"word": "Electroencephalogram (EEG)", "breakdown": "electro- + encephalo- + -gram (record)", "definition": "腦波圖"}
+      ]
+    },
+    {
+      "roots": ["nephr-", "reno-"],
+      "meaning": "腎臟 (Kidney)",
+      "vocabulary": [
+        {"word": "Nephrotic", "breakdown": "nephro- + -tic (pertaining to)", "definition": "腎病的"},
+        {"word": "Renal failure", "breakdown": "ren- + -al", "definition": "腎衰竭"}
+      ]
+    }
+  ]
+}
