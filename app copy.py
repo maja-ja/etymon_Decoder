@@ -67,22 +67,18 @@ def load_db():
     except Exception as e:
         st.error(f"資料庫載入失敗: {e}")
         return []
-
 def save_feedback_to_gsheet(word, feedback_type, comment):
     """利用 Service Account 安全寫入回報到 Google Sheets"""
     try:
-        # 明確建立連接
+        # 強制指定使用 secrets 中的 [connections.gsheets] 配置
+        # 如果你的 secrets 標籤是 [connections.gsheets]，這裡就要寫 "gsheets"
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # 強制指定 spreadsheet 參數，解決 "Spreadsheet must be specified"
-        try:
-            # 讀取現有回報
-            df = conn.read(spreadsheet=FEEDBACK_URL)
-        except Exception:
-            # 如果分頁完全空白，建立初始 DataFrame
-            df = pd.DataFrame(columns=["timestamp", "word", "type", "comment", "status"])
+        # 1. 讀取現有資料 (必須明確傳入 spreadsheet 參數)
+        # 注意：這裡不要用 st.cache_data，否則會讀到舊資料
+        df = conn.read(spreadsheet=FEEDBACK_URL, ttl=0) 
         
-        # 建立新資料列
+        # 2. 建立新資料列
         new_row = pd.DataFrame([{
             "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
             "word": word,
@@ -91,14 +87,19 @@ def save_feedback_to_gsheet(word, feedback_type, comment):
             "status": "pending"
         }])
         
-        # 合併並更新 (同樣必須帶上 spreadsheet 參數)
+        # 3. 合併並更新
         updated_df = pd.concat([df, new_row], ignore_index=True)
+        
+        # 4. 執行寫入 (關鍵：這一步需要 Service Account 權限)
         conn.update(spreadsheet=FEEDBACK_URL, data=updated_df)
         
         st.success(f"✅ 單字「{word}」的回報已同步至雲端！")
         
     except Exception as e:
-        st.error(f"❌ 雲端同步失敗。錯誤詳情: {e}")
+        # 如果還是噴錯，顯示更詳細的訊息
+        st.error(f"❌ 雲端同步失敗。")
+        st.info("請檢查 Streamlit Cloud 的 Secrets 是否已包含完整的 [connections.gsheets] 區段內容。")
+        st.caption(f"錯誤詳情: {e}")
 def get_stats(data):
     """計算單字總數"""
     if not data: return 0, 0
