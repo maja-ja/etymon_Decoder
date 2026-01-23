@@ -218,21 +218,23 @@ def ui_quiz_page(data):
         if not pool: st.warning("此範圍無資料"); return
         st.session_state.flash_q = random.choice(pool)
         st.session_state.flipped = False
-        st.session_state.voiced = False # 用來控制是否已經唸過
+        st.session_state.voiced = False 
 
     q = st.session_state.flash_q
+    
+    # 單字卡片正面
     st.markdown(f"""
-        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px;">
-            <p style="color: #999;">[ {q['cat']} ]</p>
+        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <p style="color: #999; font-weight: bold;">[ {q['cat']} ]</p>
             <h1 style="font-size: 4.5em; margin: 0; color: #1E88E5;">{q['word']}</h1>
         </div>
     """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.button("查看答案", use_container_width=True): 
             st.session_state.flipped = True
     with col2:
-        # 這個按鈕點了就會「一直唸」
         if st.button("播放發音", use_container_width=True):
             speak(q['word'])
     with col3:
@@ -240,35 +242,41 @@ def ui_quiz_page(data):
             if 'flash_q' in st.session_state: del st.session_state.flash_q
             st.rerun()
 
+    # 答案翻開後的邏輯
     if st.session_state.get('flipped'):
-        # 翻開答案時自動朗讀
         if not st.session_state.get('voiced'):
             speak(q['word'])
             st.session_state.voiced = True
             
-        # 根據是否為法律區，動態調整顏色
         is_legal = "法律" in q['cat']
-        bg_color = "#1A1A1A" if is_legal else "#E3F2FD"  # 法律用深黑，其他用淺藍
-        label_color = "#FFD700" if is_legal else "#1E88E5" # 法律用金色，其他用藍色
-        text_color = "#FFFFFF" if is_legal else "#000000"  # 法律用白色文字，其他用黑色
-        breakdown_color = "#FFD700" if is_legal else "#D32F2F" # 法律拆解用金色，其他用紅色
+        bg_color = "#1A1A1A" if is_legal else "#E3F2FD"
+        label_color = "#FFD700" if is_legal else "#1E88E5"
+        text_color = "#FFFFFF" if is_legal else "#000000"
+        breakdown_color = "#FFD700" if is_legal else "#D32F2F"
 
+        # --- 新增：處理音標與例句的空值判斷 ---
+        p_raw = q.get('phonetic', '').strip()
+        # 避免出現 // 或 nan
+        phonetic_html = f"<p style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px; font-family: Arial;'>/{p_raw}/</p>" if p_raw and p_raw != "nan" else ""
+        
+        e_raw = q.get('example', '').strip()
+        # 避免出現空的橫線
+        example_html = f"<hr style='border-color: #555; margin: 15px 0;'><p style='font-style: italic; color: #666; font-size: 1.1em;'>{e_raw}</p>" if e_raw and e_raw != "nan" else ""
+
+        # 使用 st.markdown 並開啟 unsafe_allow_html=True
         st.markdown(f"""
-        <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border: 1px solid {label_color};">
-            <p style="font-size: 1.2em; color: {label_color}; margin-bottom: 0;">/{q['phonetic']}/</p>
-            <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-                <b style="color: {label_color};">拆解：</b> 
-                <span style="color: {breakdown_color}; font-family: monospace;">{q['breakdown']}</span>
-            </p>
-            <p style="font-size: 1.5em; color: {text_color};">
-                <b style="color: {label_color};">釋義：</b> {q['definition']}
-            </p>
-            <hr style="border-color: #555;">
-            <p style="font-style: italic; color: #AAA; font-size: 1.1em;">
-                {q['example']}
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+            <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
+                {phonetic_html}
+                <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+                    <b style="color: {label_color};">拆解：</b> 
+                    <span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
+                </p>
+                <p style="font-size: 1.5em; color: {text_color};">
+                    <b style="color: {label_color};">釋義：</b> {q['definition']}
+                </p>
+                {example_html}
+            </div>
+        """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
