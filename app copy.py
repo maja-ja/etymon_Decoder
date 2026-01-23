@@ -90,11 +90,11 @@ def save_feedback_to_gsheet(word, feedback_type, comment):
         # 4. 執行寫入 (關鍵：這一步需要 Service Account 權限)
         conn.update(spreadsheet=FEEDBACK_URL, data=updated_df)
         
-        st.success(f"✅ 單字「{word}」的回報已同步至雲端！")
+        st.success(f"單字「{word}」的回報已同步至雲端！")
         
     except Exception as e:
         # 如果還是噴錯，顯示更詳細的訊息
-        st.error(f"❌ 雲端同步失敗。")
+        st.error(f"雲端同步失敗。")
         st.info("請檢查 Streamlit Cloud 的 Secrets 是否已包含完整的 [connections.gsheets] 區段內容。")
         st.caption(f"錯誤詳情: {e}")
 def get_stats(data):
@@ -249,7 +249,7 @@ def ui_search_page(data, selected_cat):
                     for v in matched:
                         st.markdown(f"**{v['word']}** [{v['breakdown']}]: {v['definition']}")
 def ui_admin_page(data):
-    st.title("🛡️ 管理區 (Cloud Admin)")
+    st.title("管理區 (Cloud Admin)")
     
     # 1. 密碼驗證 (使用 st.secrets)
     correct_password = st.secrets.get("admin_password", "8787")
@@ -274,7 +274,7 @@ def ui_admin_page(data):
     st.divider()
 
     # 4. 讀取雲端回報 (取代舊的 PENDING_FILE 邏輯)
-    st.subheader("📝 雲端待處理回報")
+    st.subheader("雲端待處理回報")
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         # 使用你在 Section 1 定義的 FEEDBACK_URL
@@ -283,7 +283,7 @@ def ui_admin_page(data):
         if not df_pending.empty:
             st.dataframe(df_pending, use_container_width=True)
             
-            st.info("💡 提示：如需修改或刪除回報，請直接前往 Google Sheets 進行操作。")
+            st.info("提示：如需修改或刪除回報，請直接前往 Google Sheets 進行操作。")
             if st.button("重新整理雲端數據"):
                 st.rerun()
         else:
