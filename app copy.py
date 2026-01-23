@@ -6,25 +6,27 @@ import pandas as pd
 from gtts import gTTS
 import base64
 from io import BytesIO
-from gtts import gTTS
+import time
 from streamlit_gsheets import GSheetsConnection
 
 def speak(text):
-    tts = gTTS(text=text, lang='en')
-    fp = BytesIO()
-    tts.write_to_fp(fp)
-    fp.seek(0)
-    audio_base64 = base64.b64encode(fp.read()).decode()
-    # 加入 id 以確保每次渲染都是新的組件，觸發自動播放
-    import time
-    comp_id = int(time.time() * 1000)
-    audio_html = f"""
-        <audio autoplay key="{comp_id}">
-            <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
-        </audio>
-        """
-    st.components.v1.html(audio_html, height=0)
-
+    """最速發音邏輯"""
+    try:
+        tts = gTTS(text=text, lang='en')
+        fp = BytesIO()
+        tts.write_to_fp(fp)
+        fp.seek(0)
+        audio_base64 = base64.b64encode(fp.read()).decode()
+        
+        comp_id = int(time.time() * 1000)
+        audio_html = f"""
+            <audio autoplay key="{comp_id}">
+                <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+            </audio>
+            """
+        st.components.v1.html(audio_html, height=0)
+    except Exception as e:
+        st.error(f"發音失敗: {e}")
 # ==========================================
 # 1. 核心配置與雲端同步
 # ==========================================
