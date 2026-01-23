@@ -43,10 +43,18 @@ PENDING_FILE = 'pending_data.json'
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
 
 @st.cache_data(ttl=10)
+
+
 def load_db():
-    """從 Google Sheets 讀取單字庫 (保持原有的 CSV 讀取方式，速度較快)"""
     try:
-        df = pd.read_csv(GSHEET_URL)
+        # 在網址後面加上時間戳記，騙過 Google 伺服器，讓它以為是新的請求
+        cache_buster_url = f"{GSHEET_URL}&t={int(time.time())}"
+        df = pd.read_csv(cache_buster_url)
+        
+        # 除錯用：直接顯示現在抓到幾筆，看完可以刪掉
+        # st.toast(f"成功抓取 {len(df)} 筆資料") 
+        
+        if df.empty: return []
         if df.empty: return []
         df.columns = [c.strip().lower() for c in df.columns]
         structured_data = []
