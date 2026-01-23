@@ -121,23 +121,24 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
     selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
-        group = root_map[selected_label]
-        for v in group.get('vocabulary', []):
-            with st.container():
-                # 修改欄位比例，為回報按鈕留出空間
-                col_word, col_play, col_report = st.columns([3, 1, 1])
-                
-                with col_word:
-                    display_color = "#FFD700" if "法律" in title else theme_color
-                    st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
-                
-                with col_play:
-                    if st.button("播放", key=f"v_{v['word']}_{title}"):
-                        speak(v['word'])
-                
-                with col_report:
-                    # 呼叫新建立的回報組件
-                    ui_feedback_component(v['word'])
+    group = root_map[selected_label]
+    # 使用 enumerate(..., 1) 取得唯一的 index (從 1 開始)
+    for idx, v in enumerate(group.get('vocabulary', []), 1):
+        with st.container():
+            col_word, col_play, col_report = st.columns([3, 1, 1])
+            
+            with col_word:
+                display_color = "#FFD700" if "法律" in title else theme_color
+                st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
+            
+            with col_play:
+                # 關鍵修正：在 key 加入 {idx}
+                if st.button("播放", key=f"play_{v['word']}_{title}_{idx}"):
+                    speak(v['word'])
+            
+            with col_report:
+                # 關鍵修正：傳遞 {idx} 給回報按鈕，確保裡面的輸入框也不會衝突
+                ui_feedback_component(v['word'], idx)
                 
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
@@ -150,19 +151,19 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     </div>
                     <hr style="border-color: #444;">
                 """, unsafe_allow_html=True)
-def ui_feedback_component(word):
-    """單字錯誤回報彈窗"""
-    with st.popover("錯誤回報"):
+def ui_feedback_component(word, idx):
+    """加入 idx 參數確保 popover 內的元件 key 也是唯一的"""
+    with st.popover("錯誤回報", key=f"pop_{word}_{idx}"):
         st.write(f"回報單字：**{word}**")
-        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"err_type_{word}")
-        f_comment = st.text_area("詳細說明", placeholder="請描述正確的資訊...", key=f"err_note_{word}")
+        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"err_type_{word}_{idx}")
+        f_comment = st.text_area("詳細說明", placeholder="請描述正確的資訊...", key=f"err_note_{word}_{idx}")
         
-        if st.button("提交回報", key=f"err_btn_{word}"):
+        if st.button("提交回報", key=f"err_btn_{word}_{idx}"):
             if f_comment.strip() == "":
                 st.error("請填寫說明內容")
             else:
                 save_feedback_to_gsheet(word, f_type, f_comment)
-                st.success("感謝回報！管理員將會盡快修正。")
+                st.success("感謝回報！")
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
     cat_options_map = {"全部練習": "全部練習"}
