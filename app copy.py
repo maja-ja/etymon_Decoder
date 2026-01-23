@@ -191,58 +191,7 @@ def ui_feedback_component(word):
             else:
                 save_feedback_to_gsheet(word, f_type, f_comment)
                 st.success("感謝回報！管理員將會盡快修正。")
-def ui_quiz_page(data):
-    st.title("學習區 (Flashcards)")
-    cat_options_map = {"全部練習": "全部練習"}
-    cat_options_list = ["全部練習"]
-    for c in data:
-        w_count = sum(len(g['vocabulary']) for g in c['root_groups'])
-        display_name = f"{c['category']} ({w_count} 字)"
-        cat_options_list.append(display_name)
-        cat_options_map[display_name] = c['category']
-    
-    selected_raw = st.selectbox("選擇練習範圍", sorted(cat_options_list))
-    selected_cat = cat_options_map[selected_raw]
-
-    if st.session_state.get('last_quiz_cat') != selected_cat:
-        st.session_state.last_quiz_cat = selected_cat
-        if 'flash_q' in st.session_state: del st.session_state.flash_q
-        st.rerun()
-
-    if 'flash_q' not in st.session_state:
-        if selected_cat == "全部練習":
-            pool = [{**v, "cat": c['category']} for c in data for g in c['root_groups'] for v in g['vocabulary']]
-        else:
-            pool = [{**v, "cat": c['category']} for c in data if c['category'] == selected_cat for g in c['root_groups'] for v in g['vocabulary']]
-        
-        if not pool: st.warning("此範圍無資料"); return
-        st.session_state.flash_q = random.choice(pool)
-        st.session_state.flipped = False
-        st.session_state.voiced = False 
-
-    q = st.session_state.flash_q
-    
-    # 單字卡片正面
-    st.markdown(f"""
-        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <p style="color: #999; font-weight: bold;">[ {q['cat']} ]</p>
-            <h1 style="font-size: 4.5em; margin: 0; color: #1E88E5;">{q['word']}</h1>
-        </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col1:
-        if st.button("查看答案", use_container_width=True): 
-            st.session_state.flipped = True
-    with col2:
-        if st.button("播放發音", use_container_width=True):
-            speak(q['word'])
-    with col3:
-        if st.button("➡️ 下一題", use_container_width=True): 
-            if 'flash_q' in st.session_state: del st.session_state.flash_q
-            st.rerun()
-
-    # 答案翻開後的邏輯
+# 答案翻開後的邏輯 (請完整替換此區塊)
     if st.session_state.get('flipped'):
         if not st.session_state.get('voiced'):
             speak(q['word'])
@@ -254,28 +203,25 @@ def ui_quiz_page(data):
         text_color = "#FFFFFF" if is_legal else "#000000"
         breakdown_color = "#FFD700" if is_legal else "#D32F2F"
 
-        # --- 新增：處理音標與例句的空值判斷 ---
-        p_raw = q.get('phonetic', '').strip()
-        # 避免出現 // 或 nan
-        phonetic_html = f"<p style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px; font-family: Arial;'>/{p_raw}/</p>" if p_raw and p_raw != "nan" else ""
+        # 處理音標與例句
+        p_raw = str(q.get('phonetic', '')).strip()
+        phonetic_html = f"<div style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px; font-family: Arial;'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
         
-        e_raw = q.get('example', '').strip()
-        # 避免出現空的橫線
-        example_html = f"<hr style='border-color: #555; margin: 15px 0;'><p style='font-style: italic; color: #666; font-size: 1.1em;'>{e_raw}</p>" if e_raw and e_raw != "nan" else ""
+        e_raw = str(q.get('example', '')).strip()
+        example_html = f"<hr style='border-color: #555; margin: 15px 0;'><div style='font-style: italic; color: #666; font-size: 1.1em;'>{e_raw}</div>" if e_raw and e_raw != "nan" else ""
 
-        # 使用 st.markdown 並開啟 unsafe_allow_html=True
-        # 確保 unsafe_allow_html=True 緊跟在字串後面，且字串前面有 f
+        # 最終渲染
         st.markdown(f"""
 <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
-    {phonetic_html}
-    <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-        <b style="color: {label_color};">拆解：</b> 
-        <span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
-    </p>
-    <p style="font-size: 1.5em; color: {text_color};">
-        <b style="color: {label_color};">釋義：</b> {q['definition']}
-    </p>
-    {example_html}
+{phonetic_html}
+<div style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+<strong style="color: {label_color};">拆解：</strong>
+<span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
+</div>
+<div style="font-size: 1.5em; color: {text_color};">
+<strong style="color: {label_color};">釋義：</strong> {q['definition']}
+</div>
+{example_html}
 </div>
 """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
