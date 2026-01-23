@@ -6,6 +6,8 @@ import pandas as pd
 from gtts import gTTS
 import base64
 from io import BytesIO
+from gtts import gTTS
+from streamlit_gsheets import GSheetsConnection
 def speak(text):
     """最速發音邏輯"""
     tts = gTTS(text=text, lang='en')
@@ -28,32 +30,10 @@ def speak(text):
 # ==========================================
 SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
-DB_FILE = 'etymon_database.json'
-PENDING_FILE = 'pending_data.json'
+
 @st.cache_data(ttl=600)
-def save_feedback(word, feedback_type, comment):
-    """將錯誤回報儲存至 pending_data.json"""
-    new_report = {
-        "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "word": word,
-        "type": feedback_type,
-        "comment": comment,
-        "status": "pending"
-    }
-    
-    data = []
-    if os.path.exists(PENDING_FILE):
-        try:
-            with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-        except:
-            data = []
-            
-    data.append(new_report)
-    
-    with open(PENDING_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
 def load_db():
+    """從 Google Sheets 讀取單字庫"""
     try:
         df = pd.read_csv(GSHEET_URL)
         if df.empty: return []
@@ -76,10 +56,40 @@ def load_db():
                 })
             structured_data.append({"category": str(cat_name), "root_groups": root_groups})
         return structured_data
-    except:
+    except Exception as e:
+        st.error(f"資料庫載入失敗: {e}")
         return []
 
+def save_feedback_to_gsheet(word, feedback_type, comment):
+    """將錯誤回報寫入指定的 Google Sheet (1NNfKP...)"""
+    try:
+        # 建立連接，名稱須對應 secrets 中的設定
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        
+        # 嘗試讀取現有回報，若失敗（空表）則建立新表
+        try:
+            df = conn.read(spreadsheet=st.secrets["feedback_sheet_url"])
+        except:
+            df = pd.DataFrame(columns=["timestamp", "word", "type", "comment", "status"])
+
+        new_data = pd.DataFrame([{
+            "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+            "word": word,
+            "type": feedback_type,
+            "comment": comment,
+            "status": "pending"
+        }])
+        
+        updated_df = pd.concat([df, new_data], ignore_index=True)
+        
+        # 回寫雲端
+        conn.update(spreadsheet=st.secrets["feedback_sheet_url"], data=updated_df)
+        st.success(f"✅ 【{word}】報錯成功！管理員會盡快處理。")
+    except Exception as e:
+        st.error(f"雲端同步失敗。請檢查 Secrets 網址與 Sheets 權限。錯誤: {e}")
+
 def get_stats(data):
+    """計算單字總數"""
     if not data: return 0, 0
     total_words = sum(len(g.get('vocabulary', [])) for cat in data for g in cat.get('root_groups', []))
     return len(data), total_words
