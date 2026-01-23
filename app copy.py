@@ -28,12 +28,20 @@ def speak(text):
 # ==========================================
 # 1. 核心配置與雲端同步
 # ==========================================
+# ==========================================
+# 1. 核心配置與雲端同步
+# ==========================================
+
+# 這是你原本「唯讀」的單字庫資料來源
 SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 PENDING_FILE = 'pending_data.json'
+# 這是你要「寫入」回報的目標網址 (從 secrets 讀取)
+FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
+
 @st.cache_data(ttl=600)
 def load_db():
-    """從 Google Sheets 讀取單字庫"""
+    """從 Google Sheets 讀取單字庫 (保持原有的 CSV 讀取方式，速度較快)"""
     try:
         df = pd.read_csv(GSHEET_URL)
         if df.empty: return []
@@ -61,14 +69,20 @@ def load_db():
         return []
 
 def save_feedback_to_gsheet(word, feedback_type, comment):
-    """利用 Service Account 安全寫入 Google Sheets"""
+    """利用 Service Account 安全寫入回報到 Google Sheets"""
     try:
-        # 自動從 secrets.toml 的 [connections.gsheets] 讀取憑證
+        # 明確建立連接
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # 讀取現有資料
-        df = conn.read() 
+        # 強制指定 spreadsheet 參數，解決 "Spreadsheet must be specified"
+        try:
+            # 讀取現有回報
+            df = conn.read(spreadsheet=FEEDBACK_URL)
+        except Exception:
+            # 如果分頁完全空白，建立初始 DataFrame
+            df = pd.DataFrame(columns=["timestamp", "word", "type", "comment", "status"])
         
+        # 建立新資料列
         new_row = pd.DataFrame([{
             "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
             "word": word,
@@ -77,13 +91,14 @@ def save_feedback_to_gsheet(word, feedback_type, comment):
             "status": "pending"
         }])
         
-        # 合併並更新
+        # 合併並更新 (同樣必須帶上 spreadsheet 參數)
         updated_df = pd.concat([df, new_row], ignore_index=True)
-        conn.update(data=updated_df)
+        conn.update(spreadsheet=FEEDBACK_URL, data=updated_df)
         
         st.success(f"✅ 單字「{word}」的回報已同步至雲端！")
+        
     except Exception as e:
-        st.error(f"❌ 雲端同步失敗。請確認是否已將 Service Account Email 加入試算表編輯者。錯誤詳情: {e}")
+        st.error(f"❌ 雲端同步失敗。錯誤詳情: {e}")
 def get_stats(data):
     """計算單字總數"""
     if not data: return 0, 0
