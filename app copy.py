@@ -253,35 +253,35 @@ def ui_quiz_page(data):
         breakdown_color = "#FFD700" if is_legal else "#D32F2F"
 
         # 處理音標與例句
-        # 在 ui_quiz_page 翻開答案的邏輯中：
-p_raw = str(q.get('phonetic', '')).strip()
-phonetic_html = f"<div style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px;'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
-
-e_raw = str(q.get('example', '')).strip()
-t_raw = str(q.get('translation', '')).strip() # 新增中文翻譯
-
-example_section = ""
-if e_raw and e_raw != "nan":
-    trans_html = f"<div style='color: #888; font-size: 0.95em; margin-top: 5px;'>({t_raw})</div>" if t_raw and t_raw != "nan" else ""
-    example_section = f"""
-        <hr style='border-color: #555; margin: 15px 0;'>
-        <div style='font-style: italic; color: #AAA; font-size: 1.1em;'>{e_raw}</div>
-        {trans_html}
-    """
-
-st.markdown(f"""
-<div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
-    {phonetic_html}
-    <div style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-        <strong style="color: {label_color};">拆解：</strong>
-        <span style="font-family: monospace;">{q['breakdown']}</span>
-    </div>
-    <div style="font-size: 1.5em; color: {text_color};">
-        <strong style="color: {label_color};">釋義：</strong> {q['definition']}
-    </div>
-    {example_section}
-</div>
-""", unsafe_allow_html=True)
+                # 在 ui_quiz_page 翻開答案的邏輯中：
+        p_raw = str(q.get('phonetic', '')).strip()
+        phonetic_html = f"<div style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px;'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
+        
+        e_raw = str(q.get('example', '')).strip()
+        t_raw = str(q.get('translation', '')).strip() # 新增中文翻譯
+        
+        example_section = ""
+        if e_raw and e_raw != "nan":
+            trans_html = f"<div style='color: #888; font-size: 0.95em; margin-top: 5px;'>({t_raw})</div>" if t_raw and t_raw != "nan" else ""
+            example_section = f"""
+                <hr style='border-color: #555; margin: 15px 0;'>
+                <div style='font-style: italic; color: #AAA; font-size: 1.1em;'>{e_raw}</div>
+                {trans_html}
+            """
+        
+        st.markdown(f"""
+        <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
+            {phonetic_html}
+            <div style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+                <strong style="color: {label_color};">拆解：</strong>
+                <span style="font-family: monospace;">{q['breakdown']}</span>
+            </div>
+            <div style="font-size: 1.5em; color: {text_color};">
+                <strong style="color: {label_color};">釋義：</strong> {q['definition']}
+            </div>
+            {example_section}
+        </div>
+        """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
