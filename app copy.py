@@ -68,15 +68,12 @@ def load_db():
         st.error(f"資料庫載入失敗: {e}")
         return []
 def save_feedback_to_gsheet(word, feedback_type, comment):
-    """利用 Service Account 安全寫入回報到 Google Sheets"""
     try:
-        # 強制指定使用 secrets 中的 [connections.gsheets] 配置
-        # 如果你的 secrets 標籤是 [connections.gsheets]，這裡就要寫 "gsheets"
+        # 1. 建立連線
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # 1. 讀取現有資料 (必須明確傳入 spreadsheet 參數)
-        # 注意：這裡不要用 st.cache_data，否則會讀到舊資料
-        df = conn.read(spreadsheet=FEEDBACK_URL, ttl=0) 
+        # 2. 強制不使用快取讀取資料 (ttl=0)
+        df = conn.read(spreadsheet=FEEDBACK_URL, ttl=0)
         
         # 2. 建立新資料列
         new_row = pd.DataFrame([{
