@@ -46,36 +46,34 @@ PENDING_FILE = 'pending_data.json'
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
 
 @st.cache_data(ttl=600)
+@st.cache_data(ttl=600)
 def load_db():
-    # 定義每區範圍 (8 欄內容)
-    # 規律：A-H (I空), J-Q (R空), S-Z (AA空), AB-AI (AJ空)...
-    BLOCKS = ["A:H", "J:Q", "S:Z", "AB:AI", "AK:AR", "AT:BA"]
+    # 改為 9 欄一組的範圍
+    BLOCKS = ["A:I", "J:R", "S:AA", "AB:AJ", "AK:AS"]
     
     all_dfs = []
     for rng in BLOCKS:
         try:
             url = f"{GSHEET_URL}&range={rng}"
             df_part = pd.read_csv(url)
-            df_part = df_part.dropna(how='all') # 移除全空行
-            
+            df_part = df_part.dropna(how='all')
             if not df_part.empty:
-                # 強制命名，確保後續合併順利
+                # 確保欄位剛好是 9 個
+                df_part = df_part.iloc[:, :9]
                 df_part.columns = [
                     'category', 'roots', 'meaning', 'word', 
-                    'breakdown', 'definition', 'phonetic', 'example'
+                    'breakdown', 'definition', 'phonetic', 'example', 'translation'
                 ]
                 all_dfs.append(df_part)
         except:
             continue
 
     if not all_dfs: return []
-    
-    # 合併所有區塊
     df = pd.concat(all_dfs, ignore_index=True)
-    df = df.dropna(subset=['category']) # 確保分類不為空
     
-    # 建立結構化字典
+    # 結構化處理 (此處新增 translation 欄位)
     structured_data = []
+    df = df.dropna(subset=['category'])
     for cat_name, cat_group in df.groupby('category'):
         root_groups = []
         for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
@@ -86,7 +84,8 @@ def load_db():
                     "breakdown": str(row['breakdown']),
                     "definition": str(row['definition']),
                     "phonetic": str(row['phonetic']) if pd.notna(row['phonetic']) else "",
-                    "example": str(row['example']) if pd.notna(row['example']) else ""
+                    "example": str(row['example']) if pd.notna(row['example']) else "",
+                    "translation": str(row['translation']) if pd.notna(row['translation']) else ""
                 })
             root_groups.append({
                 "roots": [r.strip() for r in str(roots).split('/')],
@@ -254,24 +253,33 @@ def ui_quiz_page(data):
         breakdown_color = "#FFD700" if is_legal else "#D32F2F"
 
         # 處理音標與例句
-        p_raw = str(q.get('phonetic', '')).strip()
-        phonetic_html = f"<div style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px; font-family: Arial;'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
-        
-        e_raw = str(q.get('example', '')).strip()
-        example_html = f"<hr style='border-color: #555; margin: 15px 0;'><div style='font-style: italic; color: #666; font-size: 1.1em;'>{e_raw}</div>" if e_raw and e_raw != "nan" else ""
+        # 在 ui_quiz_page 翻開答案的邏輯中：
+p_raw = str(q.get('phonetic', '')).strip()
+phonetic_html = f"<div style='font-size: 1.2em; color: {label_color}; margin-bottom: 5px;'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
 
-        # 最終渲染
-        st.markdown(f"""
-<div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
-{phonetic_html}
-<div style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-<strong style="color: {label_color};">拆解：</strong>
-<span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
-</div>
-<div style="font-size: 1.5em; color: {text_color};">
-<strong style="color: {label_color};">釋義：</strong> {q['definition']}
-</div>
-{example_html}
+e_raw = str(q.get('example', '')).strip()
+t_raw = str(q.get('translation', '')).strip() # 新增中文翻譯
+
+example_section = ""
+if e_raw and e_raw != "nan":
+    trans_html = f"<div style='color: #888; font-size: 0.95em; margin-top: 5px;'>({t_raw})</div>" if t_raw and t_raw != "nan" else ""
+    example_section = f"""
+        <hr style='border-color: #555; margin: 15px 0;'>
+        <div style='font-style: italic; color: #AAA; font-size: 1.1em;'>{e_raw}</div>
+        {trans_html}
+    """
+
+st.markdown(f"""
+<div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
+    {phonetic_html}
+    <div style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+        <strong style="color: {label_color};">拆解：</strong>
+        <span style="font-family: monospace;">{q['breakdown']}</span>
+    </div>
+    <div style="font-size: 1.5em; color: {text_color};">
+        <strong style="color: {label_color};">釋義：</strong> {q['definition']}
+    </div>
+    {example_section}
 </div>
 """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
