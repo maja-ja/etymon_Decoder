@@ -42,32 +42,35 @@ PENDING_FILE = 'pending_data.json'
 # 這是你要「寫入」回報的目標網址 (從 secrets 讀取)
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
 
-@st.cache_data(ttl=10)
-
-
+@st.cache_data(ttl=300) # 建議大數據量縮短快取時間
 def load_db():
     try:
-        # 在網址後面加上時間戳記，騙過 Google 伺服器，讓它以為是新的請求
-        cache_buster_url = f"{GSHEET_URL}&t={int(time.time())}"
-        df = pd.read_csv(cache_buster_url)
+        # 1. 加入時間戳記避免 Google 抓到舊檔
+        import time
+        cache_buster = f"{GSHEET_URL}&t={int(time.time())}"
         
-        # 除錯用：直接顯示現在抓到幾筆，看完可以刪掉
-        # st.toast(f"成功抓取 {len(df)} 筆資料") 
+        # 2. 指定讀取的欄位，減少記憶體消耗
+        df = pd.read_csv(cache_buster)
         
-        if df.empty: return []
-        if df.empty: return []
+        # 3. 重要：過濾掉 word 欄位是空白的列 (避免讀到試算表下方的 7 萬行空列)
+        if 'word' in df.columns:
+            df = df.dropna(subset=['word'])
+        
+        if df.empty: 
+            return []
+
+        # 標準化欄位名稱
         df.columns = [c.strip().lower() for c in df.columns]
+        
+        # 限制資料量 (選做：如果真的太卡，可以先抓前 5000 筆測試)
+        # df = df.head(5000) 
+
         structured_data = []
+        # 使用更快的處理方式
         for cat_name, cat_group in df.groupby('category'):
             root_groups = []
             for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
-                vocabulary = []
-                for _, row in group_df.iterrows():
-                    vocabulary.append({
-                        "word": str(row['word']),
-                        "breakdown": str(row['breakdown']),
-                        "definition": str(row['definition'])
-                    })
+                vocabulary = group_df[['word', 'breakdown', 'definition']].to_dict('records')
                 root_groups.append({
                     "roots": [r.strip() for r in str(roots).split('/')],
                     "meaning": str(meaning),
@@ -75,6 +78,7 @@ def load_db():
                 })
             structured_data.append({"category": str(cat_name), "root_groups": root_groups})
         return structured_data
+        
     except Exception as e:
         st.error(f"資料庫載入失敗: {e}")
         return []
