@@ -30,7 +30,7 @@ def speak(text):
 # ==========================================
 SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
-
+PENDING_FILE = 'pending_data.json'
 @st.cache_data(ttl=600)
 def load_db():
     """從 Google Sheets 讀取單字庫"""
@@ -152,7 +152,7 @@ def ui_feedback_component(word):
             if f_comment.strip() == "":
                 st.error("請填寫說明內容")
             else:
-                save_feedback(word, f_type, f_comment)
+                save_feedback_to_gsheet(word, f_type, f_comment)
                 st.success("感謝回報！管理員將會盡快修正。")
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
