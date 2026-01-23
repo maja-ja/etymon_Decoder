@@ -105,6 +105,15 @@ def get_stats(data):
 # ==========================================
 # 2. 通用與專業區域組件
 # ==========================================
+def ui_feedback_component(word, unique_tag, scope):
+    """錯誤回報組件"""
+    final_id = f"{scope}_{unique_tag}".replace(" ", "")
+    with st.popover("錯誤回報", key=f"pop_{final_id}"):
+        st.write(f"回報單字：**{word}**")
+        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"type_{final_id}")
+        f_comment = st.text_area("詳細說明", key=f"note_{final_id}")
+        if st.button("提交回報", key=f"btn_{final_id}"):
+            save_feedback_to_gsheet(word, f_type, f_comment)
 def ui_domain_page(domain_data, title, theme_color, bg_color):
     st.title(title)
     if not domain_data:
