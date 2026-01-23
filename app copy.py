@@ -61,33 +61,29 @@ def load_db():
         return []
 
 def save_feedback_to_gsheet(word, feedback_type, comment):
-    """將錯誤回報寫入指定的 Google Sheet (1NNfKP...)"""
+    """利用 Service Account 安全寫入 Google Sheets"""
     try:
-        # 建立連接，名稱須對應 secrets 中的設定
+        # 自動從 secrets.toml 的 [connections.gsheets] 讀取憑證
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # 嘗試讀取現有回報，若失敗（空表）則建立新表
-        try:
-            df = conn.read(spreadsheet=st.secrets["feedback_sheet_url"])
-        except:
-            df = pd.DataFrame(columns=["timestamp", "word", "type", "comment", "status"])
-
-        new_data = pd.DataFrame([{
-            "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+        # 讀取現有資料
+        df = conn.read() 
+        
+        new_row = pd.DataFrame([{
+            "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
             "word": word,
             "type": feedback_type,
             "comment": comment,
             "status": "pending"
         }])
         
-        updated_df = pd.concat([df, new_data], ignore_index=True)
+        # 合併並更新
+        updated_df = pd.concat([df, new_row], ignore_index=True)
+        conn.update(data=updated_df)
         
-        # 回寫雲端
-        conn.update(spreadsheet=st.secrets["feedback_sheet_url"], data=updated_df)
-        st.success(f"✅ 【{word}】報錯成功！管理員會盡快處理。")
+        st.success(f"✅ 單字「{word}」的回報已同步至雲端！")
     except Exception as e:
-        st.error(f"雲端同步失敗。請檢查 Secrets 網址與 Sheets 權限。錯誤: {e}")
-
+        st.error(f"❌ 雲端同步失敗。請確認是否已將 Service Account Email 加入試算表編輯者。錯誤詳情: {e}")
 def get_stats(data):
     """計算單字總數"""
     if not data: return 0, 0
