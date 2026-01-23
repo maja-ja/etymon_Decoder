@@ -8,26 +8,32 @@ import base64
 from io import BytesIO
 from gtts import gTTS
 from streamlit_gsheets import GSheetsConnection
+# ==========================================
+# 1. 修正語音發音 (確保有聲音且 autoplay)
+# ==========================================
 def speak(text):
-    """最速發音邏輯"""
-    tts = gTTS(text=text, lang='en')
-    fp = BytesIO()
-    tts.write_to_fp(fp)
-    fp.seek(0)
-    audio_base64 = base64.b64encode(fp.read()).decode()
-    # 加入 id 以確保每次渲染都是新的組件，觸發自動播放
-    import time
-    comp_id = int(time.time() * 1000)
-    audio_html = f"""
-        <audio autoplay key="{comp_id}">
-            <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
-        </audio>
-        """
-    st.components.v1.html(audio_html, height=0)
-
-# ==========================================
-# 1. 核心配置與雲端同步
-# ==========================================
+    """改良版發音邏輯"""
+    try:
+        tts = gTTS(text=text, lang='en')
+        fp = BytesIO()
+        tts.write_to_fp(fp)
+        fp.seek(0)
+        audio_base64 = base64.b64encode(fp.read()).decode()
+        import time
+        comp_id = int(time.time() * 1000)
+        
+        audio_html = f"""
+            <audio autoplay id="aud_{comp_id}">
+                <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+            </audio>
+            <script>
+                var x = document.getElementById("aud_{comp_id}");
+                x.play().catch(function(e) {{ console.log("Autoplay blocked"); }});
+            </script>
+            """
+        st.components.v1.html(audio_html, height=1)
+    except Exception as e:
+        st.error(f"語音錯誤: {e}")
 # ==========================================
 # 1. 核心配置與雲端同步
 # ==========================================
@@ -41,32 +47,54 @@ FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
 
 @st.cache_data(ttl=600)
 def load_db():
-    """從 Google Sheets 讀取單字庫 (保持原有的 CSV 讀取方式，速度較快)"""
-    try:
-        df = pd.read_csv(GSHEET_URL)
-        if df.empty: return []
-        df.columns = [c.strip().lower() for c in df.columns]
-        structured_data = []
-        for cat_name, cat_group in df.groupby('category'):
-            root_groups = []
-            for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
-                vocabulary = []
-                for _, row in group_df.iterrows():
-                    vocabulary.append({
-                        "word": str(row['word']),
-                        "breakdown": str(row['breakdown']),
-                        "definition": str(row['definition'])
-                    })
-                root_groups.append({
-                    "roots": [r.strip() for r in str(roots).split('/')],
-                    "meaning": str(meaning),
-                    "vocabulary": vocabulary
+    # 定義每區範圍 (8 欄內容)
+    # 規律：A-H (I空), J-Q (R空), S-Z (AA空), AB-AI (AJ空)...
+    BLOCKS = ["A:H", "J:Q", "S:Z", "AB:AI", "AK:AR", "AT:BA"]
+    
+    all_dfs = []
+    for rng in BLOCKS:
+        try:
+            url = f"{GSHEET_URL}&range={rng}"
+            df_part = pd.read_csv(url)
+            df_part = df_part.dropna(how='all') # 移除全空行
+            
+            if not df_part.empty:
+                # 強制命名，確保後續合併順利
+                df_part.columns = [
+                    'category', 'roots', 'meaning', 'word', 
+                    'breakdown', 'definition', 'phonetic', 'example'
+                ]
+                all_dfs.append(df_part)
+        except:
+            continue
+
+    if not all_dfs: return []
+    
+    # 合併所有區塊
+    df = pd.concat(all_dfs, ignore_index=True)
+    df = df.dropna(subset=['category']) # 確保分類不為空
+    
+    # 建立結構化字典
+    structured_data = []
+    for cat_name, cat_group in df.groupby('category'):
+        root_groups = []
+        for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
+            vocabulary = []
+            for _, row in group_df.iterrows():
+                vocabulary.append({
+                    "word": str(row['word']),
+                    "breakdown": str(row['breakdown']),
+                    "definition": str(row['definition']),
+                    "phonetic": str(row['phonetic']) if pd.notna(row['phonetic']) else "",
+                    "example": str(row['example']) if pd.notna(row['example']) else ""
                 })
-            structured_data.append({"category": str(cat_name), "root_groups": root_groups})
-        return structured_data
-    except Exception as e:
-        st.error(f"資料庫載入失敗: {e}")
-        return []
+            root_groups.append({
+                "roots": [r.strip() for r in str(roots).split('/')],
+                "meaning": str(meaning),
+                "vocabulary": vocabulary
+            })
+        structured_data.append({"category": str(cat_name), "root_groups": root_groups})
+    return structured_data
 def save_feedback_to_gsheet(word, feedback_type, comment):
     try:
         # 1. 建立連線
@@ -194,12 +222,21 @@ def ui_quiz_page(data):
 
     q = st.session_state.flash_q
     st.markdown(f"""
-        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px;">
-            <p style="color: #999;">[ {q['cat']} ]</p>
-            <h1 style="font-size: 4.5em; margin: 0; color: #1E88E5;">{q['word']}</h1>
+        <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border: 1px solid {label_color};">
+            <p style="font-size: 1.2em; color: {label_color}; margin-bottom: 0;">/{q['phonetic']}/</p>
+            <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+                <b style="color: {label_color};">拆解：</b> 
+                <span style="color: {breakdown_color}; font-family: monospace;">{q['breakdown']}</span>
+            </p>
+            <p style="font-size: 1.5em; color: {text_color};">
+                <b style="color: {label_color};">釋義：</b> {q['definition']}
+            </p>
+            <hr style="border-color: #555;">
+            <p style="font-style: italic; color: #AAA; font-size: 1.1em;">
+                {q['example']}
+            </p>
         </div>
     """, unsafe_allow_html=True)
-
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         if st.button("查看答案", use_container_width=True): 
