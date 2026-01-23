@@ -241,38 +241,38 @@ def ui_quiz_page(data):
             if 'flash_q' in st.session_state: del st.session_state.flash_q
             st.rerun()
             # 這裡請確保 q 是從 st.session_state.flash_q 抓出來的
-            if st.session_state.get('flipped'):
-                # 1. 預先處理好要插入的變數
-                p_raw = str(q.get('phonetic', '')).strip()
-                phonetic_html = f"<div style='color:{label_color};'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
-                
-                e_raw = str(q.get('example', '')).strip()
-                t_raw = str(q.get('translation', '')).strip() # 你新增的中文翻譯
-                
-                # 2. 預先組合成一個完整的 HTML 字串 (避免在 st.markdown 裡面寫太多邏輯)
-                example_section = ""
-                if e_raw and e_raw != "nan":
-                    example_section = f"""
-                    <hr style='border-color:#555; margin:15px 0;'>
-                    <div style='font-style:italic; color:#AAA; font-size:1.1em;'>{e_raw}</div>
-                    <div style='color:#888; font-size:0.95em; margin-top:5px;'>({t_raw})</div>
-                    """
-            
-                # 3. 執行渲染 (注意：不要有任何前置縮排)
-                full_html = f"""
-            <div style="background-color:{bg_color}; padding:25px; border-radius:15px; border:1px solid {label_color}; border-left:10px solid {label_color};">
-                {phonetic_html}
-                <div style="font-size:2em; margin-bottom:10px; color:{text_color};">
-                    <strong style="color:{label_color};">拆解：</strong> 
-                    <span style="color:{breakdown_color}; font-family:monospace;">{q['breakdown']}</span>
-                </div>
-                <div style="font-size:1.5em; color:{text_color};">
-                    <strong style="color:{label_color};">釋義：</strong> {q['definition']}
-                </div>
-                {example_section}
-            </div>
+    if st.session_state.get('flipped'):
+        # 1. 預先處理好要插入的變數
+        p_raw = str(q.get('phonetic', '')).strip()
+        phonetic_html = f"<div style='color:{label_color};'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
+        
+        e_raw = str(q.get('example', '')).strip()
+        t_raw = str(q.get('translation', '')).strip() # 你新增的中文翻譯
+        
+        # 2. 預先組合成一個完整的 HTML 字串 (避免在 st.markdown 裡面寫太多邏輯)
+        example_section = ""
+        if e_raw and e_raw != "nan":
+            example_section = f"""
+            <hr style='border-color:#555; margin:15px 0;'>
+            <div style='font-style:italic; color:#AAA; font-size:1.1em;'>{e_raw}</div>
+            <div style='color:#888; font-size:0.95em; margin-top:5px;'>({t_raw})</div>
             """
-                st.markdown(full_html, unsafe_allow_html=True)
+    
+        # 3. 執行渲染 (注意：不要有任何前置縮排)
+        full_html = f"""
+    <div style="background-color:{bg_color}; padding:25px; border-radius:15px; border:1px solid {label_color}; border-left:10px solid {label_color};">
+        {phonetic_html}
+        <div style="font-size:2em; margin-bottom:10px; color:{text_color};">
+            <strong style="color:{label_color};">拆解：</strong> 
+            <span style="color:{breakdown_color}; font-family:monospace;">{q['breakdown']}</span>
+        </div>
+        <div style="font-size:1.5em; color:{text_color};">
+            <strong style="color:{label_color};">釋義：</strong> {q['definition']}
+        </div>
+        {example_section}
+    </div>
+    """
+        st.markdown(full_html, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
