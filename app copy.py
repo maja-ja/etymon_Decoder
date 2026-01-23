@@ -254,16 +254,21 @@ def ui_quiz_page(data):
         breakdown_color = "#FFD700" if is_legal else "#D32F2F" # 法律拆解用金色，其他用紅色
 
         st.markdown(f"""
-            <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
-                <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-                    <b style="color: {label_color};">拆解：</b> 
-                    <span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
-                </p>
-                <p style="font-size: 1.5em; color: {text_color};">
-                    <b style="color: {label_color};">釋義：</b> {q['definition']}
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
+        <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border: 1px solid {label_color};">
+            <p style="font-size: 1.2em; color: {label_color}; margin-bottom: 0;">/{q['phonetic']}/</p>
+            <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+                <b style="color: {label_color};">拆解：</b> 
+                <span style="color: {breakdown_color}; font-family: monospace;">{q['breakdown']}</span>
+            </p>
+            <p style="font-size: 1.5em; color: {text_color};">
+                <b style="color: {label_color};">釋義：</b> {q['definition']}
+            </p>
+            <hr style="border-color: #555;">
+            <p style="font-style: italic; color: #AAA; font-size: 1.1em;">
+                {q['example']}
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
