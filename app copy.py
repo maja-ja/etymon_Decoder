@@ -272,6 +272,9 @@ def ui_admin_page(data):
                 
                 if st.button("清空所有回報"):
                     os.remove(PENDING_FILE)
+                    # 舊代碼：os.remove(PENDING_FILE) <-- 這行會噴錯
+                    # 新代碼：你可以選擇不放這個功能，或清空 Google Sheets
+                    st.warning("雲端模式下請手動至 Google Sheets 刪除列")
                     st.rerun()
             else:
                 st.info("目前沒有待處理的回報。")
