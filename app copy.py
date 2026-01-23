@@ -144,18 +144,19 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
         st.info("目前資料庫中尚未建立相關分類。")
         return
 
-    # 提取字根
+    # 提取字根 (保持原樣)
     root_map = {}
     for cat in domain_data:
         for group in cat.get('root_groups', []):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             if label not in root_map: root_map[label] = group
     
-    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
+    # 這裡的 key 使用 title 即可，因為 title 包含數量，資料變動時會自動重置
+    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=f"sel_{title}")
     
     if selected_label:
         group = root_map[selected_label]
-        # 使用 enumerate(..., 1) 取得唯一的 index (從 1 開始)
+        # 使用 enumerate 產生 index
         for idx, v in enumerate(group.get('vocabulary', []), 1):
             with st.container():
                 col_word, col_play, col_report = st.columns([3, 1, 1])
@@ -165,17 +166,17 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
                 
                 with col_play:
-                    # 關鍵修正：在 key 加入 {idx}
-                    if st.button("播放", key=f"play_{v['word']}_{title}_{idx}"):
+                    # 使用 Hash 或更乾淨的 Key 格式
+                    if st.button("播放", key=f"play_{idx}_{v['word']}"):
                         speak(v['word'])
                 
-                # 在 ui_domain_page 的循環中
                 with col_report:
-                    # 建立一個包含單字、索引與分類名稱的唯一字串
-                    # 使用 .replace() 移除空格避免 key 格式問題
-                    unique_tag = f"{v['word']}_{idx}".replace(" ", "")
+                    # 修正：直接傳入 idx 即可，讓 ui_feedback_component 內部的 Hash 去處理唯一性
+                    # 這裡將 unique_tag 設為單純的 index 字串
+                    unique_tag = str(idx)
                     ui_feedback_component(v['word'], unique_tag, title)
-                # 這裡針對拆解 (breakdown) 使用金色與深色背景框
+
+                # 下方拆解區塊保持原樣
                 st.markdown(f"""
                     <div style="margin-bottom: 15px;">
                         <span style="font-size: 1.1em; color: #888;">構造拆解：</span>
