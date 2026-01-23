@@ -3,11 +3,14 @@ import json
 import os
 import random
 import pandas as pd
-from gtts import gTTS
 import base64
+import time
+import hashlib  # <--- 新增這個
 from io import BytesIO
 from gtts import gTTS
 from streamlit_gsheets import GSheetsConnection
+
+# ... 接下來是你的 speak 函式 ...
 def speak(text):
     """最速發音邏輯"""
     tts = gTTS(text=text, lang='en')
@@ -105,30 +108,35 @@ def get_stats(data):
 # ==========================================
 # 2. 通用與專業區域組件
 # ==========================================
+import hashlib  # <--- 記得在檔案最上方加入這個
+
 def ui_feedback_component(word, unique_tag, scope):
-    """錯誤回報組件 - 修正 Key 重複問題"""
-    # 1. 僅保留英數字作為 scope 的一部分，避免括號、空格造成 Streamlit 解析 Key 失敗
-    clean_scope = "".join(filter(str.isalnum, scope))
+    """錯誤回報組件 - 使用 MD5 Hash 生成絕對安全且唯一的 ID"""
     
-    # 2. 組合出絕對唯一的 ID (加入 word 與 unique_tag)
-    final_id = f"{clean_scope}_{unique_tag}_{word}".replace(" ", "")
+    # 1. 將所有變數組合成一個字串 (包含 scope, unique_tag, word)
+    #    這樣即使不同頁面有相同的單字，也會因為 scope 不同而產生不同的 Hash
+    raw_id_str = f"{scope}_{unique_tag}_{word}"
     
-    # 3. 為 popover 內部的每個元件都加上這個唯一的 final_id
+    # 2. 生成 MD5 Hash (這會產生一組類似 '5d41402abc4b2a76...' 的字串)
+    #    這能避免單字中的特殊符號 (如 ?, !, 空格) 破壞 Streamlit 的 Key 格式
+    final_id = hashlib.md5(raw_id_str.encode('utf-8')).hexdigest()
+    
+    # 3. 使用 hashed id 作為後綴
     with st.popover("錯誤回報", key=f"pop_{final_id}"):
         st.write(f"回報單字：**{word}**")
         
         f_type = st.selectbox(
             "錯誤類型", 
             ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], 
-            key=f"type_{final_id}" # 必須獨特
+            key=f"type_{final_id}"
         )
         
         f_comment = st.text_area(
             "詳細說明", 
-            key=f"note_{final_id}" # 必須獨特
+            key=f"note_{final_id}"
         )
         
-        if st.button("提交回報", key=f"btn_{final_id}"): # 必須獨特
+        if st.button("提交回報", key=f"btn_{final_id}"):
             save_feedback_to_gsheet(word, f_type, f_comment)
 def ui_domain_page(domain_data, title, theme_color, bg_color):
     st.title(title)
