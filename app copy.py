@@ -138,8 +138,9 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                 
                 # 在 ui_domain_page 的循環中
                 with col_report:
-                    # 傳遞 idx 和 title 給組件
-                    ui_feedback_component(v['word'], idx, title)
+            # 建立一個基於內容的唯一 ID (加上 idx 雙重保險)
+                    item_id = f"{v['word']}_{idx}" 
+                    ui_feedback_component(v['word'], item_id, title)
                                     
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
@@ -152,29 +153,29 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     </div>
                     <hr style="border-color: #444;">
                 """, unsafe_allow_html=True)
-def ui_feedback_component(word, idx, scope="default"):
+def ui_feedback_component(word, item_id, scope="default"):
     """
-    使用 word + scope + idx 建立三重唯一的 ID
-    scope 建議傳入分頁名稱 (title)
+    使用 item_id (單字+索引) 與 scope (分類) 組合
     """
-    unique_id = f"{word}_{scope}_{idx}"
+    # 建立最終唯一 key，避免任何碰撞
+    final_key = f"{scope}_{item_id}"
     
-    with st.popover("錯誤回報", key=f"pop_{unique_id}"):
+    with st.popover("錯誤回報", key=f"pop_{final_key}"):
         st.write(f"回報單字：**{word}**")
         
         f_type = st.selectbox(
             "錯誤類型", 
             ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], 
-            key=f"err_type_{unique_id}"
+            key=f"type_{final_key}" # 每個 widget 都要唯一
         )
         
         f_comment = st.text_area(
             "詳細說明", 
             placeholder="請描述正確的資訊...", 
-            key=f"err_note_{unique_id}"
+            key=f"note_{final_key}" # 每個 widget 都要唯一
         )
         
-        if st.button("提交回報", key=f"err_btn_{unique_id}"):
+        if st.button("提交回報", key=f"btn_{final_key}"):
             if f_comment.strip() == "":
                 st.error("請填寫說明內容")
             else:
