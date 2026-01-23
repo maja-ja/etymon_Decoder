@@ -9,7 +9,6 @@ from io import BytesIO
 from gtts import gTTS
 from streamlit_gsheets import GSheetsConnection
 def speak(text):
-    """最速發音邏輯"""
     tts = gTTS(text=text, lang='en')
     fp = BytesIO()
     tts.write_to_fp(fp)
