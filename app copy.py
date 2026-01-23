@@ -264,19 +264,20 @@ def ui_quiz_page(data):
         example_html = f"<hr style='border-color: #555; margin: 15px 0;'><p style='font-style: italic; color: #666; font-size: 1.1em;'>{e_raw}</p>" if e_raw and e_raw != "nan" else ""
 
         # 使用 st.markdown 並開啟 unsafe_allow_html=True
+        # 確保 unsafe_allow_html=True 緊跟在字串後面，且字串前面有 f
         st.markdown(f"""
-            <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
-                {phonetic_html}
-                <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-                    <b style="color: {label_color};">拆解：</b> 
-                    <span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
-                </p>
-                <p style="font-size: 1.5em; color: {text_color};">
-                    <b style="color: {label_color};">釋義：</b> {q['definition']}
-                </p>
-                {example_html}
-            </div>
-        """, unsafe_allow_html=True)
+<div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; margin-top: 20px; border-left: 10px solid {label_color}; border: 1px solid {label_color};">
+    {phonetic_html}
+    <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
+        <b style="color: {label_color};">拆解：</b> 
+        <span style="color: {breakdown_color}; font-family: monospace; font-weight: bold;">{q['breakdown']}</span>
+    </p>
+    <p style="font-size: 1.5em; color: {text_color};">
+        <b style="color: {label_color};">釋義：</b> {q['definition']}
+    </p>
+    {example_html}
+</div>
+""", unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
