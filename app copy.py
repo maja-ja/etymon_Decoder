@@ -42,7 +42,7 @@ PENDING_FILE = 'pending_data.json'
 # 這是你要「寫入」回報的目標網址 (從 secrets 讀取)
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=10)
 def load_db():
     """從 Google Sheets 讀取單字庫 (保持原有的 CSV 讀取方式，速度較快)"""
     try:
