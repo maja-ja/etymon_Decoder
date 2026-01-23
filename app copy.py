@@ -338,7 +338,7 @@ def main():
                 if c not in hs: # 確保不重複加入
                     hs.append(c)
         count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
-        ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
+        ui_domain_page(hs, f"高中7000區 ({count} 字)", "#2E7D32", "#E8F5E9")
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
         count = sum(len(g['vocabulary']) for c in med for g in c['root_groups'])
