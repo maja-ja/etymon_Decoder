@@ -8,8 +8,9 @@ import base64
 from io import BytesIO
 from gtts import gTTS
 from streamlit_gsheets import GSheetsConnection
+
 def speak(text):
-    tts = gTTS(text=text, lang='en')
+    tts = gTTS(text=text, lang='en')
     fp = BytesIO()
     tts.write_to_fp(fp)
     fp.seek(0)
