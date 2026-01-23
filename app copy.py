@@ -153,11 +153,6 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     </div>
                     <hr style="border-color: #444;">
                 """, unsafe_allow_html=True)
-with col_report:
-            # 建立一個包含單字、索引與分類名稱的唯一字串
-            # 使用 .replace() 移除空格避免 key 格式問題
-            unique_tag = f"{v['word']}_{idx}".replace(" ", "")
-            ui_feedback_component(v['word'], unique_tag, title)
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
     cat_options_map = {"全部練習": "全部練習"}
