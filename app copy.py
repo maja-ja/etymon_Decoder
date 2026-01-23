@@ -136,10 +136,11 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     if st.button("播放", key=f"play_{v['word']}_{title}_{idx}"):
                         speak(v['word'])
                 
+                # 在 ui_domain_page 的循環中
                 with col_report:
-                    # 關鍵修正：傳遞 {idx} 給回報按鈕，確保裡面的輸入框也不會衝突
-                    ui_feedback_component(v['word'], idx)
-                    
+                    # 傳遞 idx 和 title 給組件
+                    ui_feedback_component(v['word'], idx, title)
+                                    
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
                     <div style="margin-bottom: 15px;">
@@ -151,14 +152,29 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     </div>
                     <hr style="border-color: #444;">
                 """, unsafe_allow_html=True)
-def ui_feedback_component(word, idx):
-    """加入 idx 參數確保 popover 內的元件 key 也是唯一的"""
-    with st.popover("錯誤回報", key=f"pop_{word}_{idx}"):
+def ui_feedback_component(word, idx, scope="default"):
+    """
+    使用 word + scope + idx 建立三重唯一的 ID
+    scope 建議傳入分頁名稱 (title)
+    """
+    unique_id = f"{word}_{scope}_{idx}"
+    
+    with st.popover("錯誤回報", key=f"pop_{unique_id}"):
         st.write(f"回報單字：**{word}**")
-        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"err_type_{word}_{idx}")
-        f_comment = st.text_area("詳細說明", placeholder="請描述正確的資訊...", key=f"err_note_{word}_{idx}")
         
-        if st.button("提交回報", key=f"err_btn_{word}_{idx}"):
+        f_type = st.selectbox(
+            "錯誤類型", 
+            ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], 
+            key=f"err_type_{unique_id}"
+        )
+        
+        f_comment = st.text_area(
+            "詳細說明", 
+            placeholder="請描述正確的資訊...", 
+            key=f"err_note_{unique_id}"
+        )
+        
+        if st.button("提交回報", key=f"err_btn_{unique_id}"):
             if f_comment.strip() == "":
                 st.error("請填寫說明內容")
             else:
