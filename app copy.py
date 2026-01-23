@@ -191,7 +191,57 @@ def ui_feedback_component(word):
             else:
                 save_feedback_to_gsheet(word, f_type, f_comment)
                 st.success("感謝回報！管理員將會盡快修正。")
-# 答案翻開後的邏輯 (請完整替換此區塊)
+def ui_quiz_page(data):
+    st.title("學習區 (Flashcards)")
+    cat_options_map = {"全部練習": "全部練習"}
+    cat_options_list = ["全部練習"]
+    for c in data:
+        w_count = sum(len(g['vocabulary']) for g in c['root_groups'])
+        display_name = f"{c['category']} ({w_count} 字)"
+        cat_options_list.append(display_name)
+        cat_options_map[display_name] = c['category']
+    
+    selected_raw = st.selectbox("選擇練習範圍", sorted(cat_options_list))
+    selected_cat = cat_options_map[selected_raw]
+
+    if st.session_state.get('last_quiz_cat') != selected_cat:
+        st.session_state.last_quiz_cat = selected_cat
+        if 'flash_q' in st.session_state: del st.session_state.flash_q
+        st.rerun()
+
+    if 'flash_q' not in st.session_state:
+        if selected_cat == "全部練習":
+            pool = [{**v, "cat": c['category']} for c in data for g in c['root_groups'] for v in g['vocabulary']]
+        else:
+            pool = [{**v, "cat": c['category']} for c in data if c['category'] == selected_cat for g in c['root_groups'] for v in g['vocabulary']]
+        
+        if not pool: st.warning("此範圍無資料"); return
+        st.session_state.flash_q = random.choice(pool)
+        st.session_state.flipped = False
+        st.session_state.voiced = False 
+
+    q = st.session_state.flash_q
+    
+    # 單字卡片正面
+    st.markdown(f"""
+        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <p style="color: #999; font-weight: bold;">[ {q['cat']} ]</p>
+            <h1 style="font-size: 4.5em; margin: 0; color: #1E88E5;">{q['word']}</h1>
+        </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        if st.button("查看答案", use_container_width=True): 
+            st.session_state.flipped = True
+    with col2:
+        if st.button("播放發音", use_container_width=True):
+            speak(q['word'])
+    with col3:
+        if st.button("➡️ 下一題", use_container_width=True): 
+            if 'flash_q' in st.session_state: del st.session_state.flash_q
+            st.rerun()
+    # 答案翻開後的邏輯 (請完整替換此區塊)
     if st.session_state.get('flipped'):
         if not st.session_state.get('voiced'):
             speak(q['word'])
