@@ -121,25 +121,25 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
     selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=title)
     
     if selected_label:
-    group = root_map[selected_label]
-    # 使用 enumerate(..., 1) 取得唯一的 index (從 1 開始)
-    for idx, v in enumerate(group.get('vocabulary', []), 1):
-        with st.container():
-            col_word, col_play, col_report = st.columns([3, 1, 1])
-            
-            with col_word:
-                display_color = "#FFD700" if "法律" in title else theme_color
-                st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
-            
-            with col_play:
-                # 關鍵修正：在 key 加入 {idx}
-                if st.button("播放", key=f"play_{v['word']}_{title}_{idx}"):
-                    speak(v['word'])
-            
-            with col_report:
-                # 關鍵修正：傳遞 {idx} 給回報按鈕，確保裡面的輸入框也不會衝突
-                ui_feedback_component(v['word'], idx)
+        group = root_map[selected_label]
+        # 使用 enumerate(..., 1) 取得唯一的 index (從 1 開始)
+        for idx, v in enumerate(group.get('vocabulary', []), 1):
+            with st.container():
+                col_word, col_play, col_report = st.columns([3, 1, 1])
                 
+                with col_word:
+                    display_color = "#FFD700" if "法律" in title else theme_color
+                    st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
+                
+                with col_play:
+                    # 關鍵修正：在 key 加入 {idx}
+                    if st.button("播放", key=f"play_{v['word']}_{title}_{idx}"):
+                        speak(v['word'])
+                
+                with col_report:
+                    # 關鍵修正：傳遞 {idx} 給回報按鈕，確保裡面的輸入框也不會衝突
+                    ui_feedback_component(v['word'], idx)
+                    
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
                     <div style="margin-bottom: 15px;">
