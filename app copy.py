@@ -120,7 +120,6 @@ def get_stats(data):
 # ==========================================
 # 2. 通用與專業區域組件
 # ==========================================
-import hashlib  # <--- 記得在檔案最上方加入這個
 
 def ui_feedback_component(word, unique_tag, scope):
     """錯誤回報組件 - 使用 MD5 Hash 生成絕對安全且唯一的 ID"""
@@ -156,20 +155,27 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
         st.info("目前資料庫中尚未建立相關分類。")
         return
 
-    # 提取字根 (保持原樣)
+    # 1. 建立字根選單，確保標籤唯一
     root_map = {}
     for cat in domain_data:
         for group in cat.get('root_groups', []):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
-            if label not in root_map: root_map[label] = group
+            root_map[label] = group
     
-    # 這裡的 key 使用 title 即可，因為 title 包含數量，資料變動時會自動重置
-    selected_label = st.selectbox("選擇要複習的字根", sorted(root_map.keys()), key=f"sel_{title}")
+    # 【關鍵修正】：為 Selectbox 加上唯一 Key (使用 title)
+    selected_label = st.selectbox(
+        "選擇要複習的字根", 
+        sorted(root_map.keys()), 
+        key=f"select_{title.split(' ')[0]}" # 縮短標籤作為 key
+    )
     
     if selected_label:
         group = root_map[selected_label]
-        # 使用 enumerate 產生 index
+        # 2. 循環顯示單字
         for idx, v in enumerate(group.get('vocabulary', []), 1):
+            # 為每個單字建立一個絕對唯一的 ID
+            word_id = hashlib.md5(f"{title}_{selected_label}_{v['word']}_{idx}".encode()).hexdigest()
+            
             with st.container():
                 col_word, col_play, col_report = st.columns([3, 1, 1])
                 
@@ -178,27 +184,15 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
                 
                 with col_play:
-                    # 使用 Hash 或更乾淨的 Key 格式
-                    if st.button("播放", key=f"play_{idx}_{v['word']}"):
+                    # 使用唯一的 word_id
+                    if st.button("播放", key=f"play_{word_id}"):
                         speak(v['word'])
                 
                 with col_report:
-                    # 修正：直接傳入 idx 即可，讓 ui_feedback_component 內部的 Hash 去處理唯一性
-                    # 這裡將 unique_tag 設為單純的 index 字串
-                    unique_tag = str(idx)
-                    ui_feedback_component(v['word'], unique_tag, title)
-
-                # 下方拆解區塊保持原樣
-                st.markdown(f"""
-                    <div style="margin-bottom: 15px;">
-                        <span style="font-size: 1.1em; color: #888;">構造拆解：</span>
-                        <span style="font-size: 1.6em; color: #FFD700; font-family: 'Courier New', monospace; font-weight: bold; background: #888; padding: 4px 12px; border-radius: 8px; border: 1px solid #FFD700; text-shadow: 1px 1px 2px black;">
-                            {v['breakdown']}
-                        </span>
-                        <div style="font-size: 1.3em; color: #DDD; margin-top: 10px;"><b>中文定義：</b> {v['definition']}</div>
-                    </div>
-                    <hr style="border-color: #444;">
-                """, unsafe_allow_html=True)
+                    # 呼叫回報組件，傳入 word_id 確保 popover 不會報錯
+                    ui_feedback_component(v['word'], word_id, title)
+                
+                # ... 後續 Markdown 顯示 ...
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
     cat_options_map = {"全部練習": "全部練習"}
