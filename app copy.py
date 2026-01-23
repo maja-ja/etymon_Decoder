@@ -20,8 +20,9 @@ def speak(text):
         <audio autoplay key="{comp_id}">
             <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
         </audio>
-    """
+        """
     st.components.v1.html(audio_html, height=0)
+
 # ==========================================
 # 1. 核心配置與雲端同步
 # ==========================================
@@ -30,6 +31,28 @@ GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out
 DB_FILE = 'etymon_database.json'
 PENDING_FILE = 'pending_data.json'
 @st.cache_data(ttl=600)
+def save_feedback(word, feedback_type, comment):
+    """將錯誤回報儲存至 pending_data.json"""
+    new_report = {
+        "timestamp": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "word": word,
+        "type": feedback_type,
+        "comment": comment,
+        "status": "pending"
+    }
+    
+    data = []
+    if os.path.exists(PENDING_FILE):
+        try:
+            with open(PENDING_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except:
+            data = []
+            
+    data.append(new_report)
+    
+    with open(PENDING_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 def load_db():
     try:
         df = pd.read_csv(GSHEET_URL)
@@ -82,14 +105,20 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
         group = root_map[selected_label]
         for v in group.get('vocabulary', []):
             with st.container():
-                col_word, col_btn = st.columns([4, 1])
+                # 修改欄位比例，為回報按鈕留出空間
+                col_word, col_play, col_report = st.columns([3, 1, 1])
+                
                 with col_word:
-                    # 如果是法律區，單字也用金色
                     display_color = "#FFD700" if "法律" in title else theme_color
                     st.markdown(f'<div style="font-size: 2.2em; font-weight: bold; color: {display_color};">{v["word"]}</div>', unsafe_allow_html=True)
-                with col_btn:
+                
+                with col_play:
                     if st.button("播放", key=f"v_{v['word']}_{title}"):
                         speak(v['word'])
+                
+                with col_report:
+                    # 呼叫新建立的回報組件
+                    ui_feedback_component(v['word'])
                 
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
@@ -102,6 +131,19 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                     </div>
                     <hr style="border-color: #444;">
                 """, unsafe_allow_html=True)
+def ui_feedback_component(word):
+    """單字錯誤回報彈窗"""
+    with st.popover("錯誤回報"):
+        st.write(f"回報單字：**{word}**")
+        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"err_type_{word}")
+        f_comment = st.text_area("詳細說明", placeholder="請描述正確的資訊...", key=f"err_note_{word}")
+        
+        if st.button("提交回報", key=f"err_btn_{word}"):
+            if f_comment.strip() == "":
+                st.error("請填寫說明內容")
+            else:
+                save_feedback(word, f_type, f_comment)
+                st.success("感謝回報！管理員將會盡快修正。")
 def ui_quiz_page(data):
     st.title("學習區 (Flashcards)")
     cat_options_map = {"全部練習": "全部練習"}
@@ -197,6 +239,25 @@ def ui_admin_page(data):
     if st.button("手動備份 CSV"):
         flat = [{"category": c['category'], "roots": "/".join(g['roots']), "meaning": g['meaning'], **v} for c in data for g in c['root_groups'] for v in g['vocabulary']]
         st.download_button("下載 CSV", pd.DataFrame(flat).to_csv(index=False).encode('utf-8-sig'), "backup.csv")
+    st.subheader("待處理錯誤回報 (Pending Reports)")
+    if os.path.exists(PENDING_FILE):
+        try:
+            with open(PENDING_FILE, 'r', encoding='utf-8') as f:
+                pending_list = json.load(f)
+            
+            if pending_list:
+                df_pending = pd.DataFrame(pending_list)
+                st.dataframe(df_pending, use_container_width=True)
+                
+                if st.button("清空所有回報"):
+                    os.remove(PENDING_FILE)
+                    st.rerun()
+            else:
+                st.info("目前沒有待處理的回報。")
+        except:
+            st.error("讀取回報檔案失敗。")
+    else:
+        st.info("尚無回報紀錄。")
 
 # ==========================================
 # 3. 主程序入口
@@ -209,7 +270,7 @@ def main():
     st.sidebar.title("tymon Decoder")
     
     # 2. 導覽選單
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區"])
+    menu = st.sidebar.radio("導航", ["字根區", "學習區", "高中 7000 區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"])
     
     st.sidebar.divider()
     
@@ -253,10 +314,12 @@ def main():
         psy = [c for c in data if any(k in c['category'] for k in ["心理", "社會", "Psych", "Soc"])]
         count = sum(len(g['vocabulary']) for c in psy for g in c['root_groups'])
         ui_domain_page(psy, f"心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC") # 桃紅色系
-        
     elif menu == "生物與自然區":
         bio = [c for c in data if any(k in c['category'] for k in ["生物", "自然", "科學", "Bio", "Sci"])]
         count = sum(len(g['vocabulary']) for c in bio for g in c['root_groups'])
         ui_domain_page(bio, f"生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9") # 深綠色系
+    elif menu == "管理區":
+    # 呼叫整合了 st.secrets 的管理頁面
+        ui_admin_page(data)
 if __name__ == "__main__":
     main()
