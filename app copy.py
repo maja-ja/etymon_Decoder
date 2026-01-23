@@ -350,7 +350,12 @@ def main():
     elif menu == "學習區":
         ui_quiz_page(data)
     elif menu == "高中 7000 區":
-        hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
+        # 使用 set 或更嚴謹的判斷防止重複分類
+        hs = []
+        for c in data:
+            if "高中" in c['category'] or "7000" in c['category']:
+                if c not in hs: # 確保不重複加入
+                    hs.append(c)
         count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
         ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
     elif menu == "醫學區":
