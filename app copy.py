@@ -106,13 +106,29 @@ def get_stats(data):
 # 2. 通用與專業區域組件
 # ==========================================
 def ui_feedback_component(word, unique_tag, scope):
-    """錯誤回報組件"""
-    final_id = f"{scope}_{unique_tag}".replace(" ", "")
+    """錯誤回報組件 - 修正 Key 重複問題"""
+    # 1. 僅保留英數字作為 scope 的一部分，避免括號、空格造成 Streamlit 解析 Key 失敗
+    clean_scope = "".join(filter(str.isalnum, scope))
+    
+    # 2. 組合出絕對唯一的 ID (加入 word 與 unique_tag)
+    final_id = f"{clean_scope}_{unique_tag}_{word}".replace(" ", "")
+    
+    # 3. 為 popover 內部的每個元件都加上這個唯一的 final_id
     with st.popover("錯誤回報", key=f"pop_{final_id}"):
         st.write(f"回報單字：**{word}**")
-        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"type_{final_id}")
-        f_comment = st.text_area("詳細說明", key=f"note_{final_id}")
-        if st.button("提交回報", key=f"btn_{final_id}"):
+        
+        f_type = st.selectbox(
+            "錯誤類型", 
+            ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], 
+            key=f"type_{final_id}" # 必須獨特
+        )
+        
+        f_comment = st.text_area(
+            "詳細說明", 
+            key=f"note_{final_id}" # 必須獨特
+        )
+        
+        if st.button("提交回報", key=f"btn_{final_id}"): # 必須獨特
             save_feedback_to_gsheet(word, f_type, f_comment)
 def ui_domain_page(domain_data, title, theme_color, bg_color):
     st.title(title)
