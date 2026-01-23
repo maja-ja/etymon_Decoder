@@ -250,39 +250,54 @@ def ui_search_page(data, selected_cat):
                 with st.expander(f"{'/'.join(group['roots'])} ({group['meaning']})", expanded=bool(query)):
                     for v in matched:
                         st.markdown(f"**{v['word']}** [{v['breakdown']}]: {v['definition']}")
-
 def ui_admin_page(data):
-    st.title("管理區")
+    st.title("🛡️ 管理區 (Cloud Admin)")
+    
+    # 1. 密碼驗證 (使用 st.secrets)
+    correct_password = st.secrets.get("admin_password", "8787")
     if not st.session_state.get('admin_auth'):
-        if st.text_input("密碼", type="password") == "8787": st.session_state.admin_auth = True; st.rerun()
+        pw_input = st.text_input("管理員密碼", type="password")
+        if pw_input == correct_password:
+            st.session_state.admin_auth = True
+            st.rerun()
+        elif pw_input != "":
+            st.error("密碼錯誤")
         return
-    st.metric("資料庫總量", f"{get_stats(data)[1]} 單字")
-    if st.button("手動備份 CSV"):
-        flat = [{"category": c['category'], "roots": "/".join(g['roots']), "meaning": g['meaning'], **v} for c in data for g in c['root_groups'] for v in g['vocabulary']]
-        st.download_button("下載 CSV", pd.DataFrame(flat).to_csv(index=False).encode('utf-8-sig'), "backup.csv")
-    st.subheader("待處理錯誤回報 (Pending Reports)")
-    if os.path.exists(PENDING_FILE):
-        try:
-            with open(PENDING_FILE, 'r', encoding='utf-8') as f:
-                pending_list = json.load(f)
-            
-            if pending_list:
-                df_pending = pd.DataFrame(pending_list)
-                st.dataframe(df_pending, use_container_width=True)
-                
-                if st.button("清空所有回報"):
-                    os.remove(PENDING_FILE)
-                    # 舊代碼：os.remove(PENDING_FILE) <-- 這行會噴錯
-                    # 新代碼：你可以選擇不放這個功能，或清空 Google Sheets
-                    st.warning("雲端模式下請手動至 Google Sheets 刪除列")
-                    st.rerun()
-            else:
-                st.info("目前沒有待處理的回報。")
-        except:
-            st.error("讀取回報檔案失敗。")
-    else:
-        st.info("尚無回報紀錄。")
 
+    # 2. 數據統計
+    st.metric("資料庫單字總量", f"{get_stats(data)[1]} 單字")
+    
+    # 3. 備份功能
+    if st.button("手動備份 CSV (下載完整單字庫)"):
+        flat = [{"category": c['category'], "roots": "/".join(g['roots']), "meaning": g['meaning'], **v} 
+                for c in data for g in c['root_groups'] for v in g['vocabulary']]
+        st.download_button("確認下載 CSV", pd.DataFrame(flat).to_csv(index=False).encode('utf-8-sig'), "etymon_backup.csv")
+
+    st.divider()
+
+    # 4. 讀取雲端回報 (取代舊的 PENDING_FILE 邏輯)
+    st.subheader("📝 雲端待處理回報")
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        # 使用你在 Section 1 定義的 FEEDBACK_URL
+        df_pending = conn.read(spreadsheet=FEEDBACK_URL)
+        
+        if not df_pending.empty:
+            st.dataframe(df_pending, use_container_width=True)
+            
+            st.info("💡 提示：如需修改或刪除回報，請直接前往 Google Sheets 進行操作。")
+            if st.button("重新整理雲端數據"):
+                st.rerun()
+        else:
+            st.info("目前沒有待處理的回報。")
+    except Exception as e:
+        st.error(f"讀取雲端回報失敗，請檢查 Service Account 權限與 FEEDBACK_URL。")
+        st.caption(f"錯誤詳情: {e}")
+
+    # 5. 登出
+    if st.sidebar.button("登出管理區"):
+        st.session_state.admin_auth = False
+        st.rerun()
 # ==========================================
 # 3. 主程序入口
 # ==========================================
