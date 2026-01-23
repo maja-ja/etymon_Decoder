@@ -222,19 +222,9 @@ def ui_quiz_page(data):
 
     q = st.session_state.flash_q
     st.markdown(f"""
-        <div style="background-color: {bg_color}; padding: 25px; border-radius: 15px; border: 1px solid {label_color};">
-            <p style="font-size: 1.2em; color: {label_color}; margin-bottom: 0;">/{q['phonetic']}/</p>
-            <p style="font-size: 2em; margin-bottom: 10px; color: {text_color};">
-                <b style="color: {label_color};">拆解：</b> 
-                <span style="color: {breakdown_color}; font-family: monospace;">{q['breakdown']}</span>
-            </p>
-            <p style="font-size: 1.5em; color: {text_color};">
-                <b style="color: {label_color};">釋義：</b> {q['definition']}
-            </p>
-            <hr style="border-color: #555;">
-            <p style="font-style: italic; color: #AAA; font-size: 1.1em;">
-                {q['example']}
-            </p>
+        <div style="text-align: center; padding: 50px; border: 3px solid #eee; border-radius: 25px; background: #fdfdfd; margin-bottom: 20px;">
+            <p style="color: #999;">[ {q['cat']} ]</p>
+            <h1 style="font-size: 4.5em; margin: 0; color: #1E88E5;">{q['word']}</h1>
         </div>
     """, unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
