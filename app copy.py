@@ -247,45 +247,43 @@ def ui_quiz_page(data):
             speak(q['word'])
             st.session_state.voiced = True
             
-        # 樣式邏輯
         is_legal = "法律" in q['cat']
         bg_color = "#1A1A1A" if is_legal else "#E3F2FD"
         label_color = "#FFD700" if is_legal else "#1E88E5"
         text_color = "#FFFFFF" if is_legal else "#000000"
         breakdown_color = "#FFD700" if is_legal else "#D32F2F"
 
-        # 1. 處理音標 (防呆：若試算表已含斜線，這裡就不重覆加)
-        p_raw = str(q.get('phonetic', '')).strip().replace('/', '')
-        phonetic_html = f"<div style='color:{label_color}; font-size:1.2em; margin-bottom:5px;'>/{p_raw}/</div>" if p_raw and p_raw != "nan" else ""
+        # 處理音標：移除多餘斜線
+        p_val = str(q.get('phonetic', '')).strip().replace('/', '')
+        phonetic_html = f"<div style='color:{label_color}; font-size:1.2em; margin-bottom:5px;'>/{p_val}/</div>" if p_val and p_val != "nan" else ""
         
-        # 2. 處理例句與中文翻譯
-        e_raw = str(q.get('example', '')).strip()
-        t_raw = str(q.get('translation', '')).strip()
+        # 處理例句與翻譯：直接組合成字串，不使用多行引號以減少錯誤
+        e_val = str(q.get('example', '')).strip()
+        t_val = str(q.get('translation', '')).strip()
         
-        example_section = ""
-        if e_raw and e_raw != "nan":
-            trans_html = f"<div style='color:#666; font-size:0.95em; margin-top:5px;'>({t_raw})</div>" if t_raw and t_raw != "nan" else ""
-            example_section = f"""
-            <hr style='border-color:#555; margin:15px 0;'>
-            <div style='font-style:italic; color:#AAA; font-size:1.1em;'>{e_raw}</div>
-            {trans_html}
-            """
+        example_html = ""
+        if e_val and e_val != "nan":
+            # 這裡改用最簡單的字串相加，避免縮排問題
+            example_html += f"<hr style='border-color:#555; margin:15px 0;'>"
+            example_html += f"<div style='font-style:italic; color:#666; font-size:1.1em;'>{e_val}</div>"
+            if t_val and t_val != "nan":
+                example_html += f"<div style='color:#666; font-size:0.95em; margin-top:5px;'>({t_val})</div>"
 
-        # 3. 最終渲染 (確保 st.markdown 括號內語法乾淨)
-        full_answer_html = f"""
+        # 最終渲染：確保 full_html 變數完全左對齊，沒有任何空格縮排
+        full_html = f"""
 <div style="background-color:{bg_color}; padding:25px; border-radius:15px; border:1px solid {label_color}; border-left:10px solid {label_color}; margin-top:20px;">
-    {phonetic_html}
-    <div style="font-size:2em; margin-bottom:10px; color:{text_color};">
-        <strong style="color:{label_color};">拆解：</strong> 
-        <span style="color:{breakdown_color}; font-family:monospace; font-weight:bold;">{q['breakdown']}</span>
-    </div>
-    <div style="font-size:1.5em; color:{text_color};">
-        <strong style="color:{label_color};">釋義：</strong> {q['definition']}
-    </div>
-    {example_section}
+{phonetic_html}
+<div style="font-size:2em; margin-bottom:10px; color:{text_color};">
+<strong style="color:{label_color};">拆解：</strong>
+<span style="color:{breakdown_color}; font-family:monospace; font-weight:bold;">{q['breakdown']}</span>
+</div>
+<div style="font-size:1.5em; color:{text_color};">
+<strong style="color:{label_color};">釋義：</strong> {q['definition']}
+</div>
+{example_html}
 </div>
 """
-        st.markdown(full_answer_html, unsafe_allow_html=True)
+        st.markdown(full_html, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
     st.title("搜尋與瀏覽")
     relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
