@@ -388,7 +388,7 @@ def main():
         # 使用清新的青藍色系
         ui_domain_page(jhs, f"國中基礎單字 ({count} 字)", "#00838F", "#E0F7FA")
     elif menu == "高中 7000 區":
-        hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
+        hs = [c for c in data if any(k in c['category'] for k in ["高中"])]
         count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
         ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
     elif menu == "醫學區":
