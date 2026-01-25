@@ -263,35 +263,41 @@ def ui_newbie_whiteboard():
         <p>往左下角看！側邊欄有<b>「分類篩選」</b>，可以快速瀏覽特定學科的單字庫。</p>
     </div>
     """, unsafe_allow_html=True)
-def ui_quiz_page(data):
-    st.markdown('<div class="responsive-title" style="font-weight:bold;">學習區 (Flashcards)</div>', unsafe_allow_html=True)
-    cat_options_map = {"全部練習": "全部練習"}
-    cat_options_list = ["全部練習"]
-    for c in data:
-        w_count = sum(len(g['vocabulary']) for g in c['root_groups'])
-        display_name = f"{c['category']} ({w_count} 字)"
-        cat_options_list.append(display_name)
-        cat_options_map[display_name] = c['category']
+def ui_quiz_page(data, selected_cat_from_sidebar):
+    st.markdown('<div class="responsive-title" style="font-weight:bold;">學習測驗區 (Flashcards)</div>', unsafe_allow_html=True)
 
-    selected_raw = st.selectbox("選擇練習範圍", sorted(cat_options_list))
-    selected_cat = cat_options_map[selected_raw]
+    # 1. 檢查側邊欄是否有選擇領域
+    if selected_cat_from_sidebar == "請選擇領域":
+        st.warning("👈 **請先從左側「分類篩選」選擇一個領域（或『全部顯示』）來開始測驗！**")
+        return
 
-    if st.session_state.get('last_quiz_cat') != selected_cat:
-        st.session_state.last_quiz_cat = selected_cat
-        if 'flash_q' in st.session_state: del st.session_state.flash_q
+    # 2. 自動偵測側邊欄切換，若分類改變則清空目前題目
+    if st.session_state.get('last_quiz_cat') != selected_cat_from_sidebar:
+        st.session_state.last_quiz_cat = selected_cat_from_sidebar
+        if 'flash_q' in st.session_state: 
+            del st.session_state.flash_q
         st.rerun()
 
+    # 3. 根據側邊欄選擇建立題目池
     if 'flash_q' not in st.session_state:
-        if selected_cat == "全部練習":
+        if selected_cat_from_sidebar == "全部顯示":
             pool = [{**v, "cat": c['category']} for c in data for g in c['root_groups'] for v in g['vocabulary']]
         else:
-            pool = [{**v, "cat": c['category']} for c in data if c['category'] == selected_cat for g in c['root_groups'] for v in g['vocabulary']]
-        if not pool: st.warning("此範圍無資料"); return
+            pool = [{**v, "cat": c['category']} for c in data if c['category'] == selected_cat_from_sidebar for g in c['root_groups'] for v in g['vocabulary']]
+        
+        if not pool: 
+            st.warning("此範圍無資料")
+            return
+            
         st.session_state.flash_q = random.choice(pool)
         st.session_state.flipped = False
         st.session_state.voiced = False 
 
+    # 4. 顯示目前題目
     q = st.session_state.flash_q
+    
+    # 顯示目前測驗範圍提醒
+    st.caption(f"📍 目前範圍：{selected_cat_from_sidebar}")
     
     # 單字卡片
     st.markdown(f"""
@@ -613,8 +619,8 @@ def main():
     # 分類篩選：現在是控制資料顯示的核心
     st.sidebar.markdown("### 1. 選擇領域 (分類篩選)")
     all_cats = sorted(list(set(c['category'] for c in data)))
-    cats = ["請選擇領域"] + all_cats
-    selected_cat = st.sidebar.radio("領域清單：", cats, key="filter_cat")
+    cats = ["請選擇領域", "全部顯示"] + all_cats # 這裡新增了全部顯示
+    selected_cat = st.sidebar.radio("1. 選擇領域：", cats, key="filter_cat")
     
     st.sidebar.divider()
 
@@ -641,8 +647,10 @@ def main():
         # 呼叫整合了「全部列出」與「搜尋」的功能
         ui_search_page_all_list(data, selected_cat)
         
+    # ... 在 main() 的路由邏輯中 ...
     elif menu == "學習區":
-        ui_quiz_page(data)
+        # 傳入選定的領域，讓習題與篩選連動
+        ui_quiz_page(data, selected_cat)
 # 確保在檔案最下方呼叫
 if __name__ == "__main__":
     main()
