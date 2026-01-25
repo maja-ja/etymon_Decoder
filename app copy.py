@@ -372,7 +372,7 @@ def main():
     """, unsafe_allow_html=True)
 
     # --- 以下為各分頁呼叫邏輯 (維持不變) ---
-if menu == "字根區":
+    if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
     
