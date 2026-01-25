@@ -372,47 +372,56 @@ def main():
     """, unsafe_allow_html=True)
 
     # --- 以下為各分頁呼叫邏輯 (維持不變) ---
-    if menu == "字根區":
+if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
+    
     elif menu == "學習區":
         ui_quiz_page(data)
+
     elif menu == "國小區":
-        elem = [c for c in data if "國小" in c['category']]
+        # 這裡建議在 Excel 的 category 欄位加上 "國小" 關鍵字
+        elem = [c for c in data if any(k in c['category'] for k in ["國小", "Elementary"])]
         count = sum(len(g['vocabulary']) for c in elem for g in c['root_groups'])
-        # 使用活潑的橘色系
-        ui_domain_page(elem, f"國小必備單字 ({count} 字)", "#EF6C00", "#FFF3E0")
+        ui_domain_page(elem, f"國小基礎單字 ({count} 字)", "#FB8C00", "#FFF3E0")
+
     elif menu == "國中區":
-        jhs = [c for c in data if "國中" in c['category']]
+        # 確保過濾後的變數名稱為 jhs，與下方呼叫一致
+        jhs = [c for c in data if any(k in c['category'] for k in ["國中", "Junior"])]
         count = sum(len(g['vocabulary']) for c in jhs for g in c['root_groups'])
-        # 使用清新的青藍色系
         ui_domain_page(jhs, f"國中基礎單字 ({count} 字)", "#00838F", "#E0F7FA")
+
     elif menu == "高中 7000 區":
-        hs = [c for c in data if any(k in c['category'] for k in ["高中"])]
+        hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
         count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
         ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
+
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in c['category']]
         count = sum(len(g['vocabulary']) for c in med for g in c['root_groups'])
         ui_domain_page(med, f"醫學專業區 ({count} 字)", "#C62828", "#FFEBEE")
+
     elif menu == "法律區":
         law = [c for c in data if "法律" in c['category']]
         count = sum(len(g['vocabulary']) for c in law for g in c['root_groups'])
         ui_domain_page(law, f"法律術語區 ({count} 字)", "#FFD700", "#1A1A1A")
+
     elif menu == "人工智慧區":
-        ai = [c for c in data if "人工智慧" in c['category'] or "AI" in c['category']]
+        ai = [c for c in data if any(k in c['category'] for k in ["人工智慧", "AI"])]
         count = sum(len(g['vocabulary']) for c in ai for g in c['root_groups'])
         ui_domain_page(ai, f"AI 技術區 ({count} 字)", "#1565C0", "#E3F2FD")
+
     elif menu == "心理與社會區":
         psy = [c for c in data if any(k in c['category'] for k in ["心理", "社會", "Psych", "Soc"])]
         count = sum(len(g['vocabulary']) for c in psy for g in c['root_groups'])
-        ui_domain_page(psy, f"心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC") # 桃紅色系
+        ui_domain_page(psy, f"心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC")
+
     elif menu == "生物與自然區":
         bio = [c for c in data if any(k in c['category'] for k in ["生物", "自然", "科學", "Bio", "Sci"])]
         count = sum(len(g['vocabulary']) for c in bio for g in c['root_groups'])
-        ui_domain_page(bio, f"生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9") # 深綠色系
+        ui_domain_page(bio, f"生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9")
+
     elif menu == "管理區":
-    # 呼叫整合了 st.secrets 的管理頁面
         ui_admin_page(data)
 if __name__ == "__main__":
     main()
