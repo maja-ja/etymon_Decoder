@@ -407,51 +407,65 @@ def ui_quiz_page(data, selected_cat_from_sidebar):
             </div>
         """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
-    # --- 任務 1：標題與教學按鈕 ---
+    # --- 標題與教學 ---
     col_title, col_help = st.columns([3, 1])
     with col_title:
         st.markdown('<h1 class="responsive-title">搜尋與瀏覽</h1>', unsafe_allow_html=True)
     with col_help:
-        # 命名為教學區的按鈕
         with st.popover("📖 教學區", use_container_width=True):
             ui_newbie_whiteboard() 
 
-    # --- 任務 2：搜尋引導 ---
+    # --- 搜尋引導 ---
     st.markdown("### 🔍 快速搜尋")
     query = st.text_input(
-        "第一步：輸入字根或含義", 
-        placeholder="例如：act, bio...", 
+        "輸入字根、含義或單字", 
+        placeholder="例如：act, bio, 心...", 
         key="global_search_input"
     ).strip().lower()
-    
-    # 判斷是否滿足顯示條件
+
+    # 1. 如果沒輸入搜尋詞：顯示預設提示
     if not query:
-        st.info("💡 提示：請先在上方輸入框輸入關鍵字。")
-        ui_newbie_whiteboard() # 顯示新手白板
+        st.info("💡 提示：請在上方輸入框輸入關鍵字開始搜尋。")
+        # 如果不是全部顯示，可以在沒搜關鍵字時顯示該分類的所有單字
+        if selected_cat != "全部顯示":
+            st.write(f"--- 目前瀏覽分類：{selected_cat} ---")
+            # 這裡可以呼叫原本的列表顯示邏輯...
+        else:
+            ui_newbie_whiteboard()
         return
 
-    if selected_cat == "全部顯示":
-        st.warning("請從側邊欄「分類篩選」選擇一個特定的領域（如：國小基礎）以顯示列表。")
-        return
-
-    # --- 執行列表顯示 ---
-    relevant = [c for c in data if c['category'] == selected_cat]
+    # 2. 執行搜尋：改為從所有 data 中搜尋，不再受限於 selected_cat
     found_results = False
     
-    for cat in relevant:
+    # 建立一個容器來顯示結果
+    results_container = st.container()
+
+    for cat in data:
         for group in cat.get('root_groups', []):
+            # 搜尋範圍：單字、分解、定義、字根、字根含義
             matched_vocab = [
                 v for v in group['vocabulary'] 
-                if query in v['word'].lower() or any(query in r.lower() for r in group['roots'])
+                if (query in v['word'].lower() or 
+                    query in v['definition'] or 
+                    query in group['meaning'] or
+                    any(query in r.lower() for r in group['roots']))
             ]
             
             if matched_vocab:
                 found_results = True
                 root_label = f"{'/'.join(group['roots'])} ({group['meaning']})"
-                with st.expander(f"✨ {root_label}", expanded=True):
+                with results_container.expander(f"✨ {root_label} - [{cat['category']}]", expanded=True):
                     for v in matched_vocab:
-                        st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
-                        if st.button("播放", key=f"p_{v['word']}"): speak(v['word'])
+                        col1, col2 = st.columns([4, 1])
+                        with col1:
+                            st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
+                        with col2:
+                            # 使用我們之前討論過的穩定播放版本
+                            if st.button("🔊 播放", key=f"p_{v['word']}_{cat['category']}"):
+                                speak(v['word'])
+
+    if not found_results:
+        st.error(f"找不到與『{query}』相關的結果，換個關鍵字試試看？")
 def ui_admin_page(data):
     st.title("管制區")
     correct_password = st.secrets.get("admin_password", "8787")
