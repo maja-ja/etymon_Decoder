@@ -163,7 +163,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
                 
                 with col_report:
                     # 呼叫新建立的回報組件
-                    ui_feedback_co７mponent(v['word'])
+                    ui_feedback_component(v['word'])
                 
                 # 這裡針對拆解 (breakdown) 使用金色與深色背景框
                 st.markdown(f"""
@@ -372,6 +372,9 @@ def main():
     """, unsafe_allow_html=True)
 
     # --- 以下為各分頁呼叫邏輯 (維持不變) ---
+# 側邊欄定義
+    menu = st.sidebar.radio("導航", ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"])
+
     if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
@@ -386,12 +389,12 @@ def main():
         ui_domain_page(elem, f"國小基礎單字 ({count} 字)", "#FB8C00", "#FFF3E0")
 
     elif menu == "國中區":
-        # 確保過濾後的變數名稱為 jhs，與下方呼叫一致
         jhs = [c for c in data if any(k in c['category'] for k in ["國中", "Junior"])]
         count = sum(len(g['vocabulary']) for c in jhs for g in c['root_groups'])
         ui_domain_page(jhs, f"國中基礎單字 ({count} 字)", "#00838F", "#E0F7FA")
 
-    elif menu == "高中 7000 區":
+# 修正：將 "高中 7000 區" 改為 "高中區" 以匹配 radio 選項
+    elif menu == "高中區":
         hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
         count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
         ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
