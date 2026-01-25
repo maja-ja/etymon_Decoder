@@ -46,7 +46,6 @@ PENDING_FILE = 'pending_data.json'
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
 
 @st.cache_data(ttl=600)
-@st.cache_data(ttl=600)
 def load_db():
     # 改為 9 欄一組的範圍
     BLOCKS = ["A:I", "J:R", "S:AA", "AB:AJ", "AK:AS"]
