@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import os
+import time
 import random
 import pandas as pd
 import base64
@@ -68,18 +69,25 @@ def inject_custom_css():
 # 1. 修正語音發音 (改良為 HTML5 標籤)
 # ==========================================
 def speak(text):
-    """改良版：使用更穩定的 HTML5 播放屬性"""
+    """改良版：透過隨機 ID 繞過瀏覽器對同一音檔的播放限制"""
     try:
+        
+        
         tts = gTTS(text=text, lang='en')
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         audio_base64 = base64.b64encode(fp.read()).decode()
         
+        # 產生一個隨機 ID，讓每次產生的 HTML 片段在 DOM 中都是獨一無二的
+        rid = f"audio_{int(time.time())}_{random.randint(1000, 9999)}"
+        
         audio_html = f"""
-            <audio autoplay="true">
-                <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
-            </audio>
+            <div id="{rid}_container">
+                <audio autoplay="true">
+                    <source src="data:audio/mp3;base64,{audio_base64}#t={time.time()}" type="audio/mp3">
+                </audio>
+            </div>
         """
         st.markdown(audio_html, unsafe_allow_html=True)
     except Exception as e:
