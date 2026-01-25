@@ -158,6 +158,55 @@ def load_db():
             })
         structured_data.append({"category": str(cat_name), "root_groups": root_groups})
     return structured_data
+def ui_time_based_lofi():
+    """
+    四個時段自動切換 (06-12, 12-18, 18-23, 23-06)
+    使用 Lofi Girl 官方最穩定的嵌入 ID
+    """
+    # 1. 取得台灣時間 (UTC+8)
+    utc_now = datetime.datetime.utcnow()
+    tw_now = utc_now + datetime.timedelta(hours=8)
+    hour = tw_now.hour
+
+    # 2. 設定四個時段的影片 ID (使用官方長期直播 ID)
+    # jfKfPfyJRdk: Study/Relax (經典書桌女孩)
+    # 28KRPhVzCus: Sleep/Chill (深夜女孩)
+    if 6 <= hour < 12:
+        mode_name = "☀️ 晨間能量 (Morning)"
+        video_id = "jfKfPfyJRdk" 
+        icon = "🌅"
+    elif 12 <= hour < 18:
+        mode_name = "☕ 午後專注 (Study)"
+        video_id = "jfKfPfyJRdk" 
+        icon = "📖"
+    elif 18 <= hour < 23:
+        mode_name = "🌆 晚間複習 (Chill)"
+        video_id = "28KRPhVzCus" # 切換到更安靜的睡眠頻道
+        icon = "🛋️"
+    else:
+        # 23:00 - 06:00
+        mode_name = "🌙 深夜療癒 (Sleep)"
+        video_id = "28KRPhVzCus"
+        icon = "😴"
+
+    with st.sidebar.expander(f"🎵 時光音樂：{mode_name}", expanded=True):
+        st.write(f"🕒 台灣時間：{tw_now.strftime('%H:%M')}")
+        
+        # 這裡使用最穩定的嵌入參數
+        # playsinline=1: iPhone 網頁內播放
+        # rel=0: 結束後不顯示相關影片
+        embed_code = f"""
+            <div style="border-radius:12px; overflow:hidden; border: 1px solid #ddd; background: #000;">
+                <iframe width="100%" height="200" 
+                    src="https://www.youtube.com/embed/{video_id}?rel=0&modestbranding=1&playsinline=1&autoplay=0" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        """
+        st.markdown(embed_code, unsafe_allow_html=True)
+        st.caption(f"目前處於 {icon} 時段。若顯示無法播放，請點擊影片標題開啟。")
 def save_feedback_to_gsheet(word, feedback_type, comment):
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
@@ -594,8 +643,10 @@ def ui_newbie_whiteboard_page():
     * **步驟一：** 在左側選單點選你想查看的程度（如：高中區）。
     * **步驟二：** 在下方功能區點選想要的功能如 **「字根區」**  。
     * **步驟三：** 此時右側會出現 **「搜尋框」**，可以輸入關鍵字進行精確篩選。
-    * **提示：** **「學習區」** 可以依據 **程度** 或是 **全部** 來決定題目字卡的範圍
-    * **手機/平板在選單右邊多點幾下就可以關閉選單了！**
+    * 
+    * **提示一：** **「學習區」** 可以依據 **程度** 或是 **全部** 來決定題目字卡的範圍
+    * **提示二：手機/平板在選單右邊多點幾下就可以關閉選單了！**
+    * **提示三：** 在選單左上方新增四個時間段的音樂（可能不穩定）**
     """)
     
     st.divider()
@@ -609,7 +660,7 @@ def main():
     data = load_db()
     
     st.sidebar.title("Etymon Decoder")
-
+    ui_time_based_lofi() 
     # ==========================================
     # 1. 搬移上來的功能：統計、刷新與分類篩選
     # ==========================================
