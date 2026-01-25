@@ -386,42 +386,42 @@ def main():
     elif menu == "國小區":
         elem = [c for c in data if any(k in str(c.get('category','')) for k in ["國小", "Elementary"])]
         count = sum(len(g.get('vocabulary',[])) for c in elem for g in c.get('root_groups',[]))
-        ui_domain_page(elem, f"國小基礎單字 ({count} 字)", "#FB8C00", "#FFF3E0")
+        ui_domain_page(elem, f"國小基礎字根 ({count} 字)", "#FB8C00", "#FFF3E0")
 
     elif menu == "國中區":
         jhs = [c for c in data if any(k in str(c.get('category','')) for k in ["國中", "Junior"])]
         count = sum(len(g.get('vocabulary',[])) for c in jhs for g in c.get('root_groups',[]))
-        ui_domain_page(jhs, f"國中基礎單字 ({count} 字)", "#00838F", "#E0F7FA")
+        ui_domain_page(jhs, f"國中基礎字根 ({count} 字)", "#00838F", "#E0F7FA")
 
     elif menu == "高中區":
         hs = [c for c in data if any(k in str(c.get('category','')) for k in ["高中", "7000"])]
         count = sum(len(g.get('vocabulary',[])) for c in hs for g in c.get('root_groups',[]))
-        ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
+        ui_domain_page(hs, f"高中核心字根 ({count} 字)", "#2E7D32", "#E8F5E9")
 
     elif menu == "醫學區":
         med = [c for c in data if "醫學" in str(c.get('category',''))]
         count = sum(len(g.get('vocabulary',[])) for c in med for g in c.get('root_groups',[]))
-        ui_domain_page(med, f"醫學專業區 ({count} 字)", "#C62828", "#FFEBEE")
+        ui_domain_page(med, f"醫學專業字根 ({count} 字)", "#C62828", "#FFEBEE")
 
     elif menu == "法律區":
         law = [c for c in data if "法律" in str(c.get('category',''))]
         count = sum(len(g.get('vocabulary',[])) for c in law for g in c.get('root_groups',[]))
-        ui_domain_page(law, f"法律術語區 ({count} 字)", "#FFD700", "#1A1A1A")
+        ui_domain_page(law, f"法律術語字根 ({count} 字)", "#FFD700", "#1A1A1A")
 
     elif menu == "人工智慧區":
         ai = [c for c in data if any(k in str(c.get('category','')) for k in ["人工智慧", "AI"])]
         count = sum(len(g.get('vocabulary',[])) for c in ai for g in c.get('root_groups',[]))
-        ui_domain_page(ai, f"AI 技術區 ({count} 字)", "#1565C0", "#E3F2FD")
+        ui_domain_page(ai, f"人工智慧相關字根 ({count} 字)", "#1565C0", "#E3F2FD")
 
     elif menu == "心理與社會區":
         psy = [c for c in data if any(k in str(c.get('category','')) for k in ["心理", "社會", "Psych", "Soc"])]
         count = sum(len(g.get('vocabulary',[])) for c in psy for g in c.get('root_groups',[]))
-        ui_domain_page(psy, f"心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC")
+        ui_domain_page(psy, f"心理與社會科學字根 ({count} 字)", "#AD1457", "#FCE4EC")
 
     elif menu == "生物與自然區":
         bio = [c for c in data if any(k in str(c.get('category','')) for k in ["生物", "自然", "科學", "Bio", "Sci"])]
         count = sum(len(g.get('vocabulary',[])) for c in bio for g in c.get('root_groups',[]))
-        ui_domain_page(bio, f"生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9")
+        ui_domain_page(bio, f"生物與自然科學字根 ({count} 字)", "#2E7D32", "#E8F5E9")
 
     elif menu == "管理區":
         ui_admin_page(data)
