@@ -166,7 +166,7 @@ def ui_time_based_lofi():
     """
     # 1. 取得台灣時間 (UTC+8)
     utc_now = datetime.datetime.utcnow()
-    tw_now = utc_now + datetime.timedelta(hours=8)
+    tw_now = utc_now + datetime.timedelta(hours=0)
     hour = tw_now.hour
 
     # 2. 設定四個時段的影片 ID (使用官方長期直播 ID)
@@ -323,7 +323,7 @@ def ui_newbie_whiteboard():
             <li><b>第三步：聽音看拆解</b> - 點開結果，觀看拆解公式並點擊播放聆聽發音。</li>
         </ul>
         <h4 style="color:var(--primary-color);">3. 找不到想搜尋的？</h4>
-        <p>往左上看！側邊欄有<b>「分類篩選」</b>，可以快速瀏覽特定學科的單字庫。</p>
+        <p>往左下角看！側邊欄有<b>「分類篩選」</b>，可以快速瀏覽特定學科的單字庫。</p>
     </div>
     """, unsafe_allow_html=True)
 def ui_quiz_page(data, selected_cat_from_sidebar):
@@ -407,65 +407,51 @@ def ui_quiz_page(data, selected_cat_from_sidebar):
             </div>
         """, unsafe_allow_html=True)
 def ui_search_page(data, selected_cat):
-    # --- 標題與教學 ---
+    # --- 任務 1：標題與教學按鈕 ---
     col_title, col_help = st.columns([3, 1])
     with col_title:
         st.markdown('<h1 class="responsive-title">搜尋與瀏覽</h1>', unsafe_allow_html=True)
     with col_help:
+        # 命名為教學區的按鈕
         with st.popover("📖 教學區", use_container_width=True):
             ui_newbie_whiteboard() 
 
-    # --- 搜尋引導 ---
+    # --- 任務 2：搜尋引導 ---
     st.markdown("### 🔍 快速搜尋")
     query = st.text_input(
-        "輸入字根、含義或單字", 
-        placeholder="例如：act, bio, 心...", 
+        "第一步：輸入字根或含義", 
+        placeholder="例如：act, bio...", 
         key="global_search_input"
     ).strip().lower()
-
-    # 1. 如果沒輸入搜尋詞：顯示預設提示
+    
+    # 判斷是否滿足顯示條件
     if not query:
-        st.info("💡 提示：請在上方輸入框輸入關鍵字開始搜尋。")
-        # 如果不是全部顯示，可以在沒搜關鍵字時顯示該分類的所有單字
-        if selected_cat != "全部顯示":
-            st.write(f"--- 目前瀏覽分類：{selected_cat} ---")
-            # 這裡可以呼叫原本的列表顯示邏輯...
-        else:
-            ui_newbie_whiteboard()
+        st.info("💡 提示：請先在上方輸入框輸入關鍵字。")
+        ui_newbie_whiteboard() # 顯示新手白板
         return
 
-    # 2. 執行搜尋：改為從所有 data 中搜尋，不再受限於 selected_cat
+    if selected_cat == "全部顯示":
+        st.warning("請從側邊欄「分類篩選」選擇一個特定的領域（如：國小基礎）以顯示列表。")
+        return
+
+    # --- 執行列表顯示 ---
+    relevant = [c for c in data if c['category'] == selected_cat]
     found_results = False
     
-    # 建立一個容器來顯示結果
-    results_container = st.container()
-
-    for cat in data:
+    for cat in relevant:
         for group in cat.get('root_groups', []):
-            # 搜尋範圍：單字、分解、定義、字根、字根含義
             matched_vocab = [
                 v for v in group['vocabulary'] 
-                if (query in v['word'].lower() or 
-                    query in v['definition'] or 
-                    query in group['meaning'] or
-                    any(query in r.lower() for r in group['roots']))
+                if query in v['word'].lower() or any(query in r.lower() for r in group['roots'])
             ]
             
             if matched_vocab:
                 found_results = True
                 root_label = f"{'/'.join(group['roots'])} ({group['meaning']})"
-                with results_container.expander(f"✨ {root_label} - [{cat['category']}]", expanded=True):
+                with st.expander(f"✨ {root_label}", expanded=True):
                     for v in matched_vocab:
-                        col1, col2 = st.columns([4, 1])
-                        with col1:
-                            st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
-                        with col2:
-                            # 使用我們之前討論過的穩定播放版本
-                            if st.button("🔊 播放", key=f"p_{v['word']}_{cat['category']}"):
-                                speak(v['word'])
-
-    if not found_results:
-        st.error(f"找不到與『{query}』相關的結果，換個關鍵字試試看？")
+                        st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
+                        if st.button("播放", key=f"p_{v['word']}"): speak(v['word'])
 def ui_admin_page(data):
     st.title("管制區")
     correct_password = st.secrets.get("admin_password", "8787")
@@ -658,11 +644,10 @@ def ui_newbie_whiteboard_page():
     * **步驟一：** 在左側選單點選你想查看的程度（如：高中區）。
     * **步驟二：** 在下方功能區點選想要的功能如 **「字根區」**  。
     * **步驟三：** 此時右側會出現 **「搜尋框」**，可以輸入關鍵字進行精確篩選。
-    
-    * 手機平板暫無播放功能 **僅限電腦瀏覽器（手機切電腦版網頁也沒辦法）** 
+    * 
     * **提示一：** **「學習區」** 可以依據 **程度** 或是 **全部** 來決定題目字卡的範圍
     * **提示二：手機/平板在選單右邊多點幾下就可以關閉選單了！**
-    * **提示三：** 在選單左上方新增四個時間段的音樂 **（可能不穩定）**
+    * **提示三：** 在選單左上方新增四個時間段（06-12, 12-18, 18-23, 23-06）的音樂 **（可能不穩定）**
     """)
     
     st.divider()
