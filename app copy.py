@@ -92,24 +92,38 @@ SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 PENDING_FILE = 'pending_data.json'
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
-
 @st.cache_data(ttl=600)
 def load_db():
+    # 定義 9 欄一組的範圍
     BLOCKS = ["A:I", "J:R", "S:AA", "AB:AJ", "AK:AS"]
+    COL_NAMES = [
+        'category', 'roots', 'meaning', 'word', 
+        'breakdown', 'definition', 'phonetic', 'example', 'translation'
+    ]
+    
     all_dfs = []
     for rng in BLOCKS:
         try:
             url = f"{GSHEET_URL}&range={rng}"
-            df_part = pd.read_csv(url)
-            df_part = df_part.dropna(how='all')
+            # 重點：使用 skiprows=1 避開標題列，並手動指定欄位名稱
+            df_part = pd.read_csv(url, skiprows=1, names=COL_NAMES)
+            
+            # 清理資料：移除全空的列，並確保 category 欄位有值
+            df_part = df_part.dropna(subset=['category', 'word'], how='all')
+            
             if not df_part.empty:
-                df_part = df_part.iloc[:, :9]
-                df_part.columns = ['category', 'roots', 'meaning', 'word', 'breakdown', 'definition', 'phonetic', 'example', 'translation']
                 all_dfs.append(df_part)
-        except: continue
+        except Exception as e:
+            continue
+
     if not all_dfs: return []
-    df = pd.concat(all_dfs, ignore_index=True).dropna(subset=['category'])
+    df = pd.concat(all_dfs, ignore_index=True)
+    
+    # 結構化處理
     structured_data = []
+    # 移除可能重複讀入標題字串的異常資料 (保險機制)
+    df = df[df['category'] != 'category'] 
+    
     for cat_name, cat_group in df.groupby('category'):
         root_groups = []
         for (roots, meaning), group_df in cat_group.groupby(['roots', 'meaning']):
@@ -123,7 +137,11 @@ def load_db():
                     "example": str(row['example']) if pd.notna(row['example']) else "",
                     "translation": str(row['translation']) if pd.notna(row['translation']) else ""
                 })
-            root_groups.append({"roots": [r.strip() for r in str(roots).split('/')], "meaning": str(meaning), "vocabulary": vocabulary})
+            root_groups.append({
+                "roots": [r.strip() for r in str(roots).split('/')],
+                "meaning": str(meaning),
+                "vocabulary": vocabulary
+            })
         structured_data.append({"category": str(cat_name), "root_groups": root_groups})
     return structured_data
 
