@@ -92,6 +92,7 @@ SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 PENDING_FILE = 'pending_data.json'
 FEEDBACK_URL = st.secrets.get("feedback_sheet_url")
+
 @st.cache_data(ttl=600)
 def load_db():
     # 定義 9 欄一組的範圍
@@ -144,7 +145,6 @@ def load_db():
             })
         structured_data.append({"category": str(cat_name), "root_groups": root_groups})
     return structured_data
-
 def save_feedback_to_gsheet(word, feedback_type, comment):
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
@@ -169,43 +169,65 @@ def get_stats(data):
 # 2. 通用與專業區域組件 (調整為自適應樣式)
 # ==========================================
 def ui_domain_page(domain_data, title, theme_color, bg_color):
+    # --- 任務 1：使用說明介面 ---
+    with st.expander("📖 初次使用？點擊查看「拆解式學習法」說明", expanded=False):
+        st.markdown(f"""
+        <div style="padding:15px; border-radius:10px; background-color:{bg_color}22; border-left:5px solid {theme_color};">
+            <h4 style="color:{theme_color}; margin-top:0;">如何使用此工具？</h4>
+            <ol class="responsive-text">
+                <li><b>搜尋字根：</b> 在下方輸入框輸入你想找的字根（如 <code>bio</code>）或含義（如 <code>生命</code>）。</li>
+                <li><b>觀察構造：</b> 點開單字後，重點看「構造拆解」，理解前綴、字根、後綴如何組合成新字。</li>
+                <li><b>聽音記憶：</b> 點擊「播放」按鈕，結合發音與拆解能大幅提升記憶深度。</li>
+            </ol>
+        </div>
+        """, unsafe_allow_html=True)
+
     st.markdown(f'<h1 class="responsive-title">{title}</h1>', unsafe_allow_html=True)
     
+    # 建立字根映射表
     root_map = {}
     for cat in domain_data:
         for group in cat.get('root_groups', []):
             label = f"{'/'.join(group['roots'])} ({group['meaning']})"
             root_map[label] = group
     
-    options = sorted(root_map.keys())
-
-    # 只保留 Pills 按鈕式選單，刪除 Selectbox
-    selected_label = st.pills("選擇字根", options, selection_mode="single", key=f"p_v_{title}")
+    # --- 任務 2：刪除按鈕，改為輸入搜尋框 ---
+    search_query = st.text_input("輸入字根或含義進行篩選", placeholder="例如：act, bio, 動作, 生命...")
     
-    if selected_label:
-        group = root_map[selected_label]
-        for v in group.get('vocabulary', []):
-            with st.container():
-                # 加大顯示空間
-                st.markdown(f'<div class="responsive-word" style="font-weight:bold; color:var(--primary-color);">{v["word"]}</div>', unsafe_allow_html=True)
-                
-                col_play, col_report, _ = st.columns([1, 1, 2])
-                with col_play:
-                    if st.button("播放", key=f"s_{v['word']}"): speak(v['word'])
-                with col_report:
-                    ui_feedback_component(v['word'])
-                
-                # 構造拆解與釋義 (大字版)
-                st.markdown(f"""
-                    <div style="margin-top: 20px;">
-                        <span class="responsive-text" style="opacity: 0.8;">構造拆解：</span><br>
-                        <div class="breakdown-container responsive-breakdown">{v['breakdown']}</div>
-                        <div class="responsive-text" style="margin-top: 15px;">
-                            <b>中文定義：</b> {v['definition']}
-                        </div>
-                    </div>
-                    <hr style="margin: 30px 0; opacity: 0.2;">
-                """, unsafe_allow_html=True)
+    # 根據輸入內容篩選字根
+    filtered_labels = [
+        label for label in root_map.keys() 
+        if search_query.lower() in label.lower()
+    ]
+
+    if search_query:
+        if filtered_labels:
+            for label in filtered_labels:
+                group = root_map[label]
+                with st.expander(f"字根：{label}", expanded=True):
+                    for v in group.get('vocabulary', []):
+                        st.markdown(f'<div class="responsive-word" style="font-weight:bold; color:{theme_color};">{v["word"]}</div>', unsafe_allow_html=True)
+                        
+                        col_play, col_report, _ = st.columns([1, 1, 2])
+                        with col_play:
+                            if st.button("播放", key=f"s_{v['word']}_{label}"): speak(v['word'])
+                        with col_report:
+                            ui_feedback_component(v['word'])
+                        
+                        st.markdown(f"""
+                            <div style="margin-top: 10px;">
+                                <span class="responsive-text" style="opacity: 0.8;">構造拆解：</span><br>
+                                <div class="breakdown-container responsive-breakdown">{v['breakdown']}</div>
+                                <div class="responsive-text" style="margin-top: 10px;">
+                                    <b>中文定義：</b> {v['definition']}
+                                </div>
+                            </div>
+                            <hr style="margin: 20px 0; opacity: 0.1;">
+                        """, unsafe_allow_html=True)
+        else:
+            st.info("找不到相關字根，請查明關鍵字。")
+    else:
+        st.caption("請在上方輸入框輸入字根開始探索。")
 def ui_feedback_component(word):
     with st.popover("錯誤回報"):
         st.write(f"回報單字：**{word}**")
@@ -216,7 +238,31 @@ def ui_feedback_component(word):
             else:
                 save_feedback_to_gsheet(word, f_type, f_comment)
                 st.success("感謝回報！")
+def ui_newbie_whiteboard():
+    st.markdown("""
+    <div style="background-color: var(--secondary-background-color); padding: 25px; border-radius: 15px; border: 2px dashed var(--primary-color);">
+        <h2 style="margin-top:0; text-align:center;">歡迎使用 Etymon Decoder</h2>
+        <p style="text-align:center; opacity:0.8;">這是一個專為「拆解式學習」設計的工具，幫你從根本理解英文。</p>
+        <hr>
+        <h4 style="color:var(--primary-color);">1. 核心邏輯：拆解積木</h4>
+        <p>英文單字是由積木組成的。例如：<b>Re (回) + Port (搬運) = Report (報告)</b>。</p>
+    """, unsafe_allow_html=True)
 
+    # 此處建議放入您提供的圖片 (例如單字結構圖)
+    # st.image("path_to_your_image.png", caption="單字結構示範")
+    
+
+    st.markdown("""
+        <h4 style="color:var(--primary-color);">2. 快速上手步驟</h4>
+        <ul class="responsive-text">
+            <li><b>第一步：鎖定領域</b> - 從左側選單選擇適合你的程度（如：國中區）。</li>
+            <li><b>第二步：精準搜尋</b> - 在搜尋框輸入字根 (如 <code>bio</code>) 或含義 (如 <code>生命</code>)。</li>
+            <li><b>第三步：聽音看拆解</b> - 點開結果，觀看拆解公式並點擊播放聆聽發音。</li>
+        </ul>
+        <h4 style="color:var(--primary-color);">3. 找不到想搜尋的？</h4>
+        <p>往左下角看！側邊欄有<b>「分類篩選」</b>，可以快速瀏覽特定學科的單字庫。</p>
+    </div>
+    """, unsafe_allow_html=True)
 def ui_quiz_page(data):
     st.markdown('<div class="responsive-title" style="font-weight:bold;">學習區 (Flashcards)</div>', unsafe_allow_html=True)
     cat_options_map = {"全部練習": "全部練習"}
@@ -291,19 +337,52 @@ def ui_quiz_page(data):
                 {example_html}
             </div>
         """, unsafe_allow_html=True)
-
 def ui_search_page(data, selected_cat):
-    st.title("搜尋與瀏覽")
-    relevant = data if selected_cat == "全部顯示" else [c for c in data if c['category'] == selected_cat]
-    query = st.text_input("搜尋單字或字根...").strip().lower()
+    # --- 任務 1：標題與教學按鈕 ---
+    col_title, col_help = st.columns([3, 1])
+    with col_title:
+        st.markdown('<h1 class="responsive-title">搜尋與瀏覽</h1>', unsafe_allow_html=True)
+    with col_help:
+        # 命名為教學區的按鈕
+        with st.popover("📖 教學區", use_container_width=True):
+            ui_newbie_whiteboard() 
+
+    # --- 任務 2：搜尋引導 ---
+    st.markdown("### 🔍 快速搜尋")
+    query = st.text_input(
+        "第一步：輸入字根或含義", 
+        placeholder="例如：act, bio...", 
+        key="global_search_input"
+    ).strip().lower()
+    
+    # 判斷是否滿足顯示條件
+    if not query:
+        st.info("💡 提示：請先在上方輸入框輸入關鍵字。")
+        ui_newbie_whiteboard() # 顯示新手白板
+        return
+
+    if selected_cat == "全部顯示":
+        st.warning("請從側邊欄「分類篩選」選擇一個特定的領域（如：國小基礎）以顯示列表。")
+        return
+
+    # --- 執行列表顯示 ---
+    relevant = [c for c in data if c['category'] == selected_cat]
+    found_results = False
+    
     for cat in relevant:
         for group in cat.get('root_groups', []):
-            matched = [v for v in group['vocabulary'] if query in v['word'].lower() or any(query in r.lower() for r in group['roots'])]
-            if matched:
-                with st.expander(f"{'/'.join(group['roots'])} ({group['meaning']})", expanded=bool(query)):
-                    for v in matched:
-                        st.markdown(f"**{v['word']}** [{v['breakdown']}]: {v['definition']}")
-
+            matched_vocab = [
+                v for v in group['vocabulary'] 
+                if query in v['word'].lower() or any(query in r.lower() for r in group['roots'])
+            ]
+            
+            if matched_vocab:
+                found_results = True
+                root_label = f"{'/'.join(group['roots'])} ({group['meaning']})"
+                with st.expander(f"✨ {root_label}", expanded=True):
+                    for v in matched_vocab:
+                        st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
+                        if st.button("播放", key=f"p_{v['word']}"): speak(v['word'])
 def ui_admin_page(data):
     st.title("管制區")
     correct_password = st.secrets.get("admin_password", "8787")
@@ -331,69 +410,246 @@ def ui_admin_page(data):
     if st.sidebar.button("登出管理區"):
         st.session_state.admin_auth = False
         st.rerun()
+def ui_search_page_all_list(data, selected_cat):
+    st.markdown('<h1 class="responsive-title">搜尋與瀏覽</h1>', unsafe_allow_html=True)
+    
+    # 醒目提醒：篩選與導航的關聯
+    if selected_cat == "全部顯示":
+        st.warning("👈 **請注意：查看列表前，請先確保左側「導航」處於『字根區』，並從下方「分類篩選」選擇一個領域（如：國小基礎）。**")
+        st.info("💡 系統預設不會顯示所有內容，以避免介面過於混亂。")
+        ui_newbie_whiteboard() # 顯示新手教學引導
+        return
+    # 搜尋框：維持在列表上方
+    query = st.text_input("搜尋單字或字根...", placeholder="例如：act, bio, 動作...", key="root_search_bar").strip().lower()
 
+    # 門檻判斷：必須選取分類
+    if selected_cat == "全部顯示":
+        st.warning("⚠️ 請從左側選單的『分類篩選』選擇一個特定的領域（例如：國小基礎）以展開完整列表。")
+        ui_newbie_whiteboard() # 提示新手教學
+        return
+
+    # 滿足條件：執行過濾並「全部列出」
+    # 如果 query 為空，matched_vocab 就會包含該分類下的所有內容
+    relevant_cats = [c for c in data if c['category'] == selected_cat]
+    found_any = False
+    
+    for cat in relevant_cats:
+        for group in cat.get('root_groups', []):
+            root_text = "/".join(group['roots']).lower()
+            meaning_text = group['meaning'].lower()
+            
+            # 過濾邏輯：如果沒有輸入搜尋，則顯示所有單字
+            matched_vocab = [
+                v for v in group.get('vocabulary', [])
+                if not query or (query in v['word'].lower() or query in root_text or query in meaning_text)
+            ]
+            
+            if matched_vocab:
+                found_any = True
+                root_label = f"{root_text} ({group['meaning']})"
+                with st.expander(root_label, expanded=False): # 預設折疊，搜尋時可視情況展開
+                    for v in matched_vocab:
+                        st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
+                        if st.button("播放", key=f"search_p_{v['word']}_{root_text}"):
+                            speak(v['word'])
+    
+    if not found_any and query:
+        st.info(f"在「{selected_cat}」分類中找不到與「{query}」相關的結果。")
+def ui_newbie_whiteboard_page():
+    """任務 3：獨立的教學區白板頁面"""
+    st.markdown('<h1 class="responsive-title">📖 教學區：如何解碼單字？</h1>', unsafe_allow_html=True)
+    
+    # 使用與 ui_newbie_whiteboard 類似的樣式但改為全頁面顯示
+    st.markdown("""
+    <div style="background-color: var(--secondary-background-color); padding: 30px; border-radius: 20px; border: 3px solid var(--primary-color);">
+        <h3 style="color:var(--primary-color);">1. 核心邏輯：拆解積木</h3>
+        <p class="responsive-text">英文單字不是死背字母，而是看懂組成。就像樂高一樣：</p>
+        <div style="text-align: center; background: rgba(128,128,128,0.1); padding: 20px; border-radius: 15px; margin: 15px 0;">
+            <span style="font-size: 1.5rem; font-weight: bold;">
+                <span style="color: #D32F2F;">Pre</span> (前) + 
+                <span style="color: #1E88E5;">dict</span> (說) = 
+                <span style="color: var(--text-color);">Predict</span> (預測)
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 插入單字構造圖 
+    
+
+    st.markdown("""
+        <h3 style="color:var(--primary-color); margin-top:30px;">2. 字根區快速上手指南</h3>
+        <div style="background: white; color: black; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
+            <ul class="responsive-text">
+                <li><b>Step 1：切換至「字根區」</b> - 點選左側導航選鈕。</li>
+                <li><b>Step 2：輸入關鍵字</b> - 在中央搜尋框輸入字根（如 <code>bio</code>）或含義（如 <code>生命</code>）。</li>
+                <li><b>Step 3：選取分類標籤</b> - <b>重要！</b>必須在左側側邊欄選擇一個領域（如：國中區、醫學區），列表才會出現。</li>
+            </ul>
+        </div>
+        <p style="margin-top:20px; text-align:center; font-style:italic; opacity:0.8;">
+            準備好了嗎？點選左側「字根區」開始解碼吧！
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def display_filtered_results(data, query, selected_cat):
+    """執行字根區的過濾顯示"""
+    # 篩選特定類別的資料
+    relevant_cats = [c for c in data if c['category'] == selected_cat]
+    found_any = False
+    
+    for cat in relevant_cats:
+        for group in cat.get('root_groups', []):
+            # 檢查字根或含義是否符合搜尋
+            root_text = "/".join(group['roots']).lower()
+            meaning_text = group['meaning'].lower()
+            
+            # 同時過濾單字
+            matched_vocab = [
+                v for v in group.get('vocabulary', [])
+                if query in v['word'].lower() or query in root_text or query in meaning_text
+            ]
+            
+            if matched_vocab:
+                found_any = True
+                root_label = f"✨ {root_text.upper()} ({group['meaning']})"
+                with st.expander(root_label, expanded=True):
+                    for v in matched_vocab:
+                        st.markdown(f'<div class="responsive-word" style="font-weight:bold; color:#1E88E5;">{v["word"]}</div>', unsafe_allow_html=True)
+                        
+                        col_play, _ = st.columns([1, 3])
+                        with col_play:
+                            if st.button("播放發音", key=f"search_p_{v['word']}"):
+                                speak(v['word'])
+                        
+                        st.markdown(f"""
+                            <div class="breakdown-container responsive-breakdown">{v['breakdown']}</div>
+                            <div class="responsive-text"><b>定義：</b>{v['definition']}</div>
+                            <hr style="opacity:0.1;">
+                        """, unsafe_allow_html=True)
+    
+    if not found_any:
+        st.info(f"在「{selected_cat}」分類中找不到關於「{query}」的結果。")
+# ==========================================
+# 修正後的字根區：支援全部列出與搜尋
+# ==========================================
+def ui_search_page_all_list(data, selected_cat):
+    st.markdown('<h1 class="responsive-title">搜尋與瀏覽</h1>', unsafe_allow_html=True)
+    
+    # 搜尋框
+    query = st.text_input("搜尋單字或字根...", placeholder="例如：act, bio, 動作...", key="root_search_bar").strip().lower()
+
+    if selected_cat == "全部顯示":
+        st.info("💡 請從左側選單的「分類篩選」選擇一個特定領域來查看完整列表。")
+        ui_newbie_whiteboard()
+        return
+
+    # 取得該領域的所有資料
+    relevant_cats = [c for c in data if c['category'] == selected_cat]
+    found_any = False
+    
+    for cat in relevant_cats:
+        for group in cat.get('root_groups', []):
+            root_text = "/".join(group['roots']).lower()
+            meaning_text = group['meaning'].lower()
+            
+            # 搜尋過濾邏輯：query 為空時顯示全部
+            matched_vocab = [
+                v for v in group.get('vocabulary', [])
+                if not query or (query in v['word'].lower() or query in root_text or query in meaning_text)
+            ]
+            
+            if matched_vocab:
+                found_any = True
+                root_label = f"{root_text.upper()} ({group['meaning']})"
+                with st.expander(f"✨ {root_label}", expanded=True if query else False):
+                    for v in matched_vocab:
+                        st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
+                        if st.button("播放", key=f"p_{v['word']}_{root_text}"): speak(v['word'])
+    
+    if not found_any and query:
+        st.warning(f"在「{selected_cat}」中找不到與「{query}」相關的內容。")
+
+def ui_newbie_whiteboard_page():
+    st.markdown('<h1 class="responsive-title">📖 教學區</h1>', unsafe_allow_html=True)
+    
+    st.success("### 🔍 如何正確搜尋與瀏覽？")
+    st.markdown("""
+     muchas 使用本工具時，請遵循以下步驟以獲得最佳體驗：
+    * **步驟一：** 在左側選單點選 **「字根區」**。
+    * **步驟二：** 在下方 **「分類篩選」** 勾選你想查看的程度（如：高中區）。
+    * **步驟三：** 此時右側會出現 **「全部字根列表」**，你也可以在上方搜尋框輸入關鍵字進行精確篩選。
+    """)
+    
+    st.divider()
+    ui_newbie_whiteboard() # 原有的拆解教學內容
 # ==========================================
 # 3. 主程序入口
 # ==========================================
 def main():
     st.set_page_config(page_title="Etymon Decoder", layout="wide")
-    inject_custom_css() # 新增：注入自適應樣式
+    inject_custom_css()
     data = load_db()
+    
+    # --- 1. 側邊欄：整合「刷新」與「字數統計」 ---
     st.sidebar.title("Etymon Decoder")
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"], key="main_navigation")
     st.sidebar.divider()
-    if st.sidebar.button("強制刷新雲端數據", use_container_width=True): 
-        st.cache_data.clear()
-        st.rerun()
-    _, total_words = get_stats(data)
-    st.sidebar.markdown(f"""
-        <div style="
-            text-align: center; 
-            padding: 15px; 
-            background-color: var(--secondary-background-color); 
-            border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 12px; 
-            margin-top: 20px;
-        ">
-            <p style="margin: 0; font-size: 0.9em; color: var(--text-color); opacity: 0.8;">資料庫總計</p>
-            <p style="margin: 0; font-size: 1.8em; font-weight: bold; color: var(--text-color);">
-                {total_words} <span style="font-size: 0.5em;">Words</span>
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-    # 路由邏輯 (保留原功能)
-# 在 main() 函式的 "字根區" 邏輯中：
-    if menu == "字根區":
-        cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
-    # 將原本的 selectbox 改為 radio
-        selected_cat = st.sidebar.radio("分類篩選", cats, key="cat_filter_radio")
-        ui_search_page(data, selected_cat)
-    elif menu == "學習區": ui_quiz_page(data)
-    elif menu == "國小區":
-        elem = [c for c in data if any(k in str(c.get('category','')) for k in ["國小", "Elementary"])]
-        ui_domain_page(elem, f"國小基礎字根 ({sum(len(g['vocabulary']) for c in elem for g in c['root_groups'])} 字)", "#FB8C00", "#FFF3E0")
-    elif menu == "國中區":
-        jhs = [c for c in data if any(k in str(c.get('category','')) for k in ["國中", "Junior"])]
-        ui_domain_page(jhs, f"國中基礎字根 ({sum(len(g['vocabulary']) for c in jhs for g in c['root_groups'])} 字)", "#00838F", "#E0F7FA")
-    elif menu == "高中區":
-        hs = [c for c in data if any(k in str(c.get('category','')) for k in ["高中", "7000"])]
-        ui_domain_page(hs, f"高中核心字根 ({sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])} 字)", "#2E7D32", "#E8F5E9")
-    elif menu == "醫學區":
-        med = [c for c in data if "醫學" in str(c.get('category',''))]
-        ui_domain_page(med, f"醫學專業字根 ({sum(len(g['vocabulary']) for c in med for g in c['root_groups'])} 字)", "#C62828", "#FFEBEE")
-    elif menu == "法律區":
-        law = [c for c in data if "法律" in str(c.get('category',''))]
-        ui_domain_page(law, f"法律術語字根 ({sum(len(g['vocabulary']) for c in law for g in c['root_groups'])} 字)", "#FFD700", "#1A1A1A")
-    elif menu == "人工智慧區":
-        ai = [c for c in data if any(k in str(c.get('category','')) for k in ["人工智慧", "AI","資工"])]
-        ui_domain_page(ai, f"人工智慧相關字根 ({sum(len(g['vocabulary']) for c in ai for g in c['root_groups'])} 字)", "#1565C0", "#E3F2FD")
-    elif menu == "心理與社會區":
-        psy = [c for c in data if any(k in str(c.get('category','')) for k in ["心理", "社會", "Psych", "Soc"])]
-        ui_domain_page(psy, f"心理與社會科學字根 ({sum(len(g['vocabulary']) for c in psy for g in c['root_groups'])} 字)", "#AD1457", "#FCE4EC")
-    elif menu == "生物與自然區":
-        bio = [c for c in data if any(k in str(c.get('category','')) for k in ["生物", "自然", "科學", "Bio", "Sci"])]
-        ui_domain_page(bio, f"生物與自然科學字根 ({sum(len(g['vocabulary']) for c in bio for g in c['root_groups'])} 字)", "#2E7D32", "#E8F5E9")
-    elif menu == "管理區": ui_admin_page(data)
+    st.sidebar.caption("""
+        🚀 **快速操作指南：**
+        1. 點擊導航的 **[字根區]**
+        2. 從下方 **[分類篩選]** 挑選領域
+        3. 即可看到該領域的 **[完整字根列表]**
+        4. 先點一下 **[強制刷新]** ，確保是最新資料庫
+    """)
+    # 建立一個統一的統計與控制區塊
+    with st.sidebar.container():
+        # 顯示總量統計
+        _, total_words = get_stats(data)
+        st.markdown(f"""
+            <div class="stats-container" style="margin-bottom: 10px;">
+                <small>資料庫總計</small><br>
+                <span style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color);">{total_words}</span> 
+                <span style="font-size: 1rem; opacity: 0.8;">Words</span>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # 強制刷新按鈕緊貼在統計框下方
+        if st.button("🔄 強制刷新雲端數據", use_container_width=True, key="refresh_sync"):
+            st.cache_data.clear()
+            st.rerun()
 
+    st.sidebar.divider()
+
+    # --- 2. 導航選單 ---
+    # 教學區在最上方
+    menu = st.sidebar.radio(
+        "導航", 
+        ["教學區", "字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"],
+        index=1, # 預設停在字根區，或可改 0 停在教學區
+        key="main_nav"
+    )
+    
+    st.sidebar.divider()
+
+    # --- 3. 分類篩選區 ---
+    st.sidebar.markdown("### 分類篩選")
+    all_cats = sorted(list(set(c['category'] for c in data)))
+    cats = ["全部顯示"] + all_cats
+    selected_cat = st.sidebar.radio("選擇領域", cats, key="filter_cat")
+
+    # --- 4. 主內容路由 ---
+    if menu == "教學區":
+        ui_newbie_whiteboard_page() 
+    elif menu == "字根區":
+        # 實現「全部列出」＋「搜尋篩選」
+        ui_search_page_all_list(data, selected_cat)
+    elif menu == "學習區":
+        ui_quiz_page(data)
+    else:
+        target_cat = menu.replace("區", "")
+        domain_data = [c for c in data if target_cat in str(c.get('category',''))]
+        ui_domain_page(domain_data, f"{menu}", "#1E88E5", "#F0F2F6")
+
+
+# 確保在檔案最下方呼叫
 if __name__ == "__main__":
     main()
