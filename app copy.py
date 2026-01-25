@@ -12,26 +12,24 @@ from streamlit_gsheets import GSheetsConnection
 # 1. 修正語音發音 (確保有聲音且 autoplay)
 # ==========================================
 def speak(text):
-    """改良版發音邏輯"""
+    """修正版：移除複雜 JS，改用更穩定的 HTML5 播放方式"""
     try:
         tts = gTTS(text=text, lang='en')
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         audio_base64 = base64.b64encode(fp.read()).decode()
-        import time
-        comp_id = int(time.time() * 1000)
         
+        # 使用 markdown 注入一個帶有自動播放屬性的音訊標籤
+        # b64 內容很長，建議用 unsafe_allow_html=True
         audio_html = f"""
-            <audio autoplay id="aud_{comp_id}">
+            <audio autoplay="true">
                 <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
             </audio>
-            <script>
-                var x = document.getElementById("aud_{comp_id}");
-                x.play().catch(function(e) {{ console.log("Autoplay blocked"); }});
-            </script>
-            """
-        st.components.v1.html(audio_html, height=1)
+        """
+        # 建立一個暫時的 placeholder 來放置音訊，避免影響 UI 排版
+        st.markdown(audio_html, unsafe_allow_html=True)
+        
     except Exception as e:
         st.error(f"語音錯誤: {e}")
 # ==========================================
