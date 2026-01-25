@@ -536,14 +536,14 @@ def ui_search_page_all_list(data, selected_cat):
     st.markdown('<h1 class="responsive-title">搜尋與瀏覽</h1>', unsafe_allow_html=True)
     
     # 搜尋框
-    query = st.text_input("搜尋單字或字根...", placeholder="例如：act, bio, 動作...", key="root_search_bar").strip().lower()
+    query = st.text_input("在選定領域中搜尋...", placeholder="輸入關鍵字如：act, bio...", key="root_search_bar").strip().lower()
 
-    if selected_cat == "全部顯示":
-        st.info("💡 請從左側選單的「分類篩選」選擇一個特定領域來查看完整列表。")
-        ui_newbie_whiteboard()
+    if selected_cat == "請選擇領域":
+        st.warning("👈 **請從左側側邊欄的「分類篩選」選擇一個領域以展開列表。**")
+        ui_newbie_whiteboard() # 顯示教學引導
         return
 
-    # 取得該領域的所有資料
+    # 顯示過濾後的列表
     relevant_cats = [c for c in data if c['category'] == selected_cat]
     found_any = False
     
@@ -552,7 +552,7 @@ def ui_search_page_all_list(data, selected_cat):
             root_text = "/".join(group['roots']).lower()
             meaning_text = group['meaning'].lower()
             
-            # 搜尋過濾邏輯：query 為空時顯示全部
+            # 搜尋邏輯：無 query 則全列
             matched_vocab = [
                 v for v in group.get('vocabulary', [])
                 if not query or (query in v['word'].lower() or query in root_text or query in meaning_text)
@@ -561,14 +561,11 @@ def ui_search_page_all_list(data, selected_cat):
             if matched_vocab:
                 found_any = True
                 root_label = f"{root_text.upper()} ({group['meaning']})"
+                # 搜尋時自動展開，平時收合
                 with st.expander(f"✨ {root_label}", expanded=True if query else False):
                     for v in matched_vocab:
                         st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
                         if st.button("播放", key=f"p_{v['word']}_{root_text}"): speak(v['word'])
-    
-    if not found_any and query:
-        st.warning(f"在「{selected_cat}」中找不到與「{query}」相關的內容。")
-
 def ui_newbie_whiteboard_page():
     st.markdown('<h1 class="responsive-title">📖 教學區</h1>', unsafe_allow_html=True)
     
@@ -590,66 +587,62 @@ def main():
     inject_custom_css()
     data = load_db()
     
-    # --- 1. 側邊欄：整合「刷新」與「字數統計」 ---
     st.sidebar.title("Etymon Decoder")
-    st.sidebar.divider()
-    st.sidebar.caption("""
-        🚀 **快速操作指南：**
-        1. 點擊導航的 **[字根區]**
-        2. 從下方 **[分類篩選]** 挑選領域
-        3. 即可看到該領域的 **[完整字根列表]**
-        4. 先點一下 **[強制刷新]** ，確保是最新資料庫
-    """)
-    # 建立一個統一的統計與控制區塊
+
+    # ==========================================
+    # 1. 搬移上來的功能：統計、刷新與分類篩選
+    # ==========================================
     with st.sidebar.container():
-        # 顯示總量統計
+        # 顯示資料庫統計
         _, total_words = get_stats(data)
         st.markdown(f"""
             <div class="stats-container" style="margin-bottom: 10px;">
                 <small>資料庫總計</small><br>
-                <span style="font-size: 1.8rem; font-weight: bold; color: var(--primary-color);">{total_words}</span> 
+                <span style="font-size: 1.8rem; font-weight: bold; color: #1E88E5;">{total_words}</span> 
                 <span style="font-size: 1rem; opacity: 0.8;">Words</span>
             </div>
         """, unsafe_allow_html=True)
         
-        # 強制刷新按鈕緊貼在統計框下方
-        if st.button("🔄 強制刷新雲端數據", use_container_width=True, key="refresh_sync"):
+        # 強制刷新按鈕
+        if st.button("🔄 強制刷新雲端數據", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
 
     st.sidebar.divider()
 
-    # --- 2. 導航選單 ---
-    # 教學區在最上方
-    menu = st.sidebar.radio(
-        "導航", 
-        ["教學區", "字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"],
-        index=1, # 預設停在字根區，或可改 0 停在教學區
-        key="main_nav"
-    )
+    # 分類篩選：現在是控制資料顯示的核心
+    st.sidebar.markdown("### 1. 選擇領域 (分類篩選)")
+    all_cats = sorted(list(set(c['category'] for c in data)))
+    cats = ["請選擇領域"] + all_cats
+    selected_cat = st.sidebar.radio("領域清單：", cats, key="filter_cat")
     
     st.sidebar.divider()
 
-    # --- 3. 分類篩選區 ---
-    st.sidebar.markdown("### 分類篩選")
-    all_cats = sorted(list(set(c['category'] for c in data)))
-    cats = ["全部顯示"] + all_cats
-    selected_cat = st.sidebar.radio("選擇領域", cats, key="filter_cat")
+    # ==========================================
+    # 2. 導航選單：僅保留教學區、字根區、學習區
+    # ==========================================
+    st.sidebar.markdown("### 2. 切換功能")
+    menu = st.sidebar.radio(
+        "功能導航：", 
+        ["教學區", "字根區", "學習區"],
+        key="main_nav"
+    )
 
-    # --- 4. 主內容路由 ---
+    # 操作提醒
+    st.sidebar.info("💡 **操作提醒：**\n欲查看單字列表，請務必先點選「字根區」，再從上方「分類篩選」選取領域。")
+
+    # ==========================================
+    # 3. 主內容路由邏輯
+    # ==========================================
     if menu == "教學區":
         ui_newbie_whiteboard_page() 
+        
     elif menu == "字根區":
-        # 實現「全部列出」＋「搜尋篩選」
+        # 呼叫整合了「全部列出」與「搜尋」的功能
         ui_search_page_all_list(data, selected_cat)
+        
     elif menu == "學習區":
         ui_quiz_page(data)
-    else:
-        target_cat = menu.replace("區", "")
-        domain_data = [c for c in data if target_cat in str(c.get('category',''))]
-        ui_domain_page(domain_data, f"{menu}", "#1E88E5", "#F0F2F6")
-
-
 # 確保在檔案最下方呼叫
 if __name__ == "__main__":
     main()
