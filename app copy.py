@@ -69,27 +69,32 @@ def inject_custom_css():
 # 1. 修正語音發音 (改良為 HTML5 標籤)
 # ==========================================
 def speak(text):
-    """改良版：透過隨機 ID 繞過瀏覽器對同一音檔的播放限制"""
+    """終極修正版：使用 JavaScript 強制觸發瀏覽器音訊播放"""
     try:
-        
-        
+        import time
         tts = gTTS(text=text, lang='en')
         fp = BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
         audio_base64 = base64.b64encode(fp.read()).decode()
         
-        # 產生一個隨機 ID，讓每次產生的 HTML 片段在 DOM 中都是獨一無二的
-        rid = f"audio_{int(time.time())}_{random.randint(1000, 9999)}"
+        # 產生唯一 ID 避免快取衝突
+        unique_id = f"audio_{int(time.time() * 1000)}"
         
+        # 使用 JavaScript 建立音訊物件並播放
+        # 這能繞過 HTML 標籤不更新的問題，並強制瀏覽器執行播放指令
         audio_html = f"""
-            <div id="{rid}_container">
-                <audio autoplay="true">
-                    <source src="data:audio/mp3;base64,{audio_base64}#t={time.time()}" type="audio/mp3">
-                </audio>
-            </div>
+            <div id="{unique_id}"></div>
+            <script>
+                (function() {{
+                    var audio = new Audio("data:audio/mp3;base64,{audio_base64}");
+                    audio.play().catch(function(error) {{
+                        console.log("播放被瀏覽器阻擋，嘗試手動觸發", error);
+                    }});
+                }})();
+            </script>
         """
-        st.markdown(audio_html, unsafe_allow_html=True)
+        st.components.v1.html(audio_html, height=0)
     except Exception as e:
         st.error(f"語音錯誤: {e}")
 
