@@ -350,10 +350,14 @@ def main():
     data = load_db()
     
     # 1. 側邊欄標題
-    st.sidebar.title("tymon Decoder")
+    st.sidebar.title("Etymon Decoder")
     
-    # 2. 導覽選單
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"])
+    # 2. 導覽選單 (只保留這一個，並帶有唯一的 key)
+    menu = st.sidebar.radio(
+        "導航", 
+        ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"],
+        key="main_navigation"
+    )
     
     st.sidebar.divider()
     
@@ -362,7 +366,7 @@ def main():
         st.cache_data.clear()
         st.rerun()
     
-    # 4. 在刷新按鈕下方顯示單字總量 (使用大字體樣式)
+    # 4. 顯示單字總量統計
     _, total_words = get_stats(data)
     st.sidebar.markdown(f"""
         <div style="text-align: center; padding: 10px; background-color: #f0f2f6; border-radius: 10px; margin-top: 10px;">
@@ -371,14 +375,7 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
-    # --- 以下為各分頁呼叫邏輯 (維持不變) ---
-# 側邊欄定義
-       # 找到這一行並修改
-    menu = st.sidebar.radio(
-        "導航", 
-        ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"],
-        key="main_navigation"  # <--- 加入這行，解決重複識別問題
-    )
+    # --- 各分頁呼叫邏輯 ---
     if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
@@ -387,45 +384,43 @@ def main():
         ui_quiz_page(data)
 
     elif menu == "國小區":
-        # 這裡建議在 Excel 的 category 欄位加上 "國小" 關鍵字
-        elem = [c for c in data if any(k in c['category'] for k in ["國小", "Elementary"])]
-        count = sum(len(g['vocabulary']) for c in elem for g in c['root_groups'])
+        elem = [c for c in data if any(k in str(c.get('category','')) for k in ["國小", "Elementary"])]
+        count = sum(len(g.get('vocabulary',[])) for c in elem for g in c.get('root_groups',[]))
         ui_domain_page(elem, f"國小基礎單字 ({count} 字)", "#FB8C00", "#FFF3E0")
 
     elif menu == "國中區":
-        jhs = [c for c in data if any(k in c['category'] for k in ["國中", "Junior"])]
-        count = sum(len(g['vocabulary']) for c in jhs for g in c['root_groups'])
+        jhs = [c for c in data if any(k in str(c.get('category','')) for k in ["國中", "Junior"])]
+        count = sum(len(g.get('vocabulary',[])) for c in jhs for g in c.get('root_groups',[]))
         ui_domain_page(jhs, f"國中基礎單字 ({count} 字)", "#00838F", "#E0F7FA")
 
-# 修正：將 "高中 7000 區" 改為 "高中區" 以匹配 radio 選項
     elif menu == "高中區":
-        hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
-        count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
+        hs = [c for c in data if any(k in str(c.get('category','')) for k in ["高中", "7000"])]
+        count = sum(len(g.get('vocabulary',[])) for c in hs for g in c.get('root_groups',[]))
         ui_domain_page(hs, f"高中核心區 ({count} 字)", "#2E7D32", "#E8F5E9")
 
     elif menu == "醫學區":
-        med = [c for c in data if "醫學" in c['category']]
-        count = sum(len(g['vocabulary']) for c in med for g in c['root_groups'])
+        med = [c for c in data if "醫學" in str(c.get('category',''))]
+        count = sum(len(g.get('vocabulary',[])) for c in med for g in c.get('root_groups',[]))
         ui_domain_page(med, f"醫學專業區 ({count} 字)", "#C62828", "#FFEBEE")
 
     elif menu == "法律區":
-        law = [c for c in data if "法律" in c['category']]
-        count = sum(len(g['vocabulary']) for c in law for g in c['root_groups'])
+        law = [c for c in data if "法律" in str(c.get('category',''))]
+        count = sum(len(g.get('vocabulary',[])) for c in law for g in c.get('root_groups',[]))
         ui_domain_page(law, f"法律術語區 ({count} 字)", "#FFD700", "#1A1A1A")
 
     elif menu == "人工智慧區":
-        ai = [c for c in data if any(k in c['category'] for k in ["人工智慧", "AI"])]
-        count = sum(len(g['vocabulary']) for c in ai for g in c['root_groups'])
+        ai = [c for c in data if any(k in str(c.get('category','')) for k in ["人工智慧", "AI"])]
+        count = sum(len(g.get('vocabulary',[])) for c in ai for g in c.get('root_groups',[]))
         ui_domain_page(ai, f"AI 技術區 ({count} 字)", "#1565C0", "#E3F2FD")
 
     elif menu == "心理與社會區":
-        psy = [c for c in data if any(k in c['category'] for k in ["心理", "社會", "Psych", "Soc"])]
-        count = sum(len(g['vocabulary']) for c in psy for g in c['root_groups'])
+        psy = [c for c in data if any(k in str(c.get('category','')) for k in ["心理", "社會", "Psych", "Soc"])]
+        count = sum(len(g.get('vocabulary',[])) for c in psy for g in c.get('root_groups',[]))
         ui_domain_page(psy, f"心理與社會科學 ({count} 字)", "#AD1457", "#FCE4EC")
 
     elif menu == "生物與自然區":
-        bio = [c for c in data if any(k in c['category'] for k in ["生物", "自然", "科學", "Bio", "Sci"])]
-        count = sum(len(g['vocabulary']) for c in bio for g in c['root_groups'])
+        bio = [c for c in data if any(k in str(c.get('category','')) for k in ["生物", "自然", "科學", "Bio", "Sci"])]
+        count = sum(len(g.get('vocabulary',[])) for c in bio for g in c.get('root_groups',[]))
         ui_domain_page(bio, f"生物與自然科學 ({count} 字)", "#2E7D32", "#E8F5E9")
 
     elif menu == "管理區":
