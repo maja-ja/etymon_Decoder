@@ -166,7 +166,7 @@ def ui_time_based_lofi():
     """
     # 1. 取得台灣時間 (UTC+8)
     utc_now = datetime.datetime.utcnow()
-    tw_now = utc_now + datetime.timedelta(hours=0)
+    tw_now = utc_now + datetime.timedelta(hours=9)
     hour = tw_now.hour
 
     # 2. 設定四個時段的影片 ID (使用官方長期直播 ID)
