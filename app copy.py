@@ -377,6 +377,16 @@ def main():
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
     elif menu == "學習區":
         ui_quiz_page(data)
+    elif menu == "國小區":
+        elem = [c for c in data if "國小" in c['category']]
+        count = sum(len(g['vocabulary']) for c in elem for g in c['root_groups'])
+        # 使用活潑的橘色系
+        ui_domain_page(elem, f"國小必備單字 ({count} 字)", "#EF6C00", "#FFF3E0")
+    elif menu == "國中區":
+        jhs = [c for c in data if "國中" in c['category']]
+        count = sum(len(g['vocabulary']) for c in jhs for g in c['root_groups'])
+        # 使用清新的青藍色系
+        ui_domain_page(jhs, f"國中基礎單字 ({count} 字)", "#00838F", "#E0F7FA")
     elif menu == "高中 7000 區":
         hs = [c for c in data if any(k in c['category'] for k in ["高中", "7000"])]
         count = sum(len(g['vocabulary']) for c in hs for g in c['root_groups'])
