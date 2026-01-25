@@ -409,7 +409,7 @@ def main():
         ui_domain_page(law, f"法律術語字根 ({count} 字)", "#FFD700", "#1A1A1A")
 
     elif menu == "人工智慧區":
-        ai = [c for c in data if any(k in str(c.get('category','')) for k in ["人工智慧", "AI"])]
+        ai = [c for c in data if any(k in str(c.get('category','')) for k in ["人工智慧", "AI","資工"])]
         count = sum(len(g.get('vocabulary',[])) for c in ai for g in c.get('root_groups',[]))
         ui_domain_page(ai, f"人工智慧相關字根 ({count} 字)", "#1565C0", "#E3F2FD")
 
