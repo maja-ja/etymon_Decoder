@@ -373,8 +373,12 @@ def main():
 
     # --- 以下為各分頁呼叫邏輯 (維持不變) ---
 # 側邊欄定義
-    menu = st.sidebar.radio("導航", ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"])
-
+       # 找到這一行並修改
+    menu = st.sidebar.radio(
+        "導航", 
+        ["字根區", "學習區", "國小區", "國中區", "高中區", "醫學區", "法律區", "人工智慧區", "心理與社會區", "生物與自然區", "管理區"],
+        key="main_navigation"  # <--- 加入這行，解決重複識別問題
+    )
     if menu == "字根區":
         cats = ["全部顯示"] + sorted(list(set(c['category'] for c in data)))
         ui_search_page(data, st.sidebar.selectbox("分類篩選", cats))
