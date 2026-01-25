@@ -323,7 +323,7 @@ def ui_newbie_whiteboard():
             <li><b>第三步：聽音看拆解</b> - 點開結果，觀看拆解公式並點擊播放聆聽發音。</li>
         </ul>
         <h4 style="color:var(--primary-color);">3. 找不到想搜尋的？</h4>
-        <p>往左下角看！側邊欄有<b>「分類篩選」</b>，可以快速瀏覽特定學科的單字庫。</p>
+        <p>往左上看！側邊欄有<b>「分類篩選」</b>，可以快速瀏覽特定學科的單字庫。</p>
     </div>
     """, unsafe_allow_html=True)
 def ui_quiz_page(data, selected_cat_from_sidebar):
