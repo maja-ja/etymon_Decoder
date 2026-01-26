@@ -199,8 +199,23 @@ def ui_time_based_lofi():
     # 2. 設定四個時段的影片 ID (使用官方長期直播 ID)
     # jfKfPfyJRdk: Study/Relax (經典書桌女孩)
     # 28KRPhVzCus: Sleep/Chill (深夜女孩)
-
-    video_id = "28KRPhVzCus"
+    if 6 <= hour < 12:
+        mode_name = "晨間能量 (Morning)"
+        video_id = "jfKfPfyJRdk" 
+        icon = "🌅"
+    elif 12 <= hour < 18:
+        mode_name = "午後專注 (Study)"
+        video_id = "jfKfPfyJRdk" 
+        icon = "📖"
+    elif 18 <= hour < 23:
+        mode_name = "晚間複習 (Chill)"
+        video_id = "28KRPhVzCus" # 切換到更安靜的睡眠頻道
+        icon = "🛋️"
+    else:
+        # 23:00 - 06:00
+        mode_name = "深夜療癒 (Sleep)"
+        video_id = "28KRPhVzCus"
+        icon = "😴"
 
     with st.sidebar.expander(f"🎵 時光音樂：{mode_name}", expanded=True):
         st.write(f"🕒 台灣時間：{tw_now.strftime('%H:%M')}")
