@@ -294,7 +294,7 @@ def ui_domain_page(domain_data, title, theme_color, bg_color):
 def ui_feedback_component(word):
     with st.popover("錯誤回報"):
         st.write(f"回報單字：**{word}**")
-        f_type = st.selectbox("錯誤類型", ["發音錯誤", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"err_type_{word}")
+        f_type = st.selectbox("錯誤類型", ["發音錯誤(手機平板暫無發音)", "拆解有誤", "中文釋義錯誤", "分類錯誤", "其他"], key=f"err_type_{word}")
         f_comment = st.text_area("詳細說明", placeholder="請描述正確的資訊...", key=f"err_note_{word}")
         if st.button("提交回報", key=f"err_btn_{word}"):
             if f_comment.strip() == "": st.error("請填寫說明內容")
