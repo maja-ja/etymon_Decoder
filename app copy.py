@@ -200,20 +200,20 @@ def ui_time_based_lofi():
     # jfKfPfyJRdk: Study/Relax (經典書桌女孩)
     # 28KRPhVzCus: Sleep/Chill (深夜女孩)
     if 6 <= hour < 12:
-        mode_name = "☀️ 晨間能量 (Morning)"
+        mode_name = "晨間能量 (Morning)"
         video_id = "jfKfPfyJRdk" 
         icon = "🌅"
     elif 12 <= hour < 18:
-        mode_name = "☕ 午後專注 (Study)"
+        mode_name = "午後專注 (Study)"
         video_id = "jfKfPfyJRdk" 
         icon = "📖"
     elif 18 <= hour < 23:
-        mode_name = "🌆 晚間複習 (Chill)"
+        mode_name = "晚間複習 (Chill)"
         video_id = "28KRPhVzCus" # 切換到更安靜的睡眠頻道
         icon = "🛋️"
     else:
         # 23:00 - 06:00
-        mode_name = "🌙 深夜療癒 (Sleep)"
+        mode_name = "深夜療癒 (Sleep)"
         video_id = "28KRPhVzCus"
         icon = "😴"
 
@@ -245,9 +245,9 @@ def save_feedback_to_gsheet(word, feedback_type, comment):
         }])
         updated_df = pd.concat([df, new_row], ignore_index=True)
         conn.update(spreadsheet=FEEDBACK_URL, data=updated_df)
-        st.success(f"✅ 單字「{word}」的回報已同步至雲端！")
+        st.success(f"單字「{word}」的回報已同步至雲端！")
     except Exception as e:
-        st.error(f"❌ 雲端同步失敗。")
+        st.error(f"雲端同步失敗。")
         st.caption(f"錯誤詳情: {e}")
 
 def get_stats(data):
@@ -403,7 +403,7 @@ def ui_quiz_page(data, selected_cat_from_sidebar):
     if "quiz_mode_idx" not in st.session_state:
         st.session_state.quiz_mode_idx = 0
 
-    st.markdown('<h2 class="responsive-title">🎯 測驗中心</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 class="responsive-title">測驗中心</h2>', unsafe_allow_html=True)
 
     selected_mode = st.radio(
         "選擇挑戰模式", modes, 
@@ -469,7 +469,7 @@ def render_flashcard_mode(pool):
     """, unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
-    if c1.button("🔍 答案 / 播放", use_container_width=True):
+    if c1.button("答案 / 播放", use_container_width=True):
         st.session_state.flipped = True
         speak(q['word'])
     if c2.button("➡️ 下一題", use_container_width=True):
@@ -478,7 +478,7 @@ def render_flashcard_mode(pool):
         st.rerun()
 
     if st.session_state.get('flipped'):
-        st.info(f"💡 **定義：** {q['definition']} \n\n 🏗️ **拆解：** `{q['breakdown']}`")
+        st.info(f" **定義：** {q['definition']} \n\n 🏗️ **拆解：** `{q['breakdown']}`")
 def render_multiple_choice_mode(pool):
     # 確保資料結構完整，若不存在或切換領域導致過期則重置
     if 'mc_q_data' not in st.session_state or st.session_state.mc_q_data is None:
@@ -677,7 +677,7 @@ def ui_search_page_all_list(data, selected_cat):
     # -------------------------------------------
 
     if selected_cat == "請選擇領域":
-        st.info("💡 請從左側側邊欄選擇分類以查看完整列表。")
+        st.info("請從左側側邊欄選擇分類以查看完整列表。")
         ui_newbie_whiteboard() # 顯示原本的白板教學
         return
 
@@ -835,18 +835,18 @@ def ui_search_page_all_list(data, selected_cat):
                         
                         st.write("") # 增加一點間距
 def ui_newbie_whiteboard_page():
-    st.markdown('<h1 class="responsive-title">📖 教學區</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="responsive-title">教學區</h1>', unsafe_allow_html=True)
     
-    st.success("### 🔍 如何正確搜尋與瀏覽？")
+    st.success("### 如何正確搜尋與瀏覽？")
     st.markdown("""
      使用本工具時，請遵循以下步驟以獲得最佳體驗：
-    * **步驟一：** 在左側選單點選你想查看的程度（如：高中區）。
-    * **步驟二：** 在下方功能區點選想要的功能如 **「字根區」**  。
-    * **步驟三：** 此時右側會出現 **「搜尋框」**，可以輸入關鍵字進行精確篩選。
-    * 
-    * **提示一：** **「學習區」** 可以依據 **程度** 或是 **種類** 來決定題目的範圍或出題方式
-    * **提示二：手機/平板在選單右邊多點幾下就可以關閉選單了！**
-    * **提示三：** 在選單左上方新增四個時間段（06-18, 18-06）的音樂 **（可能不穩定）**
+     **步驟一：** 在左側選單點選你想查看的程度（如：高中區）。
+     **步驟二：** 在下方功能區點選想要的功能如 **「字根區」**  。
+     **步驟三：** 此時右側會出現 **「搜尋框」**，可以輸入關鍵字進行精確篩選。
+     
+     **提示一：** **「學習區」** 可以依據 **程度** 或是 **種類** 來決定題目的範圍或出題方式
+     **提示二：手機/平板在選單右邊多點幾下就可以關閉選單了！**
+     **提示三：** 在選單左上方新增四個時間段（06-18, 18-06）的音樂 **（可能不穩定）**
     """)
     
     st.divider()
