@@ -627,14 +627,27 @@ def ui_search_page_all_list(data, selected_cat):
                 if not query or (query in v['word'].lower() or query in root_text or query in meaning_text)
             ]
             
+            # ... 前面程式碼不變 ...
+
             if matched_vocab:
                 found_any = True
                 root_label = f"{root_text.upper()} ({group['meaning']})"
                 # 搜尋時自動展開，平時收合
                 with st.expander(f"✨ {root_label}", expanded=True if query else False):
                     for v in matched_vocab:
+                        # 1. 顯示單字資訊
                         st.markdown(f'**{v["word"]}** `{v["breakdown"]}`: {v["definition"]}')
-                        if st.button("播放", key=f"p_{v['word']}_{root_text}"): speak(v['word'])
+                        
+                        # 2. 建立按鈕橫列 (把播放和報錯放在一起比較美觀)
+                        col1, col2 = st.columns([1, 4])
+                        with col1:
+                            if st.button("播放", key=f"p_{v['word']}_{root_text}"): 
+                                speak(v['word'])
+                        with col2:
+                            # --- 在這裡呼叫你的報錯組件 ---
+                            ui_feedback_component(v["word"])
+                        
+                        st.write("") # 增加一點間距
 def ui_newbie_whiteboard_page():
     st.markdown('<h1 class="responsive-title">📖 教學區</h1>', unsafe_allow_html=True)
     
