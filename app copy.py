@@ -220,9 +220,16 @@ def page_learn_search(df):
             st.markdown(f"### {word_data.get('definition', '')}")
             st.info(f" **Roots:** {word_data.get('roots', '')} = {word_data.get('meaning', '')}")
             
-            if pd.notna(word_data.get('example')):
-                st.success(f" **Example:** {word_data.get('example')}\n\n"
-                           f"{word_data.get('translation', '')}")
+            if pd.notna(word_data.get('native_vibe')) and word_data.get('native_vibe') != "":
+                with st.expander("🧠 查看母語人士的「神經直覺」", expanded=True):
+                    st.markdown(f"""
+                        <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; border-left: 5px solid #6c5ce7;">
+                            <p style="color: #6c5ce7; font-weight: bold; margin-bottom: 5px;">💬 母語人士語感 (Native Vibe):</p>
+                            <div style="font-style: italic; color: #2d3436; line-height: 1.6;">
+                                {word_data.get('native_vibe')}
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
 
     # --- TAB 2: 搜尋列表 ---
     with tab2:
