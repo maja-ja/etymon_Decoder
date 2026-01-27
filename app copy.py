@@ -170,7 +170,7 @@ def page_learn_search(df):
     # 使用 Tabs 分流功能
     tab1, tab2 = st.tabs(["隨機單字卡", "資料庫列表"])
     
-    # --- TAB 1: 隨機單字卡 ---
+   # --- TAB 1: 隨機單字卡 ---
     with tab1:
         c1, c2 = st.columns([3, 1])
         with c1:
@@ -264,7 +264,6 @@ def page_learn_search(df):
             if pd.notna(word_data.get('example')) and word_data.get('example') != "":
                 st.write("")
                 st.success(f"**Example:**\n{word_data.get('example', '')}\n\n*{word_data.get('translation', '')}*")
-
     # --- TAB 2: 搜尋列表 ---
     with tab2:
         search_query = st.text_input("輸入關鍵字 (英文或中文)...", placeholder="ex: love, phil, 顯微鏡")
