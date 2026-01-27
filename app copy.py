@@ -114,7 +114,7 @@ def speak(text, key_suffix=""):
 def load_db():
     """讀取並結構化 Google Sheet 資料"""
     # 定義 9 欄一組的範圍 (根據您的 Sheet 結構)
-    BLOCKS = ["A:I", "J:R", "S:AA", "AB:AJ", "AK:AS"]
+    BLOCKS = ["A:J"]
     COL_NAMES = ['category', 'roots', 'meaning', 'word', 'breakdown', 'definition', 'phonetic', 'example', 'translation']
     
     all_dfs = []
