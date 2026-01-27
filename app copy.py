@@ -110,12 +110,14 @@ def speak(text, key_suffix=""):
     except Exception as e:
         st.error(f"語音生成失敗: {e}")
 
+# 學習網站的 load_db
 @st.cache_data(ttl=10)
 def load_db():
-    """讀取並結構化 Google Sheet 資料"""
-    # 定義 9 欄一組的範圍 (根據您的 Sheet 結構)
-    BLOCKS = ["A:J"]
-    COL_NAMES = ['category', 'roots', 'meaning', 'word', 'breakdown', 'definition', 'phonetic', 'example', 'translation']
+    # 這裡現在是 10 欄一組
+    COL_NAMES = ['category', 'roots', 'meaning', 'word', 'breakdown', 'definition', 'phonetic', 'example', 'translation', 'native_vibe']
+    # 範圍從 A:I 延伸到 A:J
+    BLOCKS = ["A:J", "K:T", "U:AD", "AE:AN", "AO:AX"] 
+    # ... 其餘讀取邏輯不變= ['category', 'roots', 'meaning', 'word', 'breakdown', 'definition', 'phonetic', 'example', 'translation']
     
     all_dfs = []
     for rng in BLOCKS:
