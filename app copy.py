@@ -186,14 +186,17 @@ def page_learn_search(df):
         if filtered_df.empty:
             st.warning("此分類暫無資料。")
         else:
-            # 初始化狀態
+            # 1. 初始化與重置狀態 (新增 vibe_unlocked 追蹤)
             if 'current_word' not in st.session_state:
                 st.session_state.current_word = filtered_df.sample(1).iloc[0].to_dict()
-            
-            # 抽卡按鈕
+                st.session_state.vibe_unlocked = False # 初始未解鎖
+
+            # 2. 抽卡按鈕 (點擊時重置解鎖狀態)
             if st.button("下一個單字 (Next Word)", use_container_width=True, type="primary"):
                 st.session_state.current_word = filtered_df.sample(1).iloc[0].to_dict()
-                st.session_state.pop('audio_trigger', None) # 重置音訊
+                st.session_state.vibe_unlocked = False # 重置解鎖狀態
+                st.session_state.pop('audio_trigger', None)
+                st.rerun() # 確保畫面立即更新
             
             # 顯示卡片內容
             word_data = st.session_state.current_word
@@ -220,16 +223,47 @@ def page_learn_search(df):
             st.markdown(f"### {word_data.get('definition', '')}")
             st.info(f" **Roots:** {word_data.get('roots', '')} = {word_data.get('meaning', '')}")
             
-            if pd.notna(word_data.get('native_vibe')) and word_data.get('native_vibe') != "":
-                with st.expander("查看母語人士可能的「神經直覺」", expanded=True):
-                    st.markdown(f"""
-                        <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; border-left: 5px solid #6c5ce7;">
-                            <p style="color: #6c5ce7; font-weight: bold; margin-bottom: 5px;">💬 母語人士語感 (Native Vibe):</p>
-                            <div style="font-style: italic; color: #2d3436; line-height: 1.6;">
-                                {word_data.get('native_vibe')}
-                            </div>
+            # --- 🎁 語感驚喜包邏輯 (關鍵更新) ---
+            native_vibe = word_data.get('native_vibe')
+            if pd.notna(native_vibe) and native_vibe != "":
+                st.write("") # 增加間距
+                
+                # 如果尚未解鎖
+                if not st.session_state.get('vibe_unlocked', False):
+                    st.markdown("""
+                        <div style="text-align: center; padding: 25px; border: 2px dashed #6c5ce7; border-radius: 15px; background-color: #f8f9fa; margin: 10px 0;">
+                            <h4 style="color: #6c5ce7; margin: 0;">🎁 獲得一個語感驚喜包！</h4>
+                            <p style="font-size: 0.9rem; color: #666;">點擊下方按鈕拆封母語人士的直覺...</p>
                         </div>
                     """, unsafe_allow_html=True)
+                    
+                    if st.button("✨ 立即拆封 (Unlock Vibe)", use_container_width=True):
+                        st.session_state.vibe_unlocked = True
+                        st.balloons() # 撒花慶祝！
+                        st.rerun()
+                
+                # 如果已經解鎖，顯示內容
+                else:
+                    st.markdown(f"""
+                        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 15px; border-left: 8px solid #6c5ce7; position: relative; animation: fadeIn 0.8s;">
+                            <p style="color: #6c5ce7; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;">🧠 母語人士語感 (Native Vibe):</p>
+                            <div style="font-style: italic; color: #2d3436; line-height: 1.6; font-size: 1.05rem;">
+                                {native_vibe}
+                            </div>
+                            <div style="text-align: right; font-size: 0.7rem; color: #6c5ce7; margin-top: 10px;">✨ 已解鎖的神經直覺</div>
+                        </div>
+                        <style>
+                            @keyframes fadeIn {{
+                                from {{ opacity: 0; transform: translateY(10px); }}
+                                to {{ opacity: 1; transform: translateY(0); }}
+                            }}
+                        </style>
+                    """, unsafe_allow_html=True)
+
+            # 顯示原本的例句 (放在驚喜包之後)
+            if pd.notna(word_data.get('example')) and word_data.get('example') != "":
+                st.write("")
+                st.success(f"**Example:**\n{word_data.get('example', '')}\n\n*{word_data.get('translation', '')}*")
 
     # --- TAB 2: 搜尋列表 ---
     with tab2:
