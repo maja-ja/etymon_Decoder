@@ -110,7 +110,7 @@ def speak(text, key_suffix=""):
     except Exception as e:
         st.error(f"語音生成失敗: {e}")
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=10)
 def load_db():
     """讀取並結構化 Google Sheet 資料"""
     # 定義 9 欄一組的範圍 (根據您的 Sheet 結構)
