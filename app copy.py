@@ -292,7 +292,7 @@ def page_quiz(df):
         
         st.write("---")
         st.markdown("### 請問這個定義對應哪個單字？")
-        st.markdown(f"<div class='responsive-definition' padding:20px; border-radius:10px;'>{q['definition']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='responsive-definition' padding:20px; border-radius:20px;'>{q['definition']}</div>", unsafe_allow_html=True)
         st.markdown(f"**提示 (字根):** {q['roots']} ({q['meaning']})")
 
         # 顯示答案按鈕
