@@ -21,54 +21,51 @@ SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
 GSHEET_URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv'
 
 def inject_custom_css():
-    """注入全域自適應 CSS，包含手機/電腦版型優化"""
+    """注入全域自適應 CSS"""
     st.markdown("""
         <style>
-            /* 全域字體優化 */
-            html, body, [class*="css"] { font-family: 'Helvetica', 'Arial', sans-serif; }
+            /* 1. 基礎字體比例加大 */
+            html { font-size: 20px; } 
 
-            /* 手機端優化 (寬度 < 600px) */
+            /* 2. 手機端 (大字體優化) */
             @media (max-width: 600px) {
-                .responsive-word { font-size: 10vw !important; color: #FF4B4B; font-weight: 800; margin-bottom: 5px; }
-                .responsive-phonetic { font-size: 5vw !important; color: #555; font-style: italic; }
-                .responsive-breakdown { font-size: 6vw !important; padding: 10px !important; }
-                .responsive-definition { font-size: 5vw !important; line-height: 1.4; }
-                .stButton button { width: 100%; height: 3.5rem; font-size: 1.2rem !important; border-radius: 10px; }
+                .responsive-word { font-size: 15vw !important; margin-bottom: 10px; }
+                .responsive-breakdown { font-size: 6vw !important; padding: 10px 15px !important; }
+                .responsive-text { font-size: 5.5vw !important; line-height: 1.5; }
+                .stButton button { height: 3.5rem; font-size: 1.2rem !important; }
             }
 
-            /* 電腦端優化 (寬度 > 600px) */
+            /* 3. 電腦端 (清晰大字) */
             @media (min-width: 601px) {
-                .responsive-word { font-size: 3.5rem !important; color: #FF4B4B; font-weight: 800; }
-                .responsive-phonetic { font-size: 1.5rem !important; color: #555; font-style: italic; }
-                .responsive-breakdown { font-size: 1.8rem !important; padding: 15px 25px !important; }
-                .responsive-definition { font-size: 1.4rem !important; }
+                .responsive-word { font-size: 4rem !important; }
+                .responsive-breakdown { font-size: 2rem !important; }
+                .responsive-text { font-size: 1.5rem !important; }
             }
 
-            /* 字根拆解框樣式 */
+            /* 4. 構造拆解框 */
             .breakdown-container {
                 font-family: 'Courier New', monospace;
-                background-color: #f0f2f6;
-                color: #31333F;
-                border-left: 5px solid #FF4B4B;
-                border-radius: 8px;
+                font-weight: bold;
+                background-color: var(--secondary-background-color); 
+                color: var(--text-color); 
+                padding: 12px 20px;
+                border-radius: 12px;
+                border: 2px solid var(--primary-color);
                 display: inline-block;
                 margin: 10px 0;
-                width: 100%;
-                text-align: center;
             }
 
-            /* 統計區塊 */
-            .stats-box {
-                background-color: #e8f4f9;
-                padding: 20px;
-                border-radius: 10px;
-                text-align: center;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            /* 5. 側邊欄與其他元件優化 */
+            .stats-container {
+                text-align: center; 
+                padding: 20px; 
+                background-color: var(--secondary-background-color); 
+                border-radius: 15px; 
+                color: var(--text-color);
+                margin-top: 20px;
             }
-            
-            /* 隱藏部分 Streamlit 預設元素以求簡潔 */
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
+            .stSelectbox div[role="button"] input { caret-color: transparent !important; pointer-events: none !important; }
+            div[data-testid="stPills"] button { font-size: 1.1rem !important; padding: 8px 16px !important; }
         </style>
     """, unsafe_allow_html=True)
 
