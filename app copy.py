@@ -221,7 +221,7 @@ def page_learn_search(df):
             st.info(f" **Roots:** {word_data.get('roots', '')} = {word_data.get('meaning', '')}")
             
             if pd.notna(word_data.get('native_vibe')) and word_data.get('native_vibe') != "":
-                with st.expander("🧠 查看母語人士的「神經直覺」", expanded=True):
+                with st.expander("查看母語人士可能的「神經直覺」", expanded=True):
                     st.markdown(f"""
                         <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; border-left: 5px solid #6c5ce7;">
                             <p style="color: #6c5ce7; font-weight: bold; margin-bottom: 5px;">💬 母語人士語感 (Native Vibe):</p>
