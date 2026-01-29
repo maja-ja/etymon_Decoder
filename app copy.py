@@ -70,7 +70,6 @@ def load_db():
         'collocation', 'etymon_story', 'usage_warning', 'memory_hook', 'audio_tag'
     ]
     # 使用您的試算表 ID
-    SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
     url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&range=A:T'
     try:
         df = pd.read_csv(url)
