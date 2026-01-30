@@ -239,7 +239,7 @@ def main():
         st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
         st.write("---")
         # 顯示官方移交公告（如果你想的話）
-        st.warning("本計劃已移交繼承者。新計畫請點擊左側「新世代」。")
+        #st.warning("本計劃已移交繼承者。新計畫請點擊左側「新世代」。")
         
         c1, c2, c3 = st.columns(3)
         if not df.empty:
