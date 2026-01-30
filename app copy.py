@@ -1,238 +1,265 @@
 import streamlit as st
 import pandas as pd
+import json
 import base64
-import time
 import random
 from io import BytesIO
 from gtts import gTTS
+import streamlit.components.v1 as components
 
 # ==========================================
-# 1. 核心配置與視覺美化 (CSS)
+# 1. 核心配置與 CSS
 # ==========================================
-st.set_page_config(page_title="Etymon Decoder v2.5", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Etymon Decoder Hybrid", page_icon="🧬", layout="wide")
+
 def inject_custom_css():
     st.markdown("""
         <style>
-            /* 1. 核心字體：採用現代無襯線字體，確保英中混排完美 */
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@500;700&display=swap');
-
-            .breakdown-container {
-                /* 使用 Inter 處理英文，Noto Sans TC 處理中文 */
-                font-family: 'Inter', 'Noto Sans TC', sans-serif; 
-                font-size: 1.8rem !important; 
+            
+            /* 全站字體 */
+            .stApp { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+            
+            /* 調整 Streamlit 原生間距，讓 React 組件與下方內容更緊湊 */
+            .block-container { padding-top: 2rem; }
+            
+            /* 裝飾性標題 */
+            .section-title {
+                font-size: 1.5rem;
                 font-weight: 700;
-                letter-spacing: 1px;
-                
-                /* 漸層科技感背景 */
-                background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
-                color: #FFFFFF;
-                
-                /* 形狀與間距 */
-                padding: 12px 30px;
-                border-radius: 15px; /* 微圓角矩形，比膠囊型更具現代感 */
-                display: inline-block;
-                margin: 20px 0;
-                
-                /* 外陰影，讓它「浮」起來 */
-                box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-            }
-
-            /* 針對內部的括號與加號做細微調整 */
-            .breakdown-container span.operator {
-                color: #BBDEFB; /* 讓 + 號顏色稍淡一點，突出主體 */
-                margin: 0 8px;
+                color: #1565C0;
+                margin-top: 30px;
+                margin-bottom: 15px;
+                border-left: 5px solid #1E88E5;
+                padding-left: 10px;
             }
         </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. 工具函式 (音訊與 20 欄讀取)
+# 2. 資料處理 (Python Brain)
 # ==========================================
+@st.cache_data(ttl=60)
+def load_and_process_data():
+    # 這裡模擬從 Google Sheets 讀取的資料 (你原本的 load_db 函式)
+    # 為了演示，我們手動建立一個與 React 滾輪邏輯匹配的 DataFrame
+    data = [
+        {"word": "distract", "breakdown": "dis+tract", "roots": "tract", "meaning": "抽/拉", "definition": "使分心", "category": "心理", "native_vibe": "像是有東西把你拉離軌道", "phonetic": "dɪˈstrækt"},
+        {"word": "transform", "breakdown": "trans+form", "roots": "form", "meaning": "形狀", "definition": "轉化/變形", "category": "變化", "native_vibe": "徹底的改變，像毛毛蟲變蝴蝶", "phonetic": "trænsˈfɔːrm"},
+        {"word": "attract", "breakdown": "at+tract", "roots": "tract", "meaning": "抽/拉", "definition": "吸引", "category": "物理/人際", "native_vibe": "磁鐵般的引力", "phonetic": "əˈtrækt"},
+        {"word": "predict", "breakdown": "pre+dict", "roots": "dict", "meaning": "說", "definition": "預測", "category": "時間", "native_vibe": "事情發生前就先說出來", "phonetic": "prɪˈdɪkt"},
+        {"word": "revoke", "breakdown": "re+voke", "roots": "voke", "meaning": "喊叫", "definition": "撤銷", "category": "法律", "native_vibe": "把說出去的話喊回來", "phonetic": "rɪˈvoʊk"}
+    ]
+    df = pd.DataFrame(data)
+    
+    # --- 關鍵：為 React 準備數據結構 ---
+    # 我們需要解析 breakdown (例如 "dis+tract") 來生成滾輪選項
+    prefixes = set()
+    roots = set()
+    dictionary_map = []
 
-def speak(text, key_suffix=""):
+    for _, row in df.iterrows():
+        parts = row['breakdown'].split('+')
+        if len(parts) >= 2:
+            p, r = parts[0], parts[1]
+            prefixes.add(p)
+            roots.add(r)
+            # 建立映射表供 React 查詢
+            dictionary_map.append({
+                "combo": [f"p_{p}", f"r_{r}", "none"], # 簡化版，暫不處理後綴
+                "word": row['word'],
+                "meaning": row['definition'],
+                "display": f"{p} + {r}"
+            })
+
+    # 轉換成 React 需要的格式
+    react_prefixes = [{"id": "none", "label": "---"}] + [{"id": f"p_{x}", "label": f"{x}-"} for x in sorted(list(prefixes))]
+    react_roots = [{"id": f"r_{x}", "label": x} for x in sorted(list(roots))]
+    # 這裡簡化後綴，你可以依樣畫葫蘆
+    react_suffixes = [{"id": "none", "label": "---"}] 
+
+    return df, {
+        "prefixes": react_prefixes,
+        "roots": react_roots,
+        "suffixes": react_suffixes,
+        "dictionary": dictionary_map
+    }
+
+def speak(text):
     try:
-        if not text: return
         tts = gTTS(text=text, lang='en')
         fp = BytesIO()
         tts.write_to_fp(fp)
         audio_base64 = base64.b64encode(fp.getvalue()).decode()
-        unique_id = f"audio_{int(time.time())}_{key_suffix}"
-        st.components.v1.html(f'<audio id="{unique_id}" autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3"></audio><script>document.getElementById("{unique_id}").play();</script>', height=0)
-    except Exception as e: st.error(f"語音錯誤: {e}")
-
-@st.cache_data(ttl=30)
-def load_db():
-    COL_NAMES = [
-        'category', 'roots', 'meaning', 'word', 'breakdown', 
-        'definition', 'phonetic', 'example', 'translation', 'native_vibe',
-        'synonym_nuance', 'visual_prompt', 'social_status', 'emotional_tone', 'street_usage',
-        'collocation', 'etymon_story', 'usage_warning', 'memory_hook', 'audio_tag'
-    ]
-    # 使用您的試算表 ID
-    SHEET_ID = "1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg"
-    url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&range=A:T'
-    try:
-        df = pd.read_csv(url)
-        # 強制對齊 20 欄，若欄位不足則補齊
-        for i, col in enumerate(COL_NAMES):
-            if i >= len(df.columns): df[col] = ""
-        df.columns = COL_NAMES
-        return df.dropna(subset=['word']).fillna("").reset_index(drop=True)
-    except Exception as e:
-        st.error(f"資料庫連線失敗: {e}")
-        return pd.DataFrame(columns=COL_NAMES)
+        st.markdown(f'<audio src="data:audio/mp3;base64,{audio_base64}" autoplay></audio>', unsafe_allow_html=True)
+    except: pass
 
 # ==========================================
-# 3. 百科級顯示組件 (融合正式版邏輯)
+# 3. React 組件 (Frontend Skin)
 # ==========================================
-
-def show_encyclopedia_card(row):
-    """美化顯示單一單字的百科卡片"""
-    # --- 頂部：單字 Hero 區 ---
-    st.markdown(f"<div class='hero-word'>{row['word']}</div>", unsafe_allow_html=True)
-    st.markdown(f"<div class='hero-phonetic'>/{row['phonetic']}/</div>", unsafe_allow_html=True)
+def render_react_wheel(react_data):
+    # 將 Python 字典轉換為 JSON 字串，注入到 HTML 中
+    json_data = json.dumps(react_data)
     
-    col_a, col_b = st.columns([1, 4])
-    with col_a:
-        if st.button("🔊 朗讀", key=f"spk_{row['word']}", use_container_width=True):
-            speak(row['word'], row['word'])
-    with col_b:
-        styled_breakdown = row['breakdown'].replace("+", "<span class='operator'>+</span>")
-        st.markdown(f"<div class='breakdown-container'>{styled_breakdown}</div>", unsafe_allow_html=True)
-
-    # --- 中間：定義與字根 ---
-    c1, c2 = st.columns(2)
-    with c1:
-        st.info(f"**🎯 定義：**\n{row['definition']}")
-        st.write(f"**📝 例句：**\n{row['example']}")
-        st.caption(f"（{row['translation']}）")
-    with c2:
-        st.success(f"**💡 字根：** {row['roots']}\n\n**意義：** {row['meaning']}")
-        st.markdown(f"**🪝 記憶鉤子：**\n{row['memory_hook']}")
-
-    # --- 關鍵：語感驚喜包 (正式版特色) ---
-    if row['native_vibe']:
-        # 檢查當前單字是否已解鎖 (使用 session_state 紀錄單字)
-        unlocked_key = f"unlocked_{row['word']}"
-        if not st.session_state.get(unlocked_key, False):
-            if st.button("🎁 拆開語感驚喜包 (Unlock Native Vibe)", use_container_width=True, type="secondary"):
-                st.session_state[unlocked_key] = True
-                st.balloons()
-                st.rerun()
-        else:
-            st.markdown(f"""
-                <div class='vibe-box'>
-                    <h4 style='color:#1E88E5; margin-top:0;'>🌊 母語人士語感 (Native Vibe)</h4>
-                    <p style='font-style: italic; font-size: 1.1rem;'>{row['native_vibe']}</p>
-                </div>
-            """, unsafe_allow_html=True)
-
-    # --- 底部：深度百科擴充 ---
-    with st.expander("📚 查看深度百科 (文化、社會、街頭實戰)"):
-        t1, t2, t3 = st.tabs(["🏛️ 字源文化", "👔 社會地位", "😎 街頭實戰"])
-        with t1:
-            st.write(f"**📜 字源故事：** {row['etymon_story']}")
-            st.write(f"**⚖️ 同義詞辨析：** {row['synonym_nuance']}")
-        with t2:
-            st.write(f"**🎨 視覺提示：** {row['visual_prompt']}")
-            st.write(f"**👔 社會感：** {row['social_status']} | **🌡️ 情緒值：** {row['emotional_tone']}")
-        with t3:
-            st.write(f"**🏙️ 街頭用法：** {row['street_usage']}")
-            st.write(f"**🔗 常用搭配：** {row['collocation']}")
-            if row['usage_warning']:
-                st.error(f"⚠️ 使用警告：{row['usage_warning']}")
-
-# ==========================================
-# 4. 頁面邏輯 (融合 Tabs 模式)
-# ==========================================
-
-def page_home(df):
-    st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
-    st.write("---")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("📚 總單字量", len(df))
-    c2.metric("🏷️ 分類主題", df['category'].nunique())
-    c3.metric("🧩 獨特字根", df['roots'].nunique())
-    st.write("---")
-    st.info("👈 請從左側選單進入「學習與搜尋」開啟您的語感之旅。")
-
-def page_learn_search(df):
-    st.title("📖 學習與搜尋")
-    tab_card, tab_list = st.tabs(["🎲 隨機探索", "🔍 資料庫列表"])
-    
-    with tab_card:
-        # 1. 篩選
-        cats = ["全部"] + sorted(df['category'].unique().tolist())
-        sel_cat = st.selectbox("選擇學習分類", cats)
-        f_df = df if sel_cat == "全部" else df[df['category'] == sel_cat]
-
-        # 2. 隨機邏輯
-        if st.button("下一個單字 (Next Word) ➔", use_container_width=True, type="primary"):
-            st.session_state.curr_w = f_df.sample(1).iloc[0].to_dict()
-            st.rerun()
-
-        if 'curr_w' not in st.session_state and not f_df.empty:
-            st.session_state.curr_w = f_df.sample(1).iloc[0].to_dict()
-
-        if 'curr_w' in st.session_state:
-            show_encyclopedia_card(st.session_state.curr_w)
-
-    with tab_list:
-        search = st.text_input("🔍 搜尋單字、字根或中文定義...", placeholder="例如: 'bio' 或 '生命'...")
-        if search:
-            mask = df.apply(lambda r: search.lower() in str(r.values).lower(), axis=1)
-            display_df = df[mask]
-        else:
-            display_df = df.head(50)
+    html_code = f"""
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            .no-scrollbar::-webkit-scrollbar {{ display: none; }}
+            .no-scrollbar {{ -ms-overflow-style: none; scrollbar-width: none; }}
+            body {{ background-color: transparent; }} /* 讓背景透明融入 Streamlit */
             
-        st.write(f"顯示 {len(display_df)} 筆結果")
-        st.dataframe(display_df[['word', 'definition', 'roots', 'category', 'native_vibe']], use_container_width=True)
+            /* 滾輪選中時的動畫 */
+            @keyframes highlight {{
+                0% {{ transform: scale(1); }}
+                50% {{ transform: scale(1.05); }}
+                100% {{ transform: scale(1); }}
+            }}
+            .animate-pop {{ animation: highlight 0.3s ease-out; }}
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
 
-def page_quiz(df):
-    st.title("🧠 字根記憶挑戰")
-    cat = st.selectbox("選擇測驗範圍", df['category'].unique())
-    pool = df[df['category'] == cat]
-    
-    if st.button("🎲 抽一題", use_container_width=True):
-        st.session_state.q = pool.sample(1).iloc[0].to_dict()
-        st.session_state.show_ans = False
+        <script type="text/babel">
+            const {{ useState, useEffect, useRef }} = React;
 
-    if 'q' in st.session_state:
-        st.markdown(f"### ❓ 請問這對應哪個單字？")
-        st.info(st.session_state.q['definition'])
-        st.write(f"**提示 (字根):** {st.session_state.q['roots']} ({st.session_state.q['meaning']})")
-        
-        if st.button("揭曉答案"):
-            st.session_state.show_ans = True
-        
-        if st.session_state.show_ans:
-            st.success(f"💡 答案是：**{st.session_state.q['word']}**")
-            speak(st.session_state.q['word'], "quiz")
-            st.write(f"結構拆解：`{st.session_state.q['breakdown']}`")
+            // 接收來自 Python 的數據
+            const DATA = {json_data};
+
+            const Wheel = ({{ items, onSelect }}) => {{
+                const containerRef = useRef(null);
+                const handleScroll = () => {{
+                    if (!containerRef.current) return;
+                    const index = Math.round(containerRef.current.scrollTop / 60);
+                    if (items[index]) onSelect(items[index].id);
+                }};
+                return (
+                    <div className="relative w-24 h-[180px]">
+                        <div ref={containerRef} onScroll={handleScroll} 
+                             className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar pt-[60px] pb-[60px]">
+                            {{items.map((item, i) => (
+                                <div key={i} className="h-[60px] flex items-center justify-center snap-center text-xl font-bold text-gray-700">
+                                    {{item.label}}
+                                </div>
+                            ))}}
+                        </div>
+                    </div>
+                );
+            }};
+
+            const App = () => {{
+                // 預設選中第一個有效組合 (為了展示效果)
+                const [sel, setSel] = useState([DATA.prefixes[1]?.id || "none", DATA.roots[0]?.id || "none", "none"]);
+                const [match, setMatch] = useState(null);
+
+                useEffect(() => {{
+                    const found = DATA.dictionary.find(d => 
+                        d.combo[0] === sel[0] && d.combo[1] === sel[1]
+                    );
+                    setMatch(found);
+                }}, [sel]);
+
+                return (
+                    <div className="flex flex-col items-center justify-center p-2 space-y-6">
+                        <div className="relative flex bg-white p-4 rounded-[30px] shadow-lg border-4 border-blue-100 overflow-hidden">
+                            <div className="absolute top-1/2 left-0 w-full h-[60px] -translate-y-1/2 bg-blue-500/10 border-y-2 border-blue-500/30 pointer-events-none"></div>
+                            <Wheel items={{DATA.prefixes}} onSelect={{id => setSel([id, sel[1], "none"])}} />
+                            <div className="w-px bg-gray-100 h-32 my-auto"></div>
+                            <Wheel items={{DATA.roots}} onSelect={{id => setSel([sel[0], id, "none"])}} />
+                        </div>
+
+                        {{match ? (
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-6 rounded-2xl shadow-xl text-center w-full max-w-sm animate-pop">
+                                <h1 className="text-3xl font-black tracking-wide">{{match.word}}</h1>
+                                <p className="text-blue-100 text-sm mt-1">{{match.display}}</p>
+                                <div className="mt-3 bg-white/20 py-1 px-3 rounded-full text-sm inline-block">
+                                    {{match.meaning}}
+                                </div>
+                                <p className="mt-4 text-xs opacity-80">👇 往下捲動查看深度分析</p>
+                            </div>
+                        ) : (
+                            <div className="h-24 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 rounded-2xl w-full max-w-sm">
+                                試試轉動滾輪組合單字...
+                            </div>
+                        )}}
+                    </div>
+                );
+            }};
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+        </script>
+    </body>
+    </html>
+    """
+    # 渲染 HTML，高度設為 450px 以容納滾輪與卡片
+    components.html(html_code, height=450)
 
 # ==========================================
-# 5. 主程式
+# 4. Streamlit 主程式 (The Deep Dive)
 # ==========================================
 def main():
     inject_custom_css()
-    df = load_db()
+    df, react_payload = load_and_process_data()
+
+    # --- Header ---
+    st.title("🧬 Etymon Decoder")
+    st.markdown("**互動式語源解碼器**：請先在上方滾輪探索，找到感興趣的單字後，在下方進行深度解析。")
+
+    # --- Part A: 互動前導 (React) ---
+    with st.container():
+        render_react_wheel(react_payload)
+
+    st.write("---")
+
+    # --- Part B: 深度百科 (Streamlit) ---
+    st.markdown("<div class='section-title'>🔍 深度解析實驗室</div>", unsafe_allow_html=True)
+
+    # 這裡是用戶從滾輪看到單字後，手動輸入或選擇的地方
+    # (註：若要做到滾輪點擊後自動填入這裡，需要撰寫 Custom Component，這是 MVP 的折衷方案)
     
-    if df.empty:
-        st.warning("資料庫目前是空的，請先在管理端完成雲端同步。")
-        return
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        # 建立搜尋建議列表
+        all_words = df['word'].tolist()
+        selected_word = st.selectbox("請選擇或輸入上方解碼的單字：", all_words)
+    
+    with col2:
+        st.write("") # Spacer
+        st.write("") 
+        if st.button("🚀 啟動深度分析", use_container_width=True, type="primary"):
+            st.session_state.current_word = selected_word
 
-    st.sidebar.title("Etymon Decoder")
-    page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式"])
-    st.sidebar.markdown("---")
-    st.sidebar.caption("v2.5 百科全書版 | 2026 Refactored")
-
-    if page == "首頁":
-        page_home(df)
-    elif page == "學習與搜尋":
-        page_learn_search(df)
-    elif page == "測驗模式":
-        page_quiz(df)
+    # 展示詳細卡片 (復用你之前的設計)
+    if 'current_word' in st.session_state:
+        word_data = df[df['word'] == st.session_state.current_word].iloc[0]
+        
+        # 這裡簡單重現你之前的卡片風格
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1E88E5, #1565C0); color: white; padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div style="font-size: 2.5rem; font-weight: 800;">{word_data['word']}</div>
+            <div style="font-size: 1rem; opacity: 0.8;">/{word_data['phonetic']}/</div>
+            <div style="margin-top: 15px; font-size: 1.2rem;">
+                <span style="background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px;">{word_data['breakdown']}</span>
+                <span style="margin-left: 10px;">= {word_data['definition']}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.info(f"**💡 字根 ({word_data['roots']})：** {word_data['meaning']}")
+            if st.button("🔊 朗讀發音"):
+                speak(word_data['word'])
+        with c2:
+            with st.expander("🎁 語感驚喜包 (Native Vibe)", expanded=True):
+                st.write(word_data['native_vibe'])
 
 if __name__ == "__main__":
     main()
