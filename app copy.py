@@ -224,7 +224,7 @@ def main():
     
     st.sidebar.title("Etymon Decoder")
     # 原有選單 + 新窗口「🧪 實驗室」
-    page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式", "🧪 組合實驗室"])
+    page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式", "試驗版"])
     st.sidebar.markdown("---")
     st.sidebar.caption("v2.5 Hybrid | 2026")
 
