@@ -120,75 +120,101 @@ def render_react_lab(payload):
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
-        <style>.no-scrollbar::-webkit-scrollbar { display: none; } .mask { background: linear-gradient(180deg, white, transparent 30%, transparent 70%, white); }</style>
+        <style>
+            .no-scrollbar::-webkit-scrollbar { display: none; } 
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            /* 優化遮罩：讓中間完全透明，確保文字清晰 */
+            .mask { 
+                background: linear-gradient(180deg, 
+                    rgba(255,255,255,1) 0%, 
+                    rgba(255,255,255,0) 30%, 
+                    rgba(255,255,255,0) 70%, 
+                    rgba(255,255,255,1) 100%); 
+            }
+        </style>
     </head>
     <body class="bg-transparent"><div id="root"></div>
     <script type="text/babel">
-        const { useState, useRef } = React;
+        const { useState, useRef, useEffect } = React;
         const DATA = REPLACE_ME;
-        const Wheel = ({ items, onSelect, label }) => {
-        const ref = useRef(null);
-        const itemHeight = 40; // 定義固定高度，方便計算
-        const containerPadding = 44; // (128px 總高 - 40px 項目高) / 2
-    
-        return (
-            <div className="flex flex-col items-center">
-                <div className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">{label}</div>
-                <div className="relative w-32 h-32 bg-white rounded-2xl shadow-inner border border-gray-200 overflow-hidden">
-                    {/* 選中高亮條 - 確保高度與 itemHeight 一致 */}
-                    <div className="absolute top-[44px] w-full h-[40px] bg-blue-50 border-y border-blue-100 pointer-events-none"></div>
-                    
-                    <div 
-                        ref={ref} 
-                        onScroll={() => {
-                            const idx = Math.round(ref.current.scrollTop / itemHeight);
-                            if(items[idx]) onSelect(items[idx].id);
-                        }} 
-                        className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar"
-                        style={{ paddingBlock: `${containerPadding}px` }} // 使用動態 Padding
-                    >
-                        {items.map(i => (
-                            <div 
-                                key={i.id} 
-                                className="flex items-center justify-center snap-center font-bold text-gray-600 text-lg"
-                                style={{ height: `${itemHeight}px` }} // 強制每個項目高度
-                            >
-                                {i.label}
-                            </div>
-                        ))}
+
+        const Wheel = ({ items, onSelect, label, initialValue }) => {
+            const ref = useRef(null);
+            const itemHeight = 44; // 每個項目的高度
+
+            // 初始化時滾動到正確位置
+            useEffect(() => {
+                if (ref.current) {
+                    const index = items.findIndex(i => i.id === initialValue);
+                    ref.current.scrollTop = index * itemHeight;
+                }
+            }, []);
+
+            const handleScroll = () => {
+                if (!ref.current) return;
+                const idx = Math.round(ref.current.scrollTop / itemHeight);
+                if(items[idx] && items[idx].id !== initialValue) {
+                    onSelect(items[idx].id);
+                }
+            };
+
+            return (
+                <div className="flex flex-col items-center">
+                    <div className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">{label}</div>
+                    <div className="relative w-32 h-36 bg-white rounded-2xl shadow-inner border border-gray-200 overflow-hidden">
+                        {/* 修正選中高亮框的位置與層級 */}
+                        <div className="absolute top-[46px] left-0 w-full h-[44px] bg-blue-50 border-y border-blue-100 z-0"></div>
+                        
+                        <div 
+                            ref={ref} 
+                            onScroll={handleScroll} 
+                            className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar py-[46px] relative z-10"
+                        >
+                            {items.map(i => (
+                                <div key={i.id} className="h-[44px] flex items-center justify-center snap-center font-bold text-gray-600 text-lg">
+                                    {i.label}
+                                </div>
+                            ))}
+                        </div>
+                        {/* 遮罩放在最上層但允許點擊穿透 */}
+                        <div className="absolute inset-0 mask pointer-events-none z-20"></div>
                     </div>
-                    <div className="absolute inset-0 mask pointer-events-none"></div>
                 </div>
-            </div>
-        );
-    };
+            );
+        };
+
         const App = () => {
             const [p, setP] = useState(DATA.prefixes[0].id);
             const [r, setR] = useState(DATA.roots[0].id);
             const match = DATA.dictionary.find(d => d.p === p && d.r === r);
+
             return (
                 <div className="flex flex-col items-center p-4">
                     <div className="flex items-center gap-4 mb-10">
-                        <Wheel items={DATA.prefixes} onSelect={setP} label="Prefix" />
+                        <Wheel items={DATA.prefixes} onSelect={setP} label="Prefix" initialValue={p} />
                         <div className="text-3xl text-gray-300 mt-6">+</div>
-                        <Wheel items={DATA.roots} onSelect={setR} label="Root" />
+                        <Wheel items={DATA.roots} onSelect={setR} label="Root" initialValue={r} />
                     </div>
                     {match ? (
-                        <div className="w-full bg-white p-8 rounded-[2.5rem] shadow-2xl border border-blue-50">
-                            <h1 className="text-5xl font-black text-blue-600 mb-2">{match.word}</h1>
+                        <div className="w-full bg-white p-8 rounded-[2.5rem] shadow-2xl border border-blue-50 transition-all duration-300">
+                            <h1 className="text-5xl font-black text-blue-600 mb-2 leading-tight">{match.word}</h1>
                             <p className="text-gray-400 font-mono mb-6 text-xl">/{match.phonetic}/</p>
                             <div className="bg-blue-50 p-5 rounded-2xl text-blue-900 font-bold text-lg mb-4">{match.definition}</div>
                             <p className="italic text-gray-500 font-medium">"{match.vibe}"</p>
                         </div>
-                    ) : <div className="text-gray-300 italic">No Match in Lab DB</div>}
+                    ) : (
+                        <div className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/50">
+                            <span className="text-gray-300 italic">No Combination Found</span>
+                            <span className="text-[10px] text-gray-200 mt-2 font-mono uppercase tracking-widest">{p} + {r}</span>
+                        </div>
+                    )}
                 </div>
             );
         };
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script></body></html>
     """.replace("REPLACE_ME", json_data)
-    components.html(html_code, height=600)
-
+    components.html(html_code, height=650)
 # ==========================================
 # 6. 主頁面邏輯
 # ==========================================
