@@ -1,59 +1,91 @@
 import streamlit as st
 
-# --- 通用處理函數 n_m_o ---
-def n_m_o_logic(n, m, o, data_pool):
+# --- 1. 定義通用 XYZ 邏輯函數 ---
+def x_y_z_logic(x_idx, y_idx, z_idx, data_pool):
     """
-    n: 欄座標, m: 列座標, o: 層指示器
-    data_pool: 用來存放底層 a,b,c 數據的字典
+    x_idx: 1=X, 2=Y, 3=Z (主體)
+    y_idx: 1=a, 2=b, 3=c (成分)
+    z_idx: 層指示器 (維度)
     """
-    key = f"{n}_{m}"
-    # 獲取基礎元素 (如果不存在則設為 1)
-    a = data_pool.get(f"{key}_a", 1.0)
-    b = data_pool.get(f"{key}_b", 1.0)
-    c = data_pool.get(f"{key}_c", 1.0)
-    x = 1.2  # 假設的權重因子
+    # 建立唯一的座標索引鍵值
+    node_key = f"x{x_idx}_y{y_idx}"
     
-    if o == 1:
-        return f"元素態: a={a}, b={b}, c={c}"
-    elif o == 2:
-        # 執行打包邏輯: X = ax + bx + cx
-        X_val = (a * x) + (b * x) + (c * x)
-        return f"打包態 (X): {X_val:.2f}"
-    else:
-        # 執行物理映射 (o=3)
-        X_val = (a * x) + (b * x) + (c * x)
-        # 模擬筆記中的 F = m * v * r
-        force = X_val * 9.8 
-        return f"應用態 (F): {force:.2f} N"
+    # 從資料池獲取原始數值 (預設為 1.0)
+    # 對應筆記中的 a, b, c
+    val = data_pool.get(node_key, 1.0)
+    
+    # 假設權重 x = 1 (可擴充)
+    weight_x = 1.0
+    
+    if z_idx == 1:
+        # Z=1: 基礎分量層 (例如 Xa, Xb, Xc)
+        return f"分量值: {val * weight_x:.2f}"
+    
+    elif z_idx == 2:
+        # Z=2: 打包層 (執行 X = ax + bx + cx)
+        # 加總該 X 軸下所有的 Y 成分
+        a_val = data_pool.get(f"x{x_idx}_y1", 1.0)
+        b_val = data_pool.get(f"x{x_idx}_y2", 1.0)
+        c_val = data_pool.get(f"x{x_idx}_y3", 1.0)
+        package_x = (a_val + b_val + c_val) * weight_x
+        return f"打包物件(X): {package_x:.2f}"
+    
+    elif z_idx == 3:
+        # Z=3: 物理映射層 (對應 F=mvr)
+        a_val = data_pool.get(f"x{x_idx}_y1", 1.0)
+        b_val = data_pool.get(f"x{x_idx}_y2", 1.0)
+        c_val = data_pool.get(f"x{x_idx}_y3", 1.0)
+        m = (a_val + b_val + c_val)
+        v, r = 3.0, 4.0 # 參考筆記中的係數
+        force = m * v * r
+        return f"物理出力(F): {force:.2f} N"
 
-# --- Streamlit UI ---
-st.title("Pino 邏輯建模：X-Package 系統")
+# --- 2. Streamlit 介面設計 ---
+st.set_page_config(page_title="Pino XYZ Logic Cube", layout="wide")
+st.title("Pino 邏輯系統：XYZ 座標演化模型")
 
-# 初始化 Session State 來儲存輸入的 a, b, c
-if 'data' not in st.session_state:
-    st.session_state.data = {}
+# 初始化 Session State
+if 'vault' not in st.session_state:
+    st.session_state.vault = {}
 
-# 層指示器 (控制 o)
-o_layer = st.select_slider("滑動層指示器 (o): 觀察邏輯演化", options=[1, 2, 3])
+# Z 軸指示器 (控制層級演化)
+z_axis = st.select_slider(
+    "Z 軸指示器 (層級深度)",
+    options=[1, 2, 3],
+    help="1: 基礎分量 | 2: 打包邏輯 | 3: 物理映射"
+)
 
-# 建立 3x3 矩陣
-rows, cols = 3, 3
-for m in range(1, rows + 1):
-    st_cols = st.columns(cols)
-    for n in range(1, cols + 1):
-        with st_cols[n-1]:
+st.divider()
+
+# --- 3. 生成 3x3 矩陣佈局 ---
+# X 軸為欄，Y 軸為列
+y_labels = {1: "a (核心/字首)", 2: "b (連結/字根)", 3: "c (邊界/詞尾)"} #
+x_labels = {1: "X 軸主體", 2: "Y 軸主體", 3: "Z 軸主體"}
+
+for y in range(1, 4):
+    cols = st.columns(3)
+    for x in range(1, 4):
+        with cols[x-1]:
             with st.container(border=True):
-                if o_layer == 1:
-                    # 在第一層讓使用者輸入 a, b, c
-                    st.write(f"輸入層 ({n},{m})")
-                    key_prefix = f"{n}_{m}"
-                    st.session_state.data[f"{key_prefix}_a"] = st.number_input("a", value=1.0, key=f"a_{n}_{m}")
-                    st.session_state.data[f"{key_prefix}_b"] = st.number_input("b", value=1.0, key=f"b_{n}_{m}")
+                st.write(f"**座標 ({x}, {y}, {z_axis})**")
+                st.caption(f"{x_labels[x]} - {y_labels[y]}")
+                
+                if z_axis == 1:
+                    # 第一層提供輸入
+                    input_key = f"x{x}_y{y}"
+                    st.session_state.vault[input_key] = st.number_input(
+                        "輸入分量值", 
+                        value=1.0, 
+                        key=f"input_{x}_{y}"
+                    )
                 else:
-                    # 在其他層顯示打包或運算結果
-                    result = n_m_o_logic(n, m, o_layer, st.session_state.data)
-                    st.subheader(f"座標 ({n},{m})")
+                    # 其他層顯示計算結果
+                    result = x_y_z_logic(x, y, z_axis, st.session_state.vault)
                     st.info(result)
 
-st.markdown(f"**目前的 $o$ 層解釋：** " + 
-            ("輸入基礎元素" if o_layer==1 else "執行 X = ax+bx+cx 打包" if o_layer==2 else "輸出物理映射結果"))
+st.sidebar.markdown(f"""
+### 當前維度說明
+- **X 軸**: {x_labels[1]}...
+- **Y 軸**: {y_labels[y]}...
+- **Z 軸**: 當前處於第 **{z_axis}** 層
+""")
