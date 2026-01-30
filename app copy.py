@@ -57,7 +57,7 @@ for m in range(1, 4):
         with cols[n-1]:
             with st.container(border=True):
                 st.write(f"**座標 ({n}, {m}, {o_depth})**")
-                st.caption(f"{m_labels[m]} ∩ {n_labels[n]}")
+                st.caption(f"{m_labels[m]}{n_labels[n]}")
                 
                 if o_depth == 1:
                     # 第一層：手動輸入分量 (ax, ay, az...)
