@@ -209,19 +209,19 @@ def main():
     NEW_ERA_APP_URL = "https://your-medical-universe.streamlit.app"
     
     # --- 2. 側邊欄頂部：世代切換區 ---
-    st.sidebar.title("🌌 Era Gateway")
+    st.sidebar.title("Era Gateway")
     
     # 使用 columns 讓按鈕並排或呈現對比
     c1, c2 = st.sidebar.columns(2)
     with c1:
-        st.button("🗝️ 舊世代", disabled=True, use_container_width=True, help="目前所在位置")
+        st.button("舊世代", disabled=True, use_container_width=True, help="目前所在位置")
     with c2:
         # 這裡是通往新 App 的關鍵
-        if st.button("🚀 新世代", help="前往全學段解碼宇宙"):
+        if st.button("新世代", help="前往全學段解碼宇宙"):
             # 透過 HTML 自動跳轉
             js = f"window.open('{NEW_ERA_APP_URL}', '_self')"
             st.components.v1.html(f"<script>{js}</script>", height=0)
-            st.markdown(f"🧬 [手動進入醫學宇宙]({NEW_ERA_APP_URL})")
+            st.markdown(f"[手動進入K宇宙]({NEW_ERA_APP_URL})")
 
     st.sidebar.markdown("---")
 
@@ -239,7 +239,7 @@ def main():
         st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
         st.write("---")
         # 顯示官方移交公告（如果你想的話）
-        st.warning("本實驗室已移交繼承者。新計畫請點擊左側「新世代」。")
+        st.warning("本計劃已移交繼承者。新計畫請點擊左側「新世代」。")
         
         c1, c2, c3 = st.columns(3)
         if not df.empty:
@@ -269,7 +269,7 @@ def main():
                 st.dataframe(df.head(50)[['word', 'definition', 'roots', 'category']], use_container_width=True)
 
     elif page == "測驗模式":
-        st.title("🧠 字根記憶挑戰")
+        st.title("字根記憶挑戰")
         if not df.empty:
             cat = st.selectbox("測驗範圍", df['category'].unique())
             pool = df[df['category'] == cat]
@@ -282,7 +282,7 @@ def main():
                 st.write(f"提示 (字根): {st.session_state.q['roots']}")
                 if st.button("揭曉答案"): st.session_state.show_ans = True
                 if st.session_state.get('show_ans'):
-                    st.success(f"💡 答案：**{st.session_state.q['word']}**")
+                    st.success(f"答案：**{st.session_state.q['word']}**")
                     speak(st.session_state.q['word'], "quiz")
 
     elif page == "Mix Lab 實驗室":
