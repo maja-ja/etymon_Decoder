@@ -206,7 +206,7 @@ def main():
     df = load_db()
     
     st.sidebar.title("Etymon Decoder")
-    page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式", "🧪 組合實驗室"])
+    page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式", "實驗室"])
     st.sidebar.markdown("---")
     st.sidebar.caption("v2.5 Hybrid | 2026")
 
@@ -257,8 +257,8 @@ def main():
                     st.success(f"💡 答案：**{st.session_state.q['word']}**")
                     speak(st.session_state.q['word'], "quiz")
 
-    elif page == "🧪 組合實驗室":
-        st.title("🧪 Mix Lab 實驗室")
+    elif page == "實驗室":
+        st.title("Mix Lab 實驗室")
         render_react_lab()
 
 if __name__ == "__main__":
