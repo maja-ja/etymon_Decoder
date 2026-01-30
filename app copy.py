@@ -203,30 +203,38 @@ def render_react_lab():
 def main():
     inject_custom_css()
     df = load_db()
+    
+    # --- 1. 定義新 App 的連結 ---
+    # 請將下方網址替換成你部署好的「新世代醫學宇宙」網址
+    NEW_ERA_APP_URL = "https://your-medical-universe.streamlit.app"
+    
+    # --- 2. 側邊欄頂部：世代切換區 ---
+    st.sidebar.title("🌌 Era Gateway")
+    
+    # 使用 columns 讓按鈕並排或呈現對比
+    c1, c2 = st.sidebar.columns(2)
+    with c1:
+        st.button("🗝️ 舊世代", disabled=True, use_container_width=True, help="目前所在位置")
+    with c2:
+        # 這裡是通往新 App 的關鍵
+        if st.button("🚀 新世代", help="前往全學段解碼宇宙"):
+            # 透過 HTML 自動跳轉
+            js = f"window.open('{NEW_ERA_APP_URL}', '_self')"
+            st.components.v1.html(f"<script>{js}</script>", height=0)
+            st.markdown(f"🧬 [手動進入醫學宇宙]({NEW_ERA_APP_URL})")
 
-    # --- 世代切換器 (放在最上方) ---
-    st.sidebar.title("K-univers")
-    
-    # 這裡填入你未來「新 App」的 URL
-    NEW_ERA_URL = "https://your-new-medical-universe.streamlit.app" 
-    
-    col_v2, col_v3 = st.sidebar.columns(2)
-    with col_v2:
-        st.button("舊世代", disabled=True, use_container_width=True) # 當前頁面
-    with col_v3:
-        # 按下後直接透過 HTML 跳轉
-        if st.button("新世代", help="前往全學段解碼宇宙"):
-            st.markdown(f'<meta http-equiv="refresh" content="0;url={NEW_ERA_URL}">', unsafe_allow_html=True)
-            st.link_button("手動點擊跳轉", NEW_ERA_URL)
-    
     st.sidebar.markdown("---")
 
-    # --- 原本的舊世代選單 ---
-    st.sidebar.title("Etymon Decoder")
-    page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式", "Mix Lab 實驗室"])
+    # --- 3. 原本的功能選單 (對應截圖中的位置) ---
+    st.sidebar.title("Etymon Decoder") # 截圖中的標題
+    page = st.sidebar.radio(
+        "功能選單", 
+        ["首頁", "學習與搜尋", "測驗模式", "Mix Lab 實驗室"],
+        index=0
+    )
+    
     st.sidebar.markdown("---")
-    st.sidebar.caption("v2.5 Hybrid | Legacy Mode")
-
+    # ... 後續原本的 if page == "..." 邏輯 ...
     if page == "首頁":
         st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
         st.write("---")
