@@ -264,8 +264,8 @@ def main():
                 if st.session_state.get('show_ans'):
                     st.success(f"答案：{st.session_state.q['word']}")
 
-    elif page == "🧪 組合實驗室":
-        st.title("🧪 Etymon Mix Lab")
+    elif page == "試驗版":
+        st.title("Etymon test Lab")
         st.write("這是獨立的實驗窗口，使用內置的 React 滾輪資料庫。")
         render_react_lab(get_lab_data())
 
