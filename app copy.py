@@ -266,7 +266,6 @@ def main():
 
     elif page == "試驗版":
         st.title("Etymon test Lab")
-        st.write("這是獨立的實驗窗口，使用內置的 React 滾輪資料庫。")
         render_react_lab(get_lab_data())
 
 if __name__ == "__main__":
