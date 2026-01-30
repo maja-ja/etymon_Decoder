@@ -197,31 +197,51 @@ def render_react_lab():
     </script></body></html>
     """.replace("REPLACE_ME", json.dumps(payload))
     components.html(html_code, height=600)
-
 # ==========================================
-# 5. 主程式架構 (功能導航)
+# 5. 主程式架構 (世代導航版)
 # ==========================================
 def main():
     inject_custom_css()
     df = load_db()
+
+    # --- 世代切換器 (放在最上方) ---
+    st.sidebar.title("K-univers")
     
+    # 這裡填入你未來「新 App」的 URL
+    NEW_ERA_URL = "https://your-new-medical-universe.streamlit.app" 
+    
+    col_v2, col_v3 = st.sidebar.columns(2)
+    with col_v2:
+        st.button("舊世代", disabled=True, use_container_width=True) # 當前頁面
+    with col_v3:
+        # 按下後直接透過 HTML 跳轉
+        if st.button("新世代", help="前往全學段解碼宇宙"):
+            st.markdown(f'<meta http-equiv="refresh" content="0;url={NEW_ERA_URL}">', unsafe_allow_html=True)
+            st.link_button("手動點擊跳轉", NEW_ERA_URL)
+    
+    st.sidebar.markdown("---")
+
+    # --- 原本的舊世代選單 ---
     st.sidebar.title("Etymon Decoder")
     page = st.sidebar.radio("功能選單", ["首頁", "學習與搜尋", "測驗模式", "Mix Lab 實驗室"])
     st.sidebar.markdown("---")
-    st.sidebar.caption("v2.5 Hybrid | 2026")
+    st.sidebar.caption("v2.5 Hybrid | Legacy Mode")
 
     if page == "首頁":
         st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
         st.write("---")
+        # 顯示官方移交公告（如果你想的話）
+        st.warning("本實驗室已移交繼承者。新計畫請點擊左側「新世代」。")
+        
         c1, c2, c3 = st.columns(3)
         if not df.empty:
-            c1.metric("📚 雲端總量", len(df))
-            c2.metric("🏷️ 分類主題", df['category'].nunique())
-            c3.metric("🧩 字根庫", df['roots'].nunique())
-        st.info("👈 請從左側選單選擇功能。")
+            c1.metric("雲端總量", len(df))
+            c2.metric("分類主題", df['category'].nunique())
+            c3.metric("字根庫", df['roots'].nunique())
+        st.info("請從左側選單選擇功能。")
 
     elif page == "學習與搜尋":
-        st.title("📖 學習與搜尋")
+        st.title("學習與搜尋")
         tab_card, tab_list = st.tabs(["🎲 隨機探索", "🔍 資料庫列表"])
         with tab_card:
             cats = ["全部"] + sorted(df['category'].unique().tolist())
