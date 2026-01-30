@@ -206,7 +206,7 @@ def main():
     
     # --- 1. 定義新 App 的連結 ---
     # 請將下方網址替換成你部署好的「新世代醫學宇宙」網址
-    NEW_ERA_APP_URL = "https://www.google.com"
+    NEW_ERA_APP_URL = "https://gdgdgdgf-js3bemtsz8ngll82qrn2up.streamlit.app/"
     
     # --- 2. 側邊欄頂部：世代切換區 ---
     st.sidebar.title("Era Gateway")
