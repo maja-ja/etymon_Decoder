@@ -127,23 +127,41 @@ def render_react_lab(payload):
         const { useState, useRef } = React;
         const DATA = REPLACE_ME;
         const Wheel = ({ items, onSelect, label }) => {
-            const ref = useRef(null);
-            return (
-                <div className="flex flex-col items-center">
-                    <div className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">{label}</div>
-                    <div className="relative w-32 h-36 bg-white rounded-2xl shadow-inner border border-gray-200 overflow-hidden">
-                        <div className="absolute top-[52px] w-full h-[40px] bg-blue-50 border-y border-blue-100"></div>
-                        <div ref={ref} onScroll={() => {
-                            const idx = Math.round(ref.current.scrollTop / 44);
+        const ref = useRef(null);
+        const itemHeight = 40; // 定義固定高度，方便計算
+        const containerPadding = 44; // (128px 總高 - 40px 項目高) / 2
+    
+        return (
+            <div className="flex flex-col items-center">
+                <div className="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">{label}</div>
+                <div className="relative w-32 h-32 bg-white rounded-2xl shadow-inner border border-gray-200 overflow-hidden">
+                    {/* 選中高亮條 - 確保高度與 itemHeight 一致 */}
+                    <div className="absolute top-[44px] w-full h-[40px] bg-blue-50 border-y border-blue-100 pointer-events-none"></div>
+                    
+                    <div 
+                        ref={ref} 
+                        onScroll={() => {
+                            const idx = Math.round(ref.current.scrollTop / itemHeight);
                             if(items[idx]) onSelect(items[idx].id);
-                        }} className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar py-[52px]">
-                            {items.map(i => <div key={i.id} className="h-[44px] flex items-center justify-center snap-center font-bold text-gray-600 text-lg">{i.label}</div>)}
-                        </div>
-                        <div className="absolute inset-0 mask pointer-events-none"></div>
+                        }} 
+                        className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar"
+                        style={{ paddingBlock: `${containerPadding}px` }} // 使用動態 Padding
+                    >
+                        {items.map(i => (
+                            <div 
+                                key={i.id} 
+                                className="flex items-center justify-center snap-center font-bold text-gray-600 text-lg"
+                                style={{ height: `${itemHeight}px` }} // 強制每個項目高度
+                            >
+                                {i.label}
+                            </div>
+                        ))}
                     </div>
+                    <div className="absolute inset-0 mask pointer-events-none"></div>
                 </div>
-            );
-        };
+            </div>
+        );
+    };
         const App = () => {
             const [p, setP] = useState(DATA.prefixes[0].id);
             const [r, setR] = useState(DATA.roots[0].id);
