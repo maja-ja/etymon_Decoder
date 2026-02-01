@@ -51,3 +51,11 @@ Data is organized within the program using the following logic:
 * **Data Handling**: Pandas, JSON
 * **Cloud Integration**: Google Sheets API (via CSV export)
 * **Programming Language**: Python 3.13
+
+Open Source Call: I am currently looking for help with:
+
+UI Internationalization: Translating the Streamlit interface labels into English.
+
+Dataset Expansion: Connecting to Kaggle's etymology datasets to increase our coverage from 1,182 to 10,000+ entries.
+
+Animation: Adding smooth transitions to the Mix Lab using tools like Rive.
