@@ -20,7 +20,7 @@ def load_kadowsella_db():
     ]
     # 請替換成你開源的 Google Sheet ID
     SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
-    url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit?usp=sharing
+    url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit?usp=sharing'
     
     try:
         df = pd.read_csv(url)
