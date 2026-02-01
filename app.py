@@ -13,21 +13,22 @@ st.set_page_config(page_title="Kadowsella Open-Source v1.0", page_icon="🧩", l
 
 @st.cache_data(ttl=60)
 def load_kadowsella_db():
-    # 這是對應你提到的 9 欄位「單字架子」
     COL_NAMES = [
         'age', 'word', 'category', 'prefix', 'root', 
         'suffix', 'phonetic', 'visual_vibe', 'field_app'
     ]
-    # 請替換成你開源的 Google Sheet ID
+    # 這裡修正了：使用 /export?format=csv 配合 gid (分頁 ID)
     SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
-    url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit?gid=751586037#gid=751586037
+    GID = '751586037' 
+    url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}'
     
     try:
+        # 加上 on_bad_lines='skip' 預防萬一
         df = pd.read_csv(url)
-        # 如果欄位不足 9 個，自動補齊（避免程式崩潰）
-        while len(df.columns) < 9:
-            df[f"extra_{len(df.columns)}"] = ""
+        # 確保欄位名稱一致
         df.columns = COL_NAMES[:len(df.columns)]
+        # 確保 age 欄位是整數或字串，方便對比
+        df['age'] = df['age'].astype(str)
         return df.dropna(subset=['word']).fillna("未定義")
     except Exception as e:
         st.error(f"資料庫連線失敗: {e}")
