@@ -161,42 +161,6 @@ def show_encyclopedia_card(row):
                 st.error(f"⚠️ 使用警告：{row['usage_warning']}")
 
 # ==========================================
-# 4. 頁面邏輯 (融合 Tabs 模式)
-# ==========================================
-# ==========================================
-# 市場驗證：數據寫入功能
-# ==========================================
-def record_feedback(action_type, detail):
-    """
-    直接將數據 append 到 Google Sheets 的 feedback 分頁
-    """
-    FEEDBACK_SHEET_URL = "https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0"
-    
-    try:
-        # 建立 gsheets 連線
-        from st_gsheets_connection import GSheetsConnection
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        
-        # 讀取現有數據
-        existing_df = conn.read(spreadsheet=FEEDBACK_SHEET_URL, worksheet="feedback")
-        
-        # 準備新的一列 (時間, 動作, 詳細內容)
-        new_data = pd.DataFrame([{
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "action": action_type,
-            "detail": detail
-        }])
-        
-        # 合併並更新回去
-        updated_df = pd.concat([existing_df, new_data], ignore_index=True)
-        conn.update(spreadsheet=FEEDBACK_SHEET_URL, worksheet="feedback", data=updated_df)
-        return True
-    except Exception as e:
-        # 靜默報錯，不干擾使用者
-        print(f"Error updating feedback: {e}")
-        return False
-
-# ==========================================
 # 修改後的驗證 UI
 # ==========================================
 def page_monetization_test():
@@ -213,15 +177,20 @@ def page_monetization_test():
             </div>
         """, unsafe_allow_html=True)
         email = st.text_input("Email Address", placeholder="example@email.com", key="input_email")
+        # 當用戶點擊「領取地圖」時
         if st.button("立即獲取地圖"):
             if "@" in email:
-                if record_feedback("EMAIL_LEAD", email):
-                    st.success("🎉 資料已送出！地圖將在系統上線後寄給你。")
+                success = record_feedback("EMAIL_LEAD", email)
+                if success:
+                    st.success("🎉 資料已送出！地圖將在系統上線後第一時間寄給你。")
                     st.balloons()
             else:
                 st.warning("請輸入有效的信箱。")
-
-    with col2:
+        
+        # 當用戶點擊「查看訂閱方案」時
+        if st.button("查看訂閱方案 (每月 $150)", type="primary", use_container_width=True):
+            record_feedback("PAY_INTENT", "Clicked Pro Plan button")
+            st.session_state.show_payment_intent = True
         st.markdown("""
             <div style='background-color: #fff4e6; padding: 20px; border-radius: 10px; border: 1px solid #ff9800;'>
                 <h4>💎 Etymon Decoder Pro</h4>
