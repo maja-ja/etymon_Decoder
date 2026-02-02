@@ -1,5 +1,5 @@
 streamlit
-st-gsheets
+streamlit-gsheets
 st-gsheets-connection
 pandas
 gTTS
