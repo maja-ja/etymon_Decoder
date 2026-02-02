@@ -1,5 +1,5 @@
 streamlit
 pandas
-numpy
-gTTS
 st-gsheets-connection
+gTTS
+requests
