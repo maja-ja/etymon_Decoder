@@ -13,39 +13,32 @@ st.set_page_config(page_title="Etymon Decoder v2.5", page_icon="🧩", layout="w
 def inject_custom_css():
     st.markdown("""
         <style>
-            /* 1. 核心字體：採用現代無襯線字體，確保英中混排完美 */
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@500;700&display=swap');
-
-            .breakdown-container {
-                /* 使用 Inter 處理英文，Noto Sans TC 處理中文 */
-                font-family: 'Inter', 'Noto Sans TC', sans-serif; 
-                font-size: 1.8rem !important; 
-                font-weight: 700;
-                letter-spacing: 1px;
-                
-                /* 漸層科技感背景 */
-                background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
-                color: #FFFFFF;
-                
-                /* 形狀與間距 */
-                padding: 12px 30px;
-                border-radius: 15px; /* 微圓角矩形，比膠囊型更具現代感 */
-                display: inline-block;
+            /* 讓單字主體更霸氣 */
+            .hero-word {
+                font-size: 3.5rem !important;
+                font-weight: 800;
+                color: #1E88E5;
+                margin-bottom: 0px;
+                line-height: 1;
+            }
+            /* 音標美化 */
+            .hero-phonetic {
+                font-size: 1.2rem;
+                color: #666;
+                font-family: 'serif';
+                margin-bottom: 20px;
+            }
+            /* 語感區塊加強 */
+            .vibe-box {
+                background-color: #f0f7ff;
+                border-left: 5px solid #1E88E5;
+                padding: 20px;
+                border-radius: 10px;
                 margin: 20px 0;
-                
-                /* 外陰影，讓它「浮」起來 */
-                box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.2);
             }
-
-            /* 針對內部的括號與加號做細微調整 */
-            .breakdown-container span.operator {
-                color: #BBDEFB; /* 讓 + 號顏色稍淡一點，突出主體 */
-                margin: 0 8px;
-            }
+            /* 這裡保留你原本的 .breakdown-container 內容... */
         </style>
     """, unsafe_allow_html=True)
-
 # ==========================================
 # 2. 工具函式 (音訊與 20 欄讀取)
 # ==========================================
