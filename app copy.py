@@ -6,14 +6,16 @@ import random
 from io import BytesIO
 from gtts import gTTS
 from st_gsheets_connection import GSheetsConnection
+
 # ==========================================
-# 1. 核心配置與視覺美化 (CSS)
+# 1. Core Config & Visuals (CSS)
 # ==========================================
 st.set_page_config(page_title="Etymon Decoder v2.5", page_icon="🧩", layout="wide")
+
 def inject_custom_css():
     st.markdown("""
         <style>
-            /* 讓單字主體更霸氣 */
+            /* Hero Word Styling */
             .hero-word {
                 font-size: 3.5rem !important;
                 font-weight: 800;
@@ -21,14 +23,14 @@ def inject_custom_css():
                 margin-bottom: 0px;
                 line-height: 1;
             }
-            /* 音標美化 */
+            /* Phonetic Styling */
             .hero-phonetic {
                 font-size: 1.2rem;
                 color: #666;
                 font-family: 'serif';
                 margin-bottom: 20px;
             }
-            /* 語感區塊加強 */
+            /* Vibe Box Styling */
             .vibe-box {
                 background-color: #f0f7ff;
                 border-left: 5px solid #1E88E5;
@@ -36,14 +38,28 @@ def inject_custom_css():
                 border-radius: 10px;
                 margin: 20px 0;
             }
-            /* 這裡保留你原本的 .breakdown-container 內容... */
+            /* Operator Styling */
+            .operator {
+                color: #ff9800;
+                font-weight: bold;
+                padding: 0 5px;
+            }
+            .breakdown-container {
+                font-family: monospace;
+                font-size: 1.1rem;
+                background: #f9f9f9;
+                padding: 10px;
+                border-radius: 5px;
+            }
         </style>
     """, unsafe_allow_html=True)
+
 # ==========================================
-# 2. 工具函式 (音訊與 20 欄讀取)
+# 2. Helper Functions (Audio & Data)
 # ==========================================
 
 def speak(text, key_suffix=""):
+    """Text to Speech with hidden audio player"""
     try:
         if not text: return
         tts = gTTS(text=text, lang='en')
@@ -51,62 +67,68 @@ def speak(text, key_suffix=""):
         tts.write_to_fp(fp)
         audio_base64 = base64.b64encode(fp.getvalue()).decode()
         unique_id = f"audio_{int(time.time())}_{key_suffix}"
-        st.components.v1.html(f'<audio id="{unique_id}" autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3"></audio><script>document.getElementById("{unique_id}").play();</script>', height=0)
-    except Exception as e: st.error(f"語音錯誤: {e}")
+        # Note: Autoplay policies in modern browsers might block this without user interaction
+        st.components.v1.html(
+            f'<audio id="{unique_id}" autoplay="true" style="display:none;"><source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3"></audio><script>document.getElementById("{unique_id}").play();</script>', 
+            height=0
+        )
+    except Exception as e: 
+        st.error(f"Audio Error: {e}")
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=600)
 def load_db():
+    """Load data from Google Sheets (Read-Only Public Link)"""
     COL_NAMES = [
         'category', 'roots', 'meaning', 'word', 'breakdown', 
         'definition', 'phonetic', 'example', 'translation', 'native_vibe',
         'synonym_nuance', 'visual_prompt', 'social_status', 'emotional_tone', 'street_usage',
         'collocation', 'etymon_story', 'usage_warning', 'memory_hook', 'audio_tag'
     ]
-    # 使用您的試算表 ID
     SHEET_ID = '1W1ADPyf5gtGdpIEwkxBEsaJ0bksYldf4AugoXnq6Zvg'
     url = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&range=A:T'
+    
     try:
         df = pd.read_csv(url)
-        # 強制對齊 20 欄，若欄位不足則補齊
+        # Ensure alignment of 20 columns
         for i, col in enumerate(COL_NAMES):
             if i >= len(df.columns): df[col] = ""
         df.columns = COL_NAMES
         return df.dropna(subset=['word']).fillna("").reset_index(drop=True)
     except Exception as e:
-        st.error(f"資料庫連線失敗: {e}")
+        st.error(f"Database Connection Failed: {e}")
         return pd.DataFrame(columns=COL_NAMES)
-from st_gsheets_connection import GSheetsConnection
 
 def record_to_feedback(action, detail):
-    """將用戶行為寫入指定的 feedback sheet"""
+    """Write user actions to Feedback Sheet (Requires Secrets)"""
     try:
-        # 建立連線 (需在 .streamlit/secrets.toml 設定好 URL)
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # 讀取現有的 feedback 內容
-        # 你的 Sheet URL: https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0
-        existing_data = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0", worksheet="feedback")
+        # Target Sheet URL for Feedback
+        FEEDBACK_URL = "https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0"
         
-        # 準備新資料
+        # Read existing to append (Note: In production, consider append-only API logic to avoid reading large datasets)
+        existing_data = conn.read(spreadsheet=FEEDBACK_URL, worksheet="feedback")
+        
         new_row = pd.DataFrame([{
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "action": action,
             "detail": detail
         }])
         
-        # 合併並更新
         updated_df = pd.concat([existing_data, new_row], ignore_index=True)
-        conn.update(spreadsheet="https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0", worksheet="feedback", data=updated_df)
+        conn.update(spreadsheet=FEEDBACK_URL, worksheet="feedback", data=updated_df)
+        return True # Return success status
     except Exception as e:
-        # 為了不讓使用者看到報錯而中斷體驗，我們在後台悄悄處理
         print(f"Feedback Error: {e}")
+        return False
+
 # ==========================================
-# 3. 百科級顯示組件 (融合正式版邏輯)
+# 3. Component: Encyclopedia Card
 # ==========================================
 
 def show_encyclopedia_card(row):
-    """美化顯示單一單字的百科卡片"""
-    # --- 頂部：單字 Hero 區 ---
+    """Displays the main word card"""
+    # --- Top: Word Hero ---
     st.markdown(f"<div class='hero-word'>{row['word']}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='hero-phonetic'>/{row['phonetic']}/</div>", unsafe_allow_html=True)
     
@@ -115,10 +137,10 @@ def show_encyclopedia_card(row):
         if st.button("🔊 朗讀", key=f"spk_{row['word']}", use_container_width=True):
             speak(row['word'], row['word'])
     with col_b:
-        styled_breakdown = row['breakdown'].replace("+", "<span class='operator'>+</span>")
+        styled_breakdown = str(row['breakdown']).replace("+", "<span class='operator'>+</span>")
         st.markdown(f"<div class='breakdown-container'>{styled_breakdown}</div>", unsafe_allow_html=True)
 
-    # --- 中間：定義與字根 ---
+    # --- Middle: Definition & Roots ---
     c1, c2 = st.columns(2)
     with c1:
         st.info(f"**🎯 定義：**\n{row['definition']}")
@@ -128,12 +150,11 @@ def show_encyclopedia_card(row):
         st.success(f"**💡 字根：** {row['roots']}\n\n**意義：** {row['meaning']}")
         st.markdown(f"**🪝 記憶鉤子：**\n{row['memory_hook']}")
 
-    # --- 關鍵：語感驚喜包 (正式版特色) ---
+    # --- Feature: Native Vibe Surprise ---
     if row['native_vibe']:
-        # 檢查當前單字是否已解鎖 (使用 session_state 紀錄單字)
         unlocked_key = f"unlocked_{row['word']}"
         if not st.session_state.get(unlocked_key, False):
-            if st.button("🎁 拆開語感驚喜包 (Unlock Native Vibe)", use_container_width=True, type="secondary"):
+            if st.button("🎁 拆開語感驚喜包 (Unlock Vibe)", use_container_width=True, type="secondary"):
                 st.session_state[unlocked_key] = True
                 st.balloons()
                 st.rerun()
@@ -145,7 +166,7 @@ def show_encyclopedia_card(row):
                 </div>
             """, unsafe_allow_html=True)
 
-    # --- 底部：深度百科擴充 ---
+    # --- Bottom: Deep Dive Tabs ---
     with st.expander("📚 查看深度百科 (文化、社會、街頭實戰)"):
         t1, t2, t3 = st.tabs(["🏛️ 字源文化", "👔 社會地位", "😎 街頭實戰"])
         with t1:
@@ -161,7 +182,7 @@ def show_encyclopedia_card(row):
                 st.error(f"⚠️ 使用警告：{row['usage_warning']}")
 
 # ==========================================
-# 修改後的驗證 UI
+# 4. Component: Monetization / Lead Gen
 # ==========================================
 def page_monetization_test():
     st.write("---")
@@ -177,20 +198,20 @@ def page_monetization_test():
             </div>
         """, unsafe_allow_html=True)
         email = st.text_input("Email Address", placeholder="example@email.com", key="input_email")
-        # 當用戶點擊「領取地圖」時
+        
         if st.button("立即獲取地圖"):
-            if "@" in email:
-                success = record_feedback("EMAIL_LEAD", email)
+            if "@" in email and "." in email:
+                # Corrected function name
+                success = record_to_feedback("EMAIL_LEAD", email)
                 if success:
                     st.success("🎉 資料已送出！地圖將在系統上線後第一時間寄給你。")
                     st.balloons()
+                else:
+                    st.error("連線錯誤，請稍後再試。")
             else:
                 st.warning("請輸入有效的信箱。")
         
-        # 當用戶點擊「查看訂閱方案」時
-        if st.button("查看訂閱方案 (每月 $150)", type="primary", use_container_width=True):
-            record_feedback("PAY_INTENT", "Clicked Pro Plan button")
-            st.session_state.show_payment_intent = True
+    with col2:
         st.markdown("""
             <div style='background-color: #fff4e6; padding: 20px; border-radius: 10px; border: 1px solid #ff9800;'>
                 <h4>💎 Etymon Decoder Pro</h4>
@@ -203,15 +224,18 @@ def page_monetization_test():
         """, unsafe_allow_html=True)
         
         if st.button("查看訂閱方案 (每月 $150)", type="primary", use_container_width=True):
-            # 這是最關鍵的數據：點擊即代表付費意願
-            record_feedback("PAY_INTENT", "User clicked Pro Plan button")
+            record_to_feedback("PAY_INTENT", "Clicked Pro Plan button")
             st.session_state.show_payment_intent = True
 
     if st.session_state.get('show_payment_intent', False):
         st.info("💡 **感謝你的支持！** 我們正全力開發 Pro 功能。這是一個付費意願測試，你的點擊已紀錄，這將幫助我們加快開發速度！")
-        if st.button("關閉"):
+        if st.button("關閉", key="close_intent"):
             st.session_state.show_payment_intent = False
             st.rerun()
+
+# ==========================================
+# 5. Page Logic
+# ==========================================
 def page_home(df):
     st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
     st.write("---")
@@ -221,18 +245,21 @@ def page_home(df):
     c3.metric("🧩 獨特字根", df['roots'].nunique())
     st.write("---")
     st.info("👈 請從左側選單進入「學習與搜尋」開啟您的語感之旅。")
+    
+    # Inject Monetization Test on Home Page
+    page_monetization_test()
 
 def page_learn_search(df):
     st.title("📖 學習與搜尋")
     tab_card, tab_list = st.tabs(["🎲 隨機探索", "🔍 資料庫列表"])
     
     with tab_card:
-        # 1. 篩選
+        # Filter
         cats = ["全部"] + sorted(df['category'].unique().tolist())
         sel_cat = st.selectbox("選擇學習分類", cats)
         f_df = df if sel_cat == "全部" else df[df['category'] == sel_cat]
 
-        # 2. 隨機邏輯
+        # Logic
         if st.button("下一個單字 (Next Word) ➔", use_container_width=True, type="primary"):
             st.session_state.curr_w = f_df.sample(1).iloc[0].to_dict()
             st.rerun()
@@ -262,6 +289,7 @@ def page_quiz(df):
     if st.button("🎲 抽一題", use_container_width=True):
         st.session_state.q = pool.sample(1).iloc[0].to_dict()
         st.session_state.show_ans = False
+        st.rerun()
 
     if 'q' in st.session_state:
         st.markdown(f"### ❓ 請問這對應哪個單字？")
@@ -270,21 +298,22 @@ def page_quiz(df):
         
         if st.button("揭曉答案"):
             st.session_state.show_ans = True
+            st.rerun()
         
-        if st.session_state.show_ans:
+        if st.session_state.get('show_ans', False):
             st.success(f"💡 答案是：**{st.session_state.q['word']}**")
             speak(st.session_state.q['word'], "quiz")
             st.write(f"結構拆解：`{st.session_state.q['breakdown']}`")
 
 # ==========================================
-# 5. 主程式
+# 6. Main Execution
 # ==========================================
 def main():
     inject_custom_css()
     df = load_db()
     
     if df.empty:
-        st.warning("資料庫目前是空的，請先在管理端完成雲端同步。")
+        st.warning("無法載入資料庫，請檢查 Google Sheets 權限或網路連線。")
         return
 
     st.sidebar.title("Etymon Decoder")
@@ -294,10 +323,8 @@ def main():
 
     if page == "首頁":
         page_home(df)
-        page_monetization_test() # 在首頁下方顯示誘餌
     elif page == "學習與搜尋":
         page_learn_search(df)
-        # 也可以在學習頁面側邊放一個小廣告
         st.sidebar.markdown("---")
         if st.sidebar.button("🔓 解鎖 AI 深度解說 (Pro)"):
             st.toast("Pro 功能開發中！感謝你的關注。")
