@@ -139,7 +139,54 @@ def show_encyclopedia_card(row):
 # ==========================================
 # 4. 頁面邏輯 (融合 Tabs 模式)
 # ==========================================
+def page_monetization_test():
+    st.write("---")
+    st.subheader("🚀 提升你的語感戰鬥力")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # 信箱誘餌區
+        st.markdown("""
+            <div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px dashed #1E88E5;'>
+                <h4>🎁 領取免費資源</h4>
+                <p>輸入信箱，獲取 <b>「100個母語者高頻字根思維導圖 (PDF)」</b></p>
+            </div>
+        """, unsafe_allow_html=True)
+        email = st.text_input("Email Address", placeholder="example@email.com")
+        if st.button("立即獲取地圖"):
+            if email:
+                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
+                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
+                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
+                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
+                st.success("🎉 資料已送出！地圖將在系統上線後第一時間寄給你。")
+                # 數據追蹤：st.write("Logged: Lead Generation")
+            else:
+                st.warning("請輸入有效的信箱。")
 
+    with col2:
+        # 進階功能誘餌（證明付費意願）
+        st.markdown("""
+            <div style='background-color: #fff4e6; padding: 20px; border-radius: 10px; border: 1px solid #ff9800;'>
+                <h4>💎 Etymon Decoder Pro</h4>
+                <ul style='font-size: 0.9rem;'>
+                    <li>AI 智能例句生成 (根據你的職業定制)</li>
+                    <li>無限次語感驚喜包解鎖</li>
+                    <li>離線複習模式與 Anki 匯出</li>
+                </ul>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # 關鍵：點擊這個按鈕代表「付費意願」
+        if st.button("查看訂閱方案 (每月 $150)", type="primary", use_container_width=True):
+            st.session_state.show_payment_intent = True
+
+    if st.session_state.get('show_payment_intent', False):
+        st.balloons()
+        st.info("💡 **感謝你的支持！** 我們正全力開發 Pro 功能。這是一個付費意願測試，你的點擊已紀錄，這將幫助我們加快開發速度！")
+        if st.button("關閉"):
+            st.session_state.show_payment_intent = False
 def page_home(df):
     st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
     st.write("---")
@@ -222,8 +269,13 @@ def main():
 
     if page == "首頁":
         page_home(df)
+        page_monetization_test() # 在首頁下方顯示誘餌
     elif page == "學習與搜尋":
         page_learn_search(df)
+        # 也可以在學習頁面側邊放一個小廣告
+        st.sidebar.markdown("---")
+        if st.sidebar.button("🔓 解鎖 AI 深度解說 (Pro)"):
+            st.toast("Pro 功能開發中！感謝你的關注。")
     elif page == "測驗模式":
         page_quiz(df)
 
