@@ -5,7 +5,7 @@ import time
 import random
 from io import BytesIO
 from gtts import gTTS
-
+from st_gsheets_connection import GSheetsConnection
 # ==========================================
 # 1. 核心配置與視覺美化 (CSS)
 # ==========================================
@@ -75,7 +75,31 @@ def load_db():
     except Exception as e:
         st.error(f"資料庫連線失敗: {e}")
         return pd.DataFrame(columns=COL_NAMES)
+from st_gsheets_connection import GSheetsConnection
 
+def record_to_feedback(action, detail):
+    """將用戶行為寫入指定的 feedback sheet"""
+    try:
+        # 建立連線 (需在 .streamlit/secrets.toml 設定好 URL)
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        
+        # 讀取現有的 feedback 內容
+        # 你的 Sheet URL: https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0
+        existing_data = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0", worksheet="feedback")
+        
+        # 準備新資料
+        new_row = pd.DataFrame([{
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "action": action,
+            "detail": detail
+        }])
+        
+        # 合併並更新
+        updated_df = pd.concat([existing_data, new_row], ignore_index=True)
+        conn.update(spreadsheet="https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0", worksheet="feedback", data=updated_df)
+    except Exception as e:
+        # 為了不讓使用者看到報錯而中斷體驗，我們在後台悄悄處理
+        print(f"Feedback Error: {e}")
 # ==========================================
 # 3. 百科級顯示組件 (融合正式版邏輯)
 # ==========================================
@@ -139,6 +163,42 @@ def show_encyclopedia_card(row):
 # ==========================================
 # 4. 頁面邏輯 (融合 Tabs 模式)
 # ==========================================
+# ==========================================
+# 市場驗證：數據寫入功能
+# ==========================================
+def record_feedback(action_type, detail):
+    """
+    直接將數據 append 到 Google Sheets 的 feedback 分頁
+    """
+    FEEDBACK_SHEET_URL = "https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit#gid=0"
+    
+    try:
+        # 建立 gsheets 連線
+        from st_gsheets_connection import GSheetsConnection
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        
+        # 讀取現有數據
+        existing_df = conn.read(spreadsheet=FEEDBACK_SHEET_URL, worksheet="feedback")
+        
+        # 準備新的一列 (時間, 動作, 詳細內容)
+        new_data = pd.DataFrame([{
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "action": action_type,
+            "detail": detail
+        }])
+        
+        # 合併並更新回去
+        updated_df = pd.concat([existing_df, new_data], ignore_index=True)
+        conn.update(spreadsheet=FEEDBACK_SHEET_URL, worksheet="feedback", data=updated_df)
+        return True
+    except Exception as e:
+        # 靜默報錯，不干擾使用者
+        print(f"Error updating feedback: {e}")
+        return False
+
+# ==========================================
+# 修改後的驗證 UI
+# ==========================================
 def page_monetization_test():
     st.write("---")
     st.subheader("🚀 提升你的語感戰鬥力")
@@ -146,47 +206,43 @@ def page_monetization_test():
     col1, col2 = st.columns(2)
     
     with col1:
-        # 信箱誘餌區
         st.markdown("""
             <div style='background-color: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px dashed #1E88E5;'>
                 <h4>🎁 領取免費資源</h4>
                 <p>輸入信箱，獲取 <b>「100個母語者高頻字根思維導圖 (PDF)」</b></p>
             </div>
         """, unsafe_allow_html=True)
-        email = st.text_input("Email Address", placeholder="example@email.com")
+        email = st.text_input("Email Address", placeholder="example@email.com", key="input_email")
         if st.button("立即獲取地圖"):
-            if email:
-                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
-                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
-                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
-                # 這裡可以串接 Google Sheets API 存入信箱，或單純紀錄
-                st.success("🎉 資料已送出！地圖將在系統上線後第一時間寄給你。")
-                # 數據追蹤：st.write("Logged: Lead Generation")
+            if "@" in email:
+                if record_feedback("EMAIL_LEAD", email):
+                    st.success("🎉 資料已送出！地圖將在系統上線後寄給你。")
+                    st.balloons()
             else:
                 st.warning("請輸入有效的信箱。")
 
     with col2:
-        # 進階功能誘餌（證明付費意願）
         st.markdown("""
             <div style='background-color: #fff4e6; padding: 20px; border-radius: 10px; border: 1px solid #ff9800;'>
                 <h4>💎 Etymon Decoder Pro</h4>
                 <ul style='font-size: 0.9rem;'>
-                    <li>AI 智能例句生成 (根據你的職業定制)</li>
+                    <li>AI 智能例句生成 (根據職業定制)</li>
                     <li>無限次語感驚喜包解鎖</li>
                     <li>離線複習模式與 Anki 匯出</li>
                 </ul>
             </div>
         """, unsafe_allow_html=True)
         
-        # 關鍵：點擊這個按鈕代表「付費意願」
         if st.button("查看訂閱方案 (每月 $150)", type="primary", use_container_width=True):
+            # 這是最關鍵的數據：點擊即代表付費意願
+            record_feedback("PAY_INTENT", "User clicked Pro Plan button")
             st.session_state.show_payment_intent = True
 
     if st.session_state.get('show_payment_intent', False):
-        st.balloons()
         st.info("💡 **感謝你的支持！** 我們正全力開發 Pro 功能。這是一個付費意願測試，你的點擊已紀錄，這將幫助我們加快開發速度！")
         if st.button("關閉"):
             st.session_state.show_payment_intent = False
+            st.rerun()
 def page_home(df):
     st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
     st.write("---")
