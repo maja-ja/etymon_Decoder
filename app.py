@@ -92,32 +92,46 @@ def fix_content(text):
     return text
 
 def speak(text, key_suffix=""):
-    """
-    生成語音並使用 Streamlit 原生播放器顯示。
-    這是解決瀏覽器阻擋自動播放最穩定的方案。
-    """
-    if not text:
-        return
+    if not text: return
     
-    # 1. 英語濾網 (只保留英數、空格、連字號)
+    # 1. 英語濾網
     english_only = re.sub(r"[^a-zA-Z0-9\s\-\']", " ", str(text))
     english_only = " ".join(english_only.split()).strip()
-    
-    if not english_only:
-        return
+    if not english_only: return
 
     try:
-        # 2. 生成音訊
+        # 2. 生成音訊並轉為 Base64 (暴力編碼)
         tts = gTTS(text=english_only, lang='en')
-        audio_buffer = BytesIO()
-        tts.write_to_fp(audio_buffer)
+        fp = BytesIO()
+        tts.write_to_fp(fp)
+        audio_base64 = base64.b64encode(fp.getvalue()).decode()
         
-        # 3. 顯示原生播放器 (確保有聲音)
-        # 使用 start_time=0 確保每次載入都從頭準備好
-        st.audio(audio_buffer, format="audio/mp3", start_time=0)
+        # 3. 極端手段：直接寫死一段 HTML 按鈕
+        # onclick 事件直接觸發 JS 的 Audio 物件，這被視為「使用者主動行為」，手機無法擋
+        html_code = f"""
+            <button onclick="new Audio('data:audio/mp3;base64,{audio_base64}').play()" 
+                    style="
+                        background-color: #FF4B4B; 
+                        color: white; 
+                        padding: 8px 16px; 
+                        border: none; 
+                        border-radius: 4px; 
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 16px;
+                        display: inline-flex;
+                        align-items: center;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                    ">
+                🔊 點我發音 (手機專用)
+            </button>
+        """
+        
+        # 4. 渲染這個 HTML 按鈕
+        st.markdown(html_code, unsafe_allow_html=True)
         
     except Exception as e:
-        st.error(f"語音錯誤: {e}")
+        st.error(f"暴力發音失敗: {e}")
 
 def get_spreadsheet_url():
     """安全地獲取試算表網址，相容兩種 secrets 格式"""
