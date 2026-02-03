@@ -570,7 +570,7 @@ def main():
     # --- [贊助區塊] ---
     st.sidebar.markdown("""
         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef; margin-bottom: 25px;">
-            <p style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #444;">💖 支持開發者</p>
+            <p style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #444;">💖 支持開發者(現在還沒好）</p>
             <a href="[https://www.buymeacoffee.com/kadowsella](https://www.buymeacoffee.com/kadowsella)" target="_blank" style="text-decoration: none;">
                 <div style="background-color: #FFDD00; color: #000; padding: 8px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">
                     ☕ Buy Me a Coffee
