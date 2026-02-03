@@ -394,6 +394,7 @@ def page_home(df):
     st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
     st.write("---")
     
+    # 1. 數據儀表板
     c1, c2, c3 = st.columns(3)
     c1.metric("📚 總單字量", len(df))
     c2.metric("🏷️ 分類主題", df['category'].nunique() if not df.empty else 0)
@@ -401,9 +402,17 @@ def page_home(df):
     
     st.write("---")
 
-    st.subheader("💡 今日隨機推薦")
+    # 2. [新增功能] 隨機推薦區 + 換一批按鈕
+    col_header, col_btn = st.columns([4, 1])
+    with col_header:
+        st.subheader("💡 今日隨機推薦")
+    with col_btn:
+        # 👇 這裡就是你要的新增隨機按鈕
+        if st.button("🔄 換一批", use_container_width=True):
+            st.rerun() # 點擊後重新執行頁面，就會重新隨機抽樣
     
     if not df.empty:
+        # 這裡的邏輯：每次頁面執行時 (包含點擊按鈕)，都會重新 sample
         sample_count = min(3, len(df))
         sample = df.sample(sample_count)
         
@@ -411,17 +420,19 @@ def page_home(df):
         for i, (index, row) in enumerate(sample.iterrows()):
             with cols[i % 3]:
                 with st.container(border=True):
+                    # 標題
                     st.markdown(f"### {row['word']}")
                     st.caption(f"🏷️ {row['category']}")
                     
+                    # 內容清洗與顯示
                     cleaned_def = fix_content(row['definition'])
                     cleaned_roots = fix_content(row['roots'])
                     
                     st.markdown(f"**定義：** {cleaned_def}")
                     st.markdown(f"**核心：** {cleaned_roots}")
 
-                    # 這裡加入發音，使用 unique suffix 避免 ID 衝突
-                    speak(row['word'], key_suffix=f"home_{i}")
+                    # 發音按鈕 (使用 unique key 避免衝突)
+                    speak(row['word'], key_suffix=f"home_{i}_{int(time.time())}")
 
     st.write("---")
     st.info("👈 點擊左側選單進入「學習與搜尋」查看完整資料庫。")
