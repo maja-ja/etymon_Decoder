@@ -94,71 +94,75 @@ def fix_content(text):
 def speak(text, key_suffix=""):
     if not text: return
     
-    # 1. 英語濾網 (只保留英數與基本標點)
+    # 1. 英語濾網
     english_only = re.sub(r"[^a-zA-Z0-9\s\-\']", " ", str(text))
     english_only = " ".join(english_only.split()).strip()
     if not english_only: return
 
-    # 2. 處理文字中的引號，避免 JavaScript 報錯
-    safe_text = english_only.replace("'", "\\'").replace('"', '\\"')
+    try:
+        # 2. 用 Google 轉出高品質 MP3
+        tts = gTTS(text=english_only, lang='en')
+        fp = BytesIO()
+        tts.write_to_fp(fp)
+        
+        # 3. 把 MP3 變成一串文字 (Base64)，直接塞進 HTML 裡
+        audio_base64 = base64.b64encode(fp.getvalue()).decode()
+        unique_id = f"audio_{int(time.time()*1000)}_{key_suffix}"
 
-    # 3. 使用 st.components.v1.html 建立獨立的 iframe
-    # 這會呼叫瀏覽器內建的 window.speechSynthesis
-    # 優點：秒開、不吃流量、手機電腦都能用、絕對有聲音
-    html_code = f"""
-    <!DOCTYPE html>
-    <html>
-    <body>
+        # 4. 建立一個獨立的 HTML 按鈕組件
+        # 這裡面包含完整的 MP3 資料，不依賴外部連結，點擊瞬間直接播放
+        html_code = f"""
+        <html>
         <style>
-            .tts-btn {{
-                background-color: #f0f2f6;
-                border: 1px solid #d0d7de;
-                color: #31333F;
-                padding: 6px 12px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 14px;
-                margin: 2px 2px;
+            .btn {{
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 5px 10px;
                 cursor: pointer;
-                border-radius: 4px;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                transition-duration: 0.4s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                font-family: sans-serif;
+                font-size: 14px;
+                color: #333;
+                transition: 0.2s;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             }}
-            .tts-btn:hover {{
-                background-color: #e8eaf0;
-                border: 1px solid #b0b8c3;
+            .btn:hover {{
+                background: #f8f9fa;
+                border-color: #ccc;
             }}
-            .tts-btn:active {{
-                background-color: #dce0e6;
+            .btn:active {{
+                background: #eef;
+                transform: scale(0.98);
             }}
         </style>
-        
-        <button class="tts-btn" onclick="speakText()">
-            🔊 聆聽 (Native)
-        </button>
+        <body>
+            <button class="btn" onclick="playAudio()">
+                🔊 聽發音
+            </button>
+            
+            <audio id="{unique_id}" style="display:none">
+                <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+            </audio>
 
-        <script>
-            function speakText() {{
-                // 停止目前的發音（避免重疊）
-                window.speechSynthesis.cancel();
-                
-                // 建立新的發音物件
-                var msg = new SpeechSynthesisUtterance('{safe_text}');
-                msg.lang = 'en-US'; // 設定為美式英語
-                msg.rate = 0.9;     // 語速稍微放慢一點點
-                msg.pitch = 1;      // 正常語調
-                
-                // 播放
-                window.speechSynthesis.speak(msg);
-            }}
-        </script>
-    </body>
-    </html>
-    """
-    
-    # 使用 components.html 確保 iframe 權限正確
-    st.components.v1.html(html_code, height=45)
+            <script>
+                function playAudio() {{
+                    var audio = document.getElementById("{unique_id}");
+                    audio.currentTime = 0; // 每次點擊都從頭播放
+                    audio.play().catch(e => console.log(e));
+                }}
+            </script>
+        </body>
+        </html>
+        """
+        
+        # 5. 渲染這個獨立組件 (設定高度避免留白太大)
+        st.components.v1.html(html_code, height=40)
+        
+    except Exception as e:
+        st.error(f"語音生成失敗: {e}")
 
 def get_spreadsheet_url():
     """安全地獲取試算表網址，相容兩種 secrets 格式"""
