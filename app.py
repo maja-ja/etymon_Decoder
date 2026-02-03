@@ -94,44 +94,71 @@ def fix_content(text):
 def speak(text, key_suffix=""):
     if not text: return
     
-    # 1. 英語濾網
+    # 1. 英語濾網 (只保留英數與基本標點)
     english_only = re.sub(r"[^a-zA-Z0-9\s\-\']", " ", str(text))
     english_only = " ".join(english_only.split()).strip()
     if not english_only: return
 
-    try:
-        # 2. 生成音訊並轉為 Base64 (暴力編碼)
-        tts = gTTS(text=english_only, lang='en')
-        fp = BytesIO()
-        tts.write_to_fp(fp)
-        audio_base64 = base64.b64encode(fp.getvalue()).decode()
+    # 2. 處理文字中的引號，避免 JavaScript 報錯
+    safe_text = english_only.replace("'", "\\'").replace('"', '\\"')
+
+    # 3. 使用 st.components.v1.html 建立獨立的 iframe
+    # 這會呼叫瀏覽器內建的 window.speechSynthesis
+    # 優點：秒開、不吃流量、手機電腦都能用、絕對有聲音
+    html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <body>
+        <style>
+            .tts-btn {{
+                background-color: #f0f2f6;
+                border: 1px solid #d0d7de;
+                color: #31333F;
+                padding: 6px 12px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 14px;
+                margin: 2px 2px;
+                cursor: pointer;
+                border-radius: 4px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                transition-duration: 0.4s;
+            }}
+            .tts-btn:hover {{
+                background-color: #e8eaf0;
+                border: 1px solid #b0b8c3;
+            }}
+            .tts-btn:active {{
+                background-color: #dce0e6;
+            }}
+        </style>
         
-        # 3. 極端手段：直接寫死一段 HTML 按鈕
-        # onclick 事件直接觸發 JS 的 Audio 物件，這被視為「使用者主動行為」，手機無法擋
-        html_code = f"""
-            <button onclick="new Audio('data:audio/mp3;base64,{audio_base64}').play()" 
-                    style="
-                        background-color: #FF4B4B; 
-                        color: white; 
-                        padding: 8px 16px; 
-                        border: none; 
-                        border-radius: 4px; 
-                        cursor: pointer;
-                        font-weight: bold;
-                        font-size: 16px;
-                        display: inline-flex;
-                        align-items: center;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                    ">
-                🔊 點我發音 (手機專用)
-            </button>
-        """
-        
-        # 4. 渲染這個 HTML 按鈕
-        st.markdown(html_code, unsafe_allow_html=True)
-        
-    except Exception as e:
-        st.error(f"暴力發音失敗: {e}")
+        <button class="tts-btn" onclick="speakText()">
+            🔊 聆聽 (Native)
+        </button>
+
+        <script>
+            function speakText() {{
+                // 停止目前的發音（避免重疊）
+                window.speechSynthesis.cancel();
+                
+                // 建立新的發音物件
+                var msg = new SpeechSynthesisUtterance('{safe_text}');
+                msg.lang = 'en-US'; // 設定為美式英語
+                msg.rate = 0.9;     // 語速稍微放慢一點點
+                msg.pitch = 1;      // 正常語調
+                
+                // 播放
+                window.speechSynthesis.speak(msg);
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    
+    # 使用 components.html 確保 iframe 權限正確
+    st.components.v1.html(html_code, height=45)
 
 def get_spreadsheet_url():
     """安全地獲取試算表網址，相容兩種 secrets 格式"""
