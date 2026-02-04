@@ -56,6 +56,47 @@ def inject_custom_css():
                 background-color: #F0F7FF; padding: 20px; border-radius: 12px; 
                 border-left: 6px solid #2196F3; color: #2C3E50 !important; margin: 15px 0;
             }
+            /* 1. 贊助框外殼樣式 */
+            .sponsor-card-style {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 12px;
+                border: 1px solid #e9ecef;
+                text-align: center;
+            }
+
+            /* 2. 強制修改側邊欄按鈕外觀 */
+            /* 咖啡按鈕 (假設它是側邊欄的第一個按鈕) */
+            section[data-testid="stSidebar"] .stButton:nth-of-type(1) button {
+                background-color: #FFDD00 !important;
+                color: #000 !important;
+                border: none !important;
+                padding: 10px !important;
+                border-radius: 8px !important;
+                font-weight: bold !important;
+                font-size: 0.9rem !important;
+                width: 100% !important;
+                transition: transform 0.2s;
+            }
+
+            /* 米糕按鈕 (假設它是側邊欄的第二個按鈕) */
+            section[data-testid="stSidebar"] .stButton:nth-of-type(2) button {
+                background: linear-gradient(90deg, #28C76F 0%, #81FBB8 100%) !important;
+                color: white !important;
+                border: none !important;
+                padding: 10px !important;
+                border-radius: 8px !important;
+                font-weight: bold !important;
+                font-size: 0.9rem !important;
+                width: 100% !important;
+                transition: transform 0.2s;
+            }
+
+            /* 滑鼠懸停效果 */
+            section[data-testid="stSidebar"] .stButton button:hover {
+                transform: scale(1.02);
+                opacity: 0.9;
+            }
         </style>
     """, unsafe_allow_html=True)
 
@@ -587,29 +628,24 @@ def page_quiz(df):
 def main():
     inject_custom_css()
     
-    st.sidebar.title("Kadowsella")
-    # --- [贊助區塊：意願追蹤版] ---
-    st.sidebar.subheader("💎 支持開發者計畫")
-    
-    # 使用 container 建立邊框感 (Streamlit 原生方式)
-    with st.sidebar.container(border=True):
-        st.markdown("<p style='text-align: center; color: #666; font-size: 0.9rem;'>這是一個 17 歲怪人的學習與開發實驗，感謝支持。</p>", unsafe_allow_html=True)
-        
-        # 1. 第一個按鈕：模擬原本的 Buy Me a Coffee
-        if st.button("☕ 贊助開發者 (及學測咖啡)", use_container_width=True):
-            log_user_intent("click_coffee") # 執行你剛寫好的紀錄函式
-            st.info("### 🚧 系統準備中")
-            st.write("目前開發者（陳品榮）正處於『17 歲與 18 歲的量子疊加態』。")
-            st.warning("由於未滿 18 歲，贊助系統將於成年協議簽署後開放。")
-            st.write("您的點擊已被紀錄，這將成為我們 18 歲當天正式上線的動力！")
-            st.balloons()
+    # --- [贊助區塊：視覺不變，邏輯升級] ---
+    st.sidebar.markdown("""
+        <div class="sponsor-card-style">
+            <p style="margin-bottom: 0px; font-weight: bold; color: #444;">💖 支持開發者</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-        # 2. 第二個按鈕：模擬原本的 綠界米糕
-        if st.button("🍚 贊助一碗南投米糕", use_container_width=True):
-            log_user_intent("click_ricecake") # 執行紀錄函式
-            st.success("### 🏗️ 帳號系統對接中")
-            st.write("未來贊助者將可搶先解鎖『全齡 9 欄位量產模式』與『私人資料夾』。")
-            st.write("我們已將您的贊助意願存入雲端，18 歲當天會第一時間通知您！")
+    # 緊接著放置按鈕，CSS 會處理剩下的視覺效果
+    if st.sidebar.button("☕ Buy Me a Coffee", key="coffee_btn"):
+        log_user_intent("click_coffee")
+        st.toast("已紀錄贊助意願！")
+        st.info("### 🚧 帳號系統準備中，將開放贊助，感謝您的支持！")
+        st.balloons()
+
+    if st.sidebar.button("贊助一碗米糕！", key="rice_btn"):
+        log_user_intent("click_ricecake")
+        st.toast("已紀錄贊助意願！")
+        st.success("### 🏗️ 帳號系統準備中，將開放贊助，感謝您的支持！")
     
     # --- [管理員登入] ---
     is_admin = False
