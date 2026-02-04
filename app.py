@@ -255,7 +255,35 @@ def load_db():
     except Exception as e:
         st.error(f"❌ 資料庫載入失敗: {e}")
         return pd.DataFrame(columns=COL_NAMES)
-
+def submit_report(row_data):
+    """
+    自動將單字資料寫入回饋試算表，並標記 term=1 (待修理)
+    """
+    try:
+        # 回饋表單連結
+        FEEDBACK_URL = "https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit?gid=0#gid=0"
+        conn_feedback = st.connection("gsheets", type=GSheetsConnection)
+        
+        # 準備回報數據
+        report_row = row_data.copy()
+        report_row['term'] = 1  # 1 代表待修理
+        
+        # 讀取現有回饋以進行 Append
+        existing_feedback = conn_feedback.read(spreadsheet=FEEDBACK_URL, ttl=0)
+        
+        # 轉為 DataFrame 並合併
+        report_df = pd.DataFrame([report_row])
+        updated_feedback = pd.concat([existing_feedback, report_df], ignore_index=True)
+        
+        # 執行更新
+        conn_feedback.update(spreadsheet=FEEDBACK_URL, data=updated_feedback)
+        
+        # 使用 toast 輕量化提示
+        st.toast(f"✅ 已將「{row_data['word']}」送入待修補清單！", icon="🛠️")
+        return True
+    except Exception as e:
+        st.error(f"回報失敗：{e}")
+        return False
 # ==========================================
 # 3. AI 解碼核心 (還原中文 Prompt)
 # ==========================================
@@ -326,7 +354,7 @@ def ai_decode_and_save(input_text, fixed_category):
         st.error(f"Gemini API 錯誤: {e}")
         return None
 def show_encyclopedia_card(row):
-    # --- 1. 原有的渲染邏輯 (保持不變) ---
+    # 提取資料並進行基本清洗與 LaTeX 處理
     r_word = str(row.get('word', '未命名主題'))
     r_roots = fix_content(row.get('roots', "")).replace('$', '$$')
     r_phonetic = fix_content(row.get('phonetic', "")) 
@@ -337,69 +365,70 @@ def show_encyclopedia_card(row):
     r_vibe = fix_content(row.get('native_vibe', ""))
     r_trans = str(row.get('translation', ""))
 
+    # 1. 標題區
     st.markdown(f"<div class='hero-word'>{r_word}</div>", unsafe_allow_html=True)
     
     if r_phonetic and r_phonetic != "無":
-        st.markdown(f"<div style='color: #E0E0E0; font-size: 0.95rem; margin-bottom: 20px;'>{r_phonetic}</div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style='color: #E0E0E0; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.6; opacity: 0.9;'>
+            {r_phonetic}
+            </div>
+        """, unsafe_allow_html=True)
 
+    # 2. 發音與拆解
     col_a, col_b = st.columns([1, 4])
     with col_a:
+        st.caption("🔊 點擊播放")
         speak(r_word, key_suffix="card_main")
+            
     with col_b:
         st.markdown(f"#### 🧬 邏輯拆解\n{r_breakdown}")
 
     st.write("---")
+    
+    # 3. 核心內容區
     c1, c2 = st.columns(2)
+    r_ex = fix_content(row.get('example', ""))
+    
     with c1:
         st.info("### 🎯 定義與解釋")
         st.markdown(r_def) 
-        st.markdown(f"**📝 應用案例：** \n{fix_content(row.get('example', ''))}")
+        st.markdown(f"**📝 應用案例：** \n{r_ex}")
+        if r_trans and r_trans != "無":
+            st.caption(f"（{r_trans}）")
+        
     with c2:
         st.success("### 💡 核心原理")
         st.markdown(r_roots)
         st.write(f"**🔍 本質意義：** {r_meaning}")
         st.markdown(f"**🪝 記憶鉤子：** \n{r_hook}")
 
+    # 4. 專家視角
     if r_vibe:
-        st.markdown(f"<div class='vibe-box'><h4>🌊 專家視角</h4>{r_vibe}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='vibe-box'><h4 style='margin-top:0; color:#1565C0;'>🌊 專家視角 / 內行心法</h4>{r_vibe}</div>", unsafe_allow_html=True)
 
-    with st.expander("🔍 深度百科"):
+    # 5. 深度百科
+    with st.expander("🔍 深度百科 (辨析、起源、邊界條件)"):
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
             st.markdown(f"**⚖️ 相似對比：** \n{fix_content(row.get('synonym_nuance', '無'))}")
+            st.markdown(f"**🏛️ 歷史脈絡：** \n{fix_content(row.get('etymon_story', '無'))}")
         with sub_c2:
             st.markdown(f"**⚠️ 使用注意：** \n{fix_content(row.get('usage_warning', '無'))}")
+            st.markdown(f"**🏙️ 關聯圖譜：** \n{fix_content(row.get('collocation', '無'))}")
 
-    # --- 2. 新增：一鍵寫入回報資料庫邏輯 ---
+    # --- [關鍵更新：一鍵回報區塊] ---
     st.write("---")
-    if st.button(f"🚩 回報「{r_word}」解析有誤", type="secondary", use_container_width=True):
-        try:
-            # 指定回饋表單的網址
-            FEEDBACK_URL = "https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit?gid=0#gid=0"
-            
-            # 建立與回饋表單的連線
-            conn_feedback = st.connection("gsheets", type=GSheetsConnection)
-            
-            # 準備要寫入的一列資料 (包含 20 個原欄位 + term 欄位)
-            # 我們將 term 設為 1 (代表待修理)
-            report_data = row.copy()
-            report_data['term'] = 1
-            
-            # 將 Dict 轉為 DataFrame 以便寫入
-            report_df = pd.DataFrame([report_data])
-            
-            # 讀取現有回饋資料並合併 (Append 邏輯)
-            existing_feedback = conn_feedback.read(spreadsheet=FEEDBACK_URL, ttl=0)
-            new_feedback_df = pd.concat([existing_feedback, report_df], ignore_index=True)
-            
-            # 執行寫入
-            conn_feedback.update(spreadsheet=FEEDBACK_URL, data=new_feedback_df)
-            
-            st.success(f"✅ 已成功將「{r_word}」標記為待修理並寫入回報庫！")
-            st.balloons()
-            
-        except Exception as e:
-            st.error(f"❌ 回報失敗，請確認資料庫權限：{e}")
+    report_col1, report_col2 = st.columns([3, 1])
+    
+    with report_col1:
+        st.caption("🛠️ 發現解析有誤？點擊右側按鈕一鍵送入修復清單。")
+        
+    with report_col2:
+        # 使用個別唯一的 Key，避免隨機探索時按鈕衝突
+        if st.button("🚩 有誤", key=f"rep_card_{r_word}_{int(time.time())}", use_container_width=True):
+            # 呼叫通用回報函式
+            submit_report(row.to_dict())
 # ==========================================
 # 4. 頁面邏輯
 # ==========================================
@@ -530,25 +559,25 @@ def page_home(df):
     
     st.write("---")
 
-    # 2. [新增功能] 隨機推薦區 + 換一批按鈕
+    # 2. 隨機推薦區標頭
     col_header, col_btn = st.columns([4, 1])
     with col_header:
         st.subheader("💡 今日隨機推薦")
     with col_btn:
-        # 👇 這裡就是你要的新增隨機按鈕
         if st.button("🔄 換一批", use_container_width=True):
-            st.rerun() # 點擊後重新執行頁面，就會重新隨機抽樣
+            st.rerun() 
     
     if not df.empty:
-        # 這裡的邏輯：每次頁面執行時 (包含點擊按鈕)，都會重新 sample
+        # 隨機抽取 3 個單字
         sample_count = min(3, len(df))
         sample = df.sample(sample_count)
         
         cols = st.columns(3)
         for i, (index, row) in enumerate(sample.iterrows()):
             with cols[i % 3]:
+                # 使用 container 讓卡片視覺更集中
                 with st.container(border=True):
-                    # 標題
+                    # 標題與分類
                     st.markdown(f"### {row['word']}")
                     st.caption(f"🏷️ {row['category']}")
                     
@@ -559,8 +588,20 @@ def page_home(df):
                     st.markdown(f"**定義：** {cleaned_def}")
                     st.markdown(f"**核心：** {cleaned_roots}")
 
-                    # 發音按鈕 (使用 unique key 避免衝突)
-                    speak(row['word'], key_suffix=f"home_{i}_{int(time.time())}")
+                    # --- [關鍵優化：個別三個好的按鈕佈局] ---
+                    # 建立兩欄：一欄放發音，一欄放回報
+                    btn_col_a, btn_col_b = st.columns([1, 1])
+                    
+                    with btn_col_a:
+                        # 呼叫原本的語音函式
+                        speak(row['word'], key_suffix=f"home_{i}_{int(time.time())}")
+                    
+                    with btn_col_b:
+                        # 新增一鍵回報按鈕，標籤為「🚩 有誤」
+                        # 點擊後會直接執行 submit_report 並帶入該單字的 dict
+                        if st.button("🚩 有誤", key=f"rep_home_{i}_{row['word']}", use_container_width=True):
+                            # 將該橫列轉為字典後送出回報
+                            submit_report(row.to_dict())
 
     st.write("---")
     st.info("👈 點擊左側選單進入「學習與搜尋」查看完整資料庫。")
