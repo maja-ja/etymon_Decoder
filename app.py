@@ -223,33 +223,39 @@ def track_intent(label):
     except Exception as e:
         # 靜默處理，不干擾用戶
         pass
-@st.cache_data(ttl=3600) 
-def load_db():
-    # 定義我們需要的 20 個標準欄位名稱
+@st.cache_data(ttl=360) 
+def load_db(source_type="Google Sheets"):
+    # 定義標準 21 個欄位名稱
     COL_NAMES = [
         'category', 'roots', 'meaning', 'word', 'breakdown', 
         'definition', 'phonetic', 'example', 'translation', 'native_vibe',
         'synonym_nuance', 'visual_prompt', 'social_status', 'emotional_tone', 'street_usage',
-        'collocation', 'etymon_story', 'usage_warning', 'memory_hook', 'audio_tag'
+        'collocation', 'etymon_story', 'usage_warning', 'memory_hook', 'audio_tag',
+        'term'  # <-- 補上第 21 個欄位
     ]
     
+    df = pd.DataFrame(columns=COL_NAMES)
+
     try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        url = get_spreadsheet_url()
+        if source_type == "Google Sheets":
+            conn = st.connection("gsheets", type=GSheetsConnection)
+            url = get_spreadsheet_url()
+            df = conn.read(spreadsheet=url, ttl=0)
         
-        # 讀取數據 (ttl=0 強制不使用 st.connection 內建快取)
-        df = conn.read(spreadsheet=url, ttl=0)
+        elif source_type == "Local JSON":
+            json_file = "master_db.json"
+            if os.path.exists(json_file):
+                with open(json_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if data: df = pd.DataFrame(data)
         
         # 1. 自動補齊缺失欄位
         for col in COL_NAMES:
             if col not in df.columns:
-                df[col] = "無"
+                df[col] = 0 if col == 'term' else "無"
         
-        # 2. 資料清洗
-        df = df.dropna(subset=['word'])
-        df = df.fillna("無")
-        
-        # 3. 欄位排序
+        # 2. 清洗與排序
+        df = df.dropna(subset=['word']).fillna("無")
         return df[COL_NAMES].reset_index(drop=True)
         
     except Exception as e:
@@ -257,32 +263,41 @@ def load_db():
         return pd.DataFrame(columns=COL_NAMES)
 def submit_report(row_data):
     """
-    自動將單字資料寫入回饋試算表，並標記 term=1 (待修理)
+    將單字資料一鍵寫入反饋試算表，並標記 term=1 (待修理)
     """
     try:
-        # 回饋表單連結
+        # 1. 指定你的回饋表單 URL
         FEEDBACK_URL = "https://docs.google.com/spreadsheets/d/1NNfKPadacJ6SDDLw9c23fmjq-26wGEeinTbWcg7-gFg/edit?gid=0#gid=0"
-        conn_feedback = st.connection("gsheets", type=GSheetsConnection)
         
-        # 準備回報數據
+        # 2. 建立連線 (確保 secrets.toml 已配置 GSheets 權限)
+        conn_fb = st.connection("gsheets", type=GSheetsConnection)
+        
+        # 3. 處理資料：複製該列並強制設定 term=1
+        # row_data 如果是從 page_home 傳進來的 row.to_dict()
         report_row = row_data.copy()
-        report_row['term'] = 1  # 1 代表待修理
+        report_row['term'] = 1  # 標記為待修理
         
-        # 讀取現有回饋以進行 Append
-        existing_feedback = conn_feedback.read(spreadsheet=FEEDBACK_URL, ttl=0)
+        # 4. 讀取現有資料進行合併 (Append 邏輯)
+        # ttl=0 確保每次按按鈕都是讀取最新狀態，避免寫入衝突
+        existing_fb = conn_fb.read(spreadsheet=FEEDBACK_URL, ttl=0)
         
-        # 轉為 DataFrame 並合併
+        # 5. 轉換為 DataFrame 並確保欄位順序正確
         report_df = pd.DataFrame([report_row])
-        updated_feedback = pd.concat([existing_feedback, report_df], ignore_index=True)
         
-        # 執行更新
-        conn_feedback.update(spreadsheet=FEEDBACK_URL, data=updated_feedback)
+        # 6. 合併新舊資料
+        updated_fb = pd.concat([existing_fb, report_df], ignore_index=True)
         
-        # 使用 toast 輕量化提示
-        st.toast(f"✅ 已將「{row_data['word']}」送入待修補清單！", icon="🛠️")
+        # 7. 寫回 Google Sheets
+        conn_fb.update(spreadsheet=FEEDBACK_URL, data=updated_fb)
+        
+        # 8. 顯示輕量化提示 (Toast) 
+        # 這不會像 st.success 佔用頁面空間，也不會強制阻斷使用者操作
+        st.toast(f"✅ 已成功將「{row_data.get('word', '該單字')}」記錄至待修清單", icon="🛠️")
+        
         return True
+        
     except Exception as e:
-        st.error(f"回報失敗：{e}")
+        st.error(f"❌ 回報寫入失敗: {e}")
         return False
 # ==========================================
 # 3. AI 解碼核心 (還原中文 Prompt)
@@ -551,7 +566,7 @@ def page_home(df):
     st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
     st.write("---")
     
-    # 1. 數據儀表板
+    # 1. 數據儀表板 (Dashboard)
     c1, c2, c3 = st.columns(3)
     c1.metric("📚 總單字量", len(df))
     c2.metric("🏷️ 分類主題", df['category'].nunique() if not df.empty else 0)
@@ -564,48 +579,52 @@ def page_home(df):
     with col_header:
         st.subheader("💡 今日隨機推薦")
     with col_btn:
+        # 當點擊「換一批」時，清除 Session State 讓它重新抽樣
         if st.button("🔄 換一批", use_container_width=True):
-            st.rerun() 
+            if 'home_sample' in st.session_state:
+                del st.session_state.home_sample
+            st.rerun()
     
+    # --- 關鍵修正：鎖定隨機抽樣的結果 ---
     if not df.empty:
-        # 隨機抽取 3 個單字
-        sample_count = min(3, len(df))
-        sample = df.sample(sample_count)
+        # 如果 Session State 裡還沒有抽樣結果，則進行抽樣並鎖定
+        if 'home_sample' not in st.session_state:
+            sample_count = min(3, len(df))
+            st.session_state.home_sample = df.sample(sample_count)
+        
+        # 從 Session State 讀取單字，確保按下「🚩 有誤」刷新後單字不變
+        sample = st.session_state.home_sample
         
         cols = st.columns(3)
         for i, (index, row) in enumerate(sample.iterrows()):
             with cols[i % 3]:
-                # 使用 container 讓卡片視覺更集中
                 with st.container(border=True):
                     # 標題與分類
                     st.markdown(f"### {row['word']}")
                     st.caption(f"🏷️ {row['category']}")
                     
-                    # 內容清洗與顯示
+                    # 內容清洗
                     cleaned_def = fix_content(row['definition'])
                     cleaned_roots = fix_content(row['roots'])
                     
                     st.markdown(f"**定義：** {cleaned_def}")
                     st.markdown(f"**核心：** {cleaned_roots}")
 
-                    # --- [關鍵優化：個別三個好的按鈕佈局] ---
-                    # 建立兩欄：一欄放發音，一欄放回報
+                    # --- [功能按鈕佈局] ---
                     btn_col_a, btn_col_b = st.columns([1, 1])
                     
                     with btn_col_a:
-                        # 呼叫原本的語音函式
-                        speak(row['word'], key_suffix=f"home_{i}_{int(time.time())}")
+                        speak(row['word'], key_suffix=f"home_{i}")
                     
                     with btn_col_b:
-                        # 新增一鍵回報按鈕，標籤為「🚩 有誤」
-                        # 點擊後會直接執行 submit_report 並帶入該單字的 dict
+                        # 點擊「🚩 有誤」會觸發 submit_report 寫入 feedback 試算表
+                        # 加入 term=1 的邏輯已封裝在 submit_report 內
                         if st.button("🚩 有誤", key=f"rep_home_{i}_{row['word']}", use_container_width=True):
-                            # 將該橫列轉為字典後送出回報
+                            # 呼叫回報函式
                             submit_report(row.to_dict())
 
     st.write("---")
     st.info("👈 點擊左側選單進入「學習與搜尋」查看完整資料庫。")
-
 def page_learn_search(df):
     st.title("📖 學習與搜尋")
     if df.empty:
