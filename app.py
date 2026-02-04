@@ -351,7 +351,7 @@ def ai_decode_and_save(input_text, fixed_category):
         st.error(f"Gemini API 錯誤: {e}")
         return None
 def show_encyclopedia_card(row):
-    # 資料清洗與變數設定
+    # 變數定義與清洗
     r_word = str(row.get('word', '未命名主題'))
     r_roots = fix_content(row.get('roots', "")).replace('$', '$$')
     r_phonetic = fix_content(row.get('phonetic', "")) 
@@ -362,14 +362,13 @@ def show_encyclopedia_card(row):
     r_vibe = fix_content(row.get('native_vibe', ""))
     r_trans = str(row.get('translation', ""))
 
-    # --- [標題區] ---
+    # 1. 標題區 (會隨系統主題變色)
     st.markdown(f"<div class='hero-word'>{r_word}</div>", unsafe_allow_html=True)
     
-    # 音標使用 st.caption 會自動處理深淺色對比
     if r_phonetic and r_phonetic != "無":
         st.caption(f"/{r_phonetic}/")
 
-    # --- [邏輯拆解] ---
+    # 2. 邏輯拆解 (深色底漸層)
     st.markdown(f"""
         <div class='breakdown-wrapper'>
             <h4 style='color: white; margin-top: 0;'>🧬 邏輯拆解</h4>
@@ -377,18 +376,16 @@ def show_encyclopedia_card(row):
         </div>
     """, unsafe_allow_html=True)
 
-    # --- [核心內容區] ---
     st.write("---")
-    col_a, col_b = st.columns([1, 4])
-    with col_a:
-        st.caption("🔊 聽發音")
-        speak(r_word, key_suffix="card_main")
     
+    # 3. 核心內容區 (st.info/success 會自動處理深淺色)
     c1, c2 = st.columns(2)
+    r_ex = fix_content(row.get('example', ""))
+    
     with c1:
         st.info("### 🎯 定義與解釋")
         st.write(r_def) 
-        st.caption(f"📝 {fix_content(row.get('example', ''))}")
+        st.caption(f"📝 {r_ex}")
         if r_trans and r_trans != "無":
             st.caption(f"（{r_trans}）")
         
@@ -398,7 +395,7 @@ def show_encyclopedia_card(row):
         st.write(f"**🔍 本質意義：** {r_meaning}")
         st.write(f"**🪝 記憶鉤子：** {r_hook}")
 
-    # --- [專家視角] ---
+    # 4. 專家視角 (配合 CSS 變數自動變色)
     if r_vibe:
         st.markdown(f"""
             <div class='vibe-box'>
@@ -407,23 +404,25 @@ def show_encyclopedia_card(row):
             </div>
         """, unsafe_allow_html=True)
 
-    # --- [深度百科與錯誤回報] ---
-    with st.expander("🔍 深度百科"):
+    # 5. 深度百科
+    with st.expander("🔍 深度百科 (辨析、起源、邊界條件)"):
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
             st.markdown(f"**⚖️ 相似對比：** \n{fix_content(row.get('synonym_nuance', '無'))}")
         with sub_c2:
             st.markdown(f"**⚠️ 使用注意：** \n{fix_content(row.get('usage_warning', '無'))}")
 
+    # --- [關鍵修正：變數名稱統一為 rep_col] ---
     st.write("---")
     rep_col1, rep_col2 = st.columns([3, 1])
-    with report_col2:
-        # 整合您之前要求的回報按鈕
-        if st.button("🚩 有誤", key=f"rep_card_{r_word}", use_container_width=True):
-            submit_report(row.to_dict())
-    with report_col1:
+    
+    with rep_col1:
         st.caption("發現解析有誤？點擊右側按鈕一鍵送入修復清單。")
-# ==========================================
+        
+    with rep_col2:
+        # 使用唯一 key 以免在隨機探索時發生元件 ID 衝突
+        if st.button("🚩 有誤", key=f"rep_card_{r_word}", use_container_width=True):
+            submit_report(row.to_dict() if hasattr(row, 'to_dict') else row)
 # 4. 頁面邏輯
 # ==========================================
 
