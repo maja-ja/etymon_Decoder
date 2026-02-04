@@ -497,7 +497,38 @@ def page_ai_lab():
                 st.error(f"⚠️ 處理失敗: {e}")
                 with st.expander("查看原始數據回報錯誤"):
                     st.code(raw_res)
-
+def log_user_intent(label):
+    """將用戶點擊意願寫入 Google Sheets 的 metrics 分頁"""
+    try:
+        # 1. 建立連線
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        url = get_spreadsheet_url()
+        
+        # 2. 嘗試讀取名為 'metrics' 的工作表
+        try:
+            # ttl=0 確保我們拿到的是最即時的計數
+            m_df = conn.read(spreadsheet=url, worksheet="metrics", ttl=0)
+        except Exception:
+            # 如果找不到 metrics 工作表，就建立一個初始的 DataFrame
+            m_df = pd.DataFrame(columns=['label', 'count'])
+        
+        # 3. 更新計數邏輯
+        if label in m_df['label'].values:
+            # 如果這個標籤（如 click_coffee）已存在，次數 +1
+            m_df.loc[m_df['label'] == label, 'count'] = m_df.loc[m_df['label'] == label, 'count'].astype(int) + 1
+        else:
+            # 如果是第一次點擊，新增一行紀錄
+            new_record = pd.DataFrame([{'label': label, 'count': 1}])
+            m_df = pd.concat([m_df, new_record], ignore_index=True)
+        
+        # 4. 寫回雲端 (覆蓋 metrics 分頁)
+        conn.update(spreadsheet=url, worksheet="metrics", data=m_df)
+        
+    except Exception as e:
+        # 為了不干擾用戶體驗，後台紀錄失敗時我們靜默處理
+        # 測試時可以把下面這行註解拿掉來除錯
+        # st.write(f"DEBUG: Metrics Error - {e}")
+        pass
 def page_home(df):
     st.markdown("<h1 style='text-align: center;'>Etymon Decoder</h1>", unsafe_allow_html=True)
     st.write("---")
