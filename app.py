@@ -17,18 +17,9 @@ st.set_page_config(page_title="Etymon Decoder v3.0", page_icon="🧩", layout="w
 def inject_custom_css():
     st.markdown("""
         <style>
-            /* ==========================================
-               1. 全域字體與背景優化
-               ========================================== */
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@500;700&display=swap');
             
-            html, body, [data-testid="stWidgetLabel"] {
-                font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            }
-
-            /* ==========================================
-               2. 核心解構區塊 (漸層外框)
-               ========================================== */
+            /* 1. 內容區塊樣式 */
             .breakdown-wrapper {
                 background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
                 padding: 25px 30px;
@@ -37,100 +28,61 @@ def inject_custom_css():
                 margin: 20px 0;
                 color: white !important;
             }
-            
-            /* LaTeX 引擎修正：徹底移除黑塊、文字變白 */
-            .breakdown-wrapper .katex {
-                color: #FFFFFF !important;
-                background: transparent !important;
-                font-size: 1.15em;
-            }
-            .breakdown-wrapper .katex-display {
-                background: transparent !important;
-                margin: 1em 0;
-            }
-
-            /* 強制讓內容文字與列表變白 */
+            .breakdown-wrapper .katex { color: #FFFFFF !important; background: transparent !important; }
             .breakdown-wrapper p, .breakdown-wrapper li, .breakdown-wrapper span {
-                color: white !important;
-                font-weight: 700 !important;
-                line-height: 1.7;
-                white-space: pre-wrap !important;
+                color: white !important; font-weight: 700 !important; line-height: 1.7; white-space: pre-wrap !important;
             }
-
-            /* ==========================================
-               3. 標題與專家心法樣式
-               ========================================== */
-            .hero-word { font-size: 2.8rem; font-weight: 800; color: #1A237E; margin-bottom: 5px; }
-            @media (prefers-color-scheme: dark) { .hero-word { color: #90CAF9; } }
-            
+            .hero-word { font-size: 2.8rem; font-weight: 800; color: #1A237E; }
             .vibe-box { 
                 background-color: #F0F7FF; padding: 20px; border-radius: 12px; 
                 border-left: 6px solid #2196F3; color: #2C3E50 !important; margin: 15px 0;
             }
 
-            /* ==========================================
-               4. 側邊欄：截圖複刻版贊助框 (關鍵區塊)
-               ========================================== */
-            
-            /* 贊助框白色外殼 */
-            .sponsor-container {
-                background-color: #FFFFFF;
-                border-radius: 20px;
+            /* 2. 側邊欄贊助框外殼 */
+            .sponsor-box {
+                background-color: #f8f9fa;
                 padding: 20px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                border: 1px solid #F0F2F6;
+                border-radius: 18px;
+                border: 1px solid #e9ecef;
                 text-align: center;
-                margin-bottom: -10px; /* 縮小與下方按鈕的間距 */
+                margin-top: 10px;
             }
-
             .sponsor-title {
-                color: #31333F;
-                font-weight: 700;
+                font-weight: 800;
+                color: #444;
                 font-size: 1.1rem;
+                margin-bottom: 0px;
                 display: block;
             }
 
-            /* 咖啡按鈕 (黃色) - 鎖定側邊欄第一個 stButton */
+            /* 3. 側邊欄原生按鈕整容 */
+            section[data-testid="stSidebar"] .stButton button {
+                border: none !important;
+                font-weight: 700 !important;
+                padding: 10px 0 !important;
+                border-radius: 10px !important;
+                width: 100% !important;
+                font-size: 0.95rem !important;
+                transition: transform 0.1s !important;
+            }
+
+            /* 咖啡按鈕 - 側邊欄第1個按鈕 */
             section[data-testid="stSidebar"] .stButton:nth-of-type(1) button {
                 background-color: #FFDD00 !important;
                 color: #000000 !important;
-                border: none !important;
-                font-weight: 700 !important;
-                padding: 12px 0 !important;
-                border-radius: 12px !important;
-                width: 100% !important;
-                font-size: 1rem !important;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-                transition: transform 0.1s, box-shadow 0.1s;
-                margin-top: 15px !important; /* 讓按鈕看起來像在框框內 */
+                margin-top: 15px !important;
             }
 
-            /* 米糕按鈕 (漸層綠) - 鎖定側邊欄第二個 stButton */
+            /* 米糕按鈕 - 側邊欄第2個按鈕 */
             section[data-testid="stSidebar"] .stButton:nth-of-type(2) button {
-                background: linear-gradient(to right, #28C76F, #81FBB8) !important;
-                color: #FFFFFF !important;
-                border: none !important;
-                font-weight: 700 !important;
-                padding: 12px 0 !important;
-                border-radius: 12px !important;
-                width: 100% !important;
-                font-size: 1rem !important;
-                box-shadow: 0 4px 12px rgba(40, 199, 111, 0.25) !important;
-                transition: transform 0.1s;
+                background: linear-gradient(90deg, #28C76F 0%, #81FBB8 100%) !important;
+                color: white !important;
                 margin-top: 5px !important;
             }
 
-            /* 按鈕點擊效果 */
             section[data-testid="stSidebar"] .stButton button:active {
-                transform: scale(0.97) !important;
+                transform: scale(0.96) !important;
             }
-            
-            /* 移除 Streamlit 按鈕預設的邊框焦點 */
-            .stButton button:focus {
-                box-shadow: none !important;
-                border: none !important;
-            }
-
         </style>
     """, unsafe_allow_html=True)
 # ==========================================
@@ -692,25 +644,27 @@ def page_quiz(df):
 def main():
     inject_custom_css()
     
-    # --- [贊助區塊：視覺不變，邏輯升級] ---
-    st.sidebar.markdown("""
-        <div class="sponsor-card-style">
-            <p style="margin-bottom: 0px; font-weight: bold; color: #444;">💖 支持開發者</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # 緊接著放置按鈕，CSS 會處理剩下的視覺效果
-    if st.sidebar.button("☕ Buy Me a Coffee", key="coffee_btn"):
-        log_user_intent("click_coffee")
-        st.toast("已紀錄贊助意願！")
-        st.info("### 🚧 帳號系統準備中，將開放贊助，感謝您的支持！")
-        st.balloons()
-
-    if st.sidebar.button("贊助一碗米糕！", key="rice_btn"):
-        log_user_intent("click_ricecake")
-        st.toast("已紀錄贊助意願！")
-        st.success("### 🏗️ 帳號系統準備中，將開放贊助，感謝您的支持！")
+    st.sidebar.title("Kadowsella")
     
+    # --- [贊助區塊：視覺複刻與意願追蹤] ---
+    with st.sidebar:
+        # 渲染外框與標題
+        st.markdown('<div class="sponsor-box"><span class="sponsor-title">💖 支持開發者</span></div>', unsafe_allow_html=True)
+        
+        # 咖啡按鈕 (由 CSS 著色)
+        if st.button("☕ Buy Me a Coffee", key="btn_coffee"):
+            if 'log_user_intent' in globals():
+                log_user_intent("click_coffee")
+            st.info("### 🚧 帳號系統準備中，將開放贊助，感謝您的支持！")
+            st.balloons()
+
+        # 米糕按鈕 (由 CSS 著色)
+        if st.button("贊助一碗米糕！", key="btn_rice"):
+            if 'log_user_intent' in globals():
+                log_user_intent("click_ricecake")
+            st.success("### 🏗️ 帳號系統準備中，將開放贊助，感謝您的支持！")
+            
+        st.markdown("---")
     # --- [管理員登入] ---
     is_admin = False
     with st.sidebar.expander("🔐 管理員登入", expanded=False):
