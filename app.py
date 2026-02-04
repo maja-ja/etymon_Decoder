@@ -174,7 +174,29 @@ def get_spreadsheet_url():
         except:
             st.error("找不到 spreadsheet 設定，請檢查 secrets.toml")
             return ""
-
+def track_intent(label):
+    """紀錄用戶意願 (點擊次數) 到 Google Sheets 的 metrics 分頁"""
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        url = get_spreadsheet_url()
+        # 讀取 metrics 分頁 (建議你在 Sheet 裡先建好這一頁，欄位為 feature_name, count)
+        try:
+            m_df = conn.read(spreadsheet=url, worksheet="metrics", ttl=0)
+        except:
+            # 如果沒這一頁，建立初始資料
+            m_df = pd.DataFrame(columns=['feature_name', 'count'])
+        
+        if label in m_df['feature_name'].values:
+            m_df.loc[m_df['feature_name'] == label, 'count'] += 1
+        else:
+            new_row = pd.DataFrame([{'feature_name': label, 'count': 1}])
+            m_df = pd.concat([m_df, new_row], ignore_index=True)
+        
+        # 寫回雲端 (注意：這會更新整頁)
+        conn.update(spreadsheet=url, worksheet="metrics", data=m_df)
+    except Exception as e:
+        # 靜默處理，不干擾用戶
+        pass
 @st.cache_data(ttl=3600) 
 def load_db():
     # 定義我們需要的 20 個標準欄位名稱
@@ -566,23 +588,28 @@ def main():
     inject_custom_css()
     
     st.sidebar.title("Kadowsella")
+    # --- [贊助區塊：意願追蹤版] ---
+    st.sidebar.subheader("💎 支持開發者計畫")
     
-    # --- [贊助區塊] ---
-    st.sidebar.markdown("""
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef; margin-bottom: 25px;">
-            <p style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #444;">💖 支持開發者</p>
-            <a href="[https://www.buymeacoffee.com/kadowsella](https://www.buymeacoffee.com/kadowsella)" target="_blank" style="text-decoration: none;">
-                <div style="background-color: #FFDD00; color: #000; padding: 8px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">
-                    ☕ Buy Me a Coffee
-                </div>
-            </a>
-            <a href="[https://p.ecpay.com.tw/kadowsella20](https://p.ecpay.com.tw/kadowsella20)" target="_blank" style="text-decoration: none;">
-                <div style="background: linear-gradient(90deg, #28C76F 0%, #81FBB8 100%); color: white; padding: 8px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 0.9rem;">
-                    贊助一碗米糕！
-                </div>
-            </a>
-        </div>
-    """, unsafe_allow_html=True)
+    # 使用 container 建立邊框感 (Streamlit 原生方式)
+    with st.sidebar.container(border=True):
+        st.markdown("<p style='text-align: center; color: #666; font-size: 0.9rem;'>這是一個 17 歲怪人的學習與開發實驗，感謝支持。</p>", unsafe_allow_html=True)
+        
+        # 1. 第一個按鈕：模擬原本的 Buy Me a Coffee
+        if st.button("☕ 贊助開發者 (及學測咖啡)", use_container_width=True):
+            log_user_intent("click_coffee") # 執行你剛寫好的紀錄函式
+            st.info("### 🚧 系統準備中")
+            st.write("目前開發者（陳品榮）正處於『17 歲與 18 歲的量子疊加態』。")
+            st.warning("由於未滿 18 歲，贊助系統將於成年協議簽署後開放。")
+            st.write("您的點擊已被紀錄，這將成為我們 18 歲當天正式上線的動力！")
+            st.balloons()
+
+        # 2. 第二個按鈕：模擬原本的 綠界米糕
+        if st.button("🍚 贊助一碗南投米糕", use_container_width=True):
+            log_user_intent("click_ricecake") # 執行紀錄函式
+            st.success("### 🏗️ 帳號系統對接中")
+            st.write("未來贊助者將可搶先解鎖『全齡 9 欄位量產模式』與『私人資料夾』。")
+            st.write("我們已將您的贊助意願存入雲端，18 歲當天會第一時間通知您！")
     
     # --- [管理員登入] ---
     is_admin = False
