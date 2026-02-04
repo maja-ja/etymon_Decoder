@@ -19,69 +19,51 @@ def inject_custom_css():
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@500;700&display=swap');
             
-            /* 1. 內容區塊樣式 */
+            /* 1. 基礎卡片樣式：在深色模式下增加陰影與邊框對比 */
+            .stMainContainer {
+                transition: background-color 0.3s ease;
+            }
+
+            /* 2. 標題 Hero Word：動態適應主題色 */
+            .hero-word { 
+                font-size: 2.8rem; 
+                font-weight: 800; 
+                color: #1A237E; /* 淺色模式：深藍 */
+                margin-bottom: 5px;
+            }
+            
+            /* 3. 專家視角 Vibe Box：適應深色背景 */
+            .vibe-box { 
+                background-color: #F0F7FF; 
+                padding: 20px; 
+                border-radius: 12px; 
+                border-left: 6px solid #2196F3; 
+                color: #2C3E50 !important; 
+                margin: 15px 0;
+            }
+
+            /* --- 深色模式自動適應樣式覆蓋 --- */
+            @media (prefers-color-scheme: dark) {
+                .hero-word { color: #90CAF9 !important; } /* 深色模式：粉藍 */
+                
+                .vibe-box {
+                    background-color: #1E262E !important; /* 深色模式：深灰藍 */
+                    color: #E3F2FD !important; /* 文字轉亮色 */
+                    border-left: 6px solid #64B5F6 !important;
+                }
+                
+                /* 強制修正深色模式下的表格/清單文字顏色 */
+                .stMarkdown p, .stMarkdown li {
+                    color: #E0E0E0 !important;
+                }
+            }
+
+            /* 4. 邏輯拆解區 (漸層外框保持高對比) */
             .breakdown-wrapper {
                 background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
                 padding: 25px 30px;
                 border-radius: 15px;
-                box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
-                margin: 20px 0;
                 color: white !important;
-            }
-            .breakdown-wrapper .katex { color: #FFFFFF !important; background: transparent !important; }
-            .breakdown-wrapper p, .breakdown-wrapper li, .breakdown-wrapper span {
-                color: white !important; font-weight: 700 !important; line-height: 1.7; white-space: pre-wrap !important;
-            }
-            .hero-word { font-size: 2.8rem; font-weight: 800; color: #1A237E; }
-            .vibe-box { 
-                background-color: #F0F7FF; padding: 20px; border-radius: 12px; 
-                border-left: 6px solid #2196F3; color: #2C3E50 !important; margin: 15px 0;
-            }
-
-            /* 2. 側邊欄贊助框外殼 */
-            .sponsor-box {
-                background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 18px;
-                border: 1px solid #e9ecef;
-                text-align: center;
-                margin-top: 10px;
-            }
-            .sponsor-title {
-                font-weight: 800;
-                color: #444;
-                font-size: 1.1rem;
-                margin-bottom: 0px;
-                display: block;
-            }
-
-            /* 3. 側邊欄原生按鈕整容 */
-            section[data-testid="stSidebar"] .stButton button {
-                border: none !important;
-                font-weight: 700 !important;
-                padding: 10px 0 !important;
-                border-radius: 10px !important;
-                width: 100% !important;
-                font-size: 0.95rem !important;
-                transition: transform 0.1s !important;
-            }
-
-            /* 咖啡按鈕 - 側邊欄第1個按鈕 */
-            section[data-testid="stSidebar"] .stButton:nth-of-type(1) button {
-                background-color: #FFDD00 !important;
-                color: #000000 !important;
-                margin-top: 15px !important;
-            }
-
-            /* 米糕按鈕 - 側邊欄第2個按鈕 */
-            section[data-testid="stSidebar"] .stButton:nth-of-type(2) button {
-                background: linear-gradient(90deg, #28C76F 0%, #81FBB8 100%) !important;
-                color: white !important;
-                margin-top: 5px !important;
-            }
-
-            section[data-testid="stSidebar"] .stButton button:active {
-                transform: scale(0.96) !important;
             }
         </style>
     """, unsafe_allow_html=True)
@@ -369,7 +351,7 @@ def ai_decode_and_save(input_text, fixed_category):
         st.error(f"Gemini API 錯誤: {e}")
         return None
 def show_encyclopedia_card(row):
-    # 提取資料並進行基本清洗與 LaTeX 處理
+    # 資料清洗與變數設定
     r_word = str(row.get('word', '未命名主題'))
     r_roots = fix_content(row.get('roots', "")).replace('$', '$$')
     r_phonetic = fix_content(row.get('phonetic', "")) 
@@ -380,70 +362,67 @@ def show_encyclopedia_card(row):
     r_vibe = fix_content(row.get('native_vibe', ""))
     r_trans = str(row.get('translation', ""))
 
-    # 1. 標題區
+    # --- [標題區] ---
     st.markdown(f"<div class='hero-word'>{r_word}</div>", unsafe_allow_html=True)
     
+    # 音標使用 st.caption 會自動處理深淺色對比
     if r_phonetic and r_phonetic != "無":
-        st.markdown(f"""
-            <div style='color: #E0E0E0; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.6; opacity: 0.9;'>
-            {r_phonetic}
-            </div>
-        """, unsafe_allow_html=True)
+        st.caption(f"/{r_phonetic}/")
 
-    # 2. 發音與拆解
+    # --- [邏輯拆解] ---
+    st.markdown(f"""
+        <div class='breakdown-wrapper'>
+            <h4 style='color: white; margin-top: 0;'>🧬 邏輯拆解</h4>
+            <div style='color: white; font-weight: 700;'>{r_breakdown}</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # --- [核心內容區] ---
+    st.write("---")
     col_a, col_b = st.columns([1, 4])
     with col_a:
-        st.caption("🔊 點擊播放")
+        st.caption("🔊 聽發音")
         speak(r_word, key_suffix="card_main")
-            
-    with col_b:
-        st.markdown(f"#### 🧬 邏輯拆解\n{r_breakdown}")
-
-    st.write("---")
     
-    # 3. 核心內容區
     c1, c2 = st.columns(2)
-    r_ex = fix_content(row.get('example', ""))
-    
     with c1:
         st.info("### 🎯 定義與解釋")
-        st.markdown(r_def) 
-        st.markdown(f"**📝 應用案例：** \n{r_ex}")
+        st.write(r_def) 
+        st.caption(f"📝 {fix_content(row.get('example', ''))}")
         if r_trans and r_trans != "無":
             st.caption(f"（{r_trans}）")
         
     with c2:
         st.success("### 💡 核心原理")
-        st.markdown(r_roots)
+        st.write(r_roots)
         st.write(f"**🔍 本質意義：** {r_meaning}")
-        st.markdown(f"**🪝 記憶鉤子：** \n{r_hook}")
+        st.write(f"**🪝 記憶鉤子：** {r_hook}")
 
-    # 4. 專家視角
+    # --- [專家視角] ---
     if r_vibe:
-        st.markdown(f"<div class='vibe-box'><h4 style='margin-top:0; color:#1565C0;'>🌊 專家視角 / 內行心法</h4>{r_vibe}</div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class='vibe-box'>
+                <h4 style='margin-top:0;'>🌊 專家視角 / 內行心法</h4>
+                {r_vibe}
+            </div>
+        """, unsafe_allow_html=True)
 
-    # 5. 深度百科
-    with st.expander("🔍 深度百科 (辨析、起源、邊界條件)"):
+    # --- [深度百科與錯誤回報] ---
+    with st.expander("🔍 深度百科"):
         sub_c1, sub_c2 = st.columns(2)
         with sub_c1:
             st.markdown(f"**⚖️ 相似對比：** \n{fix_content(row.get('synonym_nuance', '無'))}")
-            st.markdown(f"**🏛️ 歷史脈絡：** \n{fix_content(row.get('etymon_story', '無'))}")
         with sub_c2:
             st.markdown(f"**⚠️ 使用注意：** \n{fix_content(row.get('usage_warning', '無'))}")
-            st.markdown(f"**🏙️ 關聯圖譜：** \n{fix_content(row.get('collocation', '無'))}")
 
-    # --- [關鍵更新：一鍵回報區塊] ---
     st.write("---")
-    report_col1, report_col2 = st.columns([3, 1])
-    
-    with report_col1:
-        st.caption("🛠️ 發現解析有誤？點擊右側按鈕一鍵送入修復清單。")
-        
+    rep_col1, rep_col2 = st.columns([3, 1])
     with report_col2:
-        # 使用個別唯一的 Key，避免隨機探索時按鈕衝突
-        if st.button("🚩 有誤", key=f"rep_card_{r_word}_{int(time.time())}", use_container_width=True):
-            # 呼叫通用回報函式
+        # 整合您之前要求的回報按鈕
+        if st.button("🚩 有誤", key=f"rep_card_{r_word}", use_container_width=True):
             submit_report(row.to_dict())
+    with report_col1:
+        st.caption("發現解析有誤？點擊右側按鈕一鍵送入修復清單。")
 # ==========================================
 # 4. 頁面邏輯
 # ==========================================
