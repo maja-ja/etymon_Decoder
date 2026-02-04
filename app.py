@@ -17,9 +17,18 @@ st.set_page_config(page_title="Etymon Decoder v3.0", page_icon="🧩", layout="w
 def inject_custom_css():
     st.markdown("""
         <style>
+            /* ==========================================
+               1. 全域字體與背景優化
+               ========================================== */
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+TC:wght@500;700&display=swap');
             
-            /* 1. 拆解區塊 (漸層外框) */
+            html, body, [data-testid="stWidgetLabel"] {
+                font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            }
+
+            /* ==========================================
+               2. 核心解構區塊 (漸層外框)
+               ========================================== */
             .breakdown-wrapper {
                 background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
                 padding: 25px 30px;
@@ -29,7 +38,7 @@ def inject_custom_css():
                 color: white !important;
             }
             
-            /* 2. LaTeX 引擎修正：徹底移除黑塊、文字變白 */
+            /* LaTeX 引擎修正：徹底移除黑塊、文字變白 */
             .breakdown-wrapper .katex {
                 color: #FFFFFF !important;
                 background: transparent !important;
@@ -40,7 +49,7 @@ def inject_custom_css():
                 margin: 1em 0;
             }
 
-            /* 3. 強制讓內容文字與列表變白、換行 */
+            /* 強制讓內容文字與列表變白 */
             .breakdown-wrapper p, .breakdown-wrapper li, .breakdown-wrapper span {
                 color: white !important;
                 font-weight: 700 !important;
@@ -48,58 +57,82 @@ def inject_custom_css():
                 white-space: pre-wrap !important;
             }
 
-            /* 4. 語感與標題樣式 */
-            .hero-word { font-size: 2.8rem; font-weight: 800; color: #1A237E; }
+            /* ==========================================
+               3. 標題與專家心法樣式
+               ========================================== */
+            .hero-word { font-size: 2.8rem; font-weight: 800; color: #1A237E; margin-bottom: 5px; }
             @media (prefers-color-scheme: dark) { .hero-word { color: #90CAF9; } }
             
             .vibe-box { 
                 background-color: #F0F7FF; padding: 20px; border-radius: 12px; 
                 border-left: 6px solid #2196F3; color: #2C3E50 !important; margin: 15px 0;
             }
-            /* 1. 贊助框外殼樣式 */
-            .sponsor-card-style {
-                background-color: #f8f9fa;
-                padding: 15px;
-                border-radius: 12px;
-                border: 1px solid #e9ecef;
+
+            /* ==========================================
+               4. 側邊欄：截圖複刻版贊助框 (關鍵區塊)
+               ========================================== */
+            
+            /* 贊助框白色外殼 */
+            .sponsor-container {
+                background-color: #FFFFFF;
+                border-radius: 20px;
+                padding: 20px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                border: 1px solid #F0F2F6;
                 text-align: center;
+                margin-bottom: -10px; /* 縮小與下方按鈕的間距 */
             }
 
-            /* 2. 強制修改側邊欄按鈕外觀 */
-            /* 咖啡按鈕 (假設它是側邊欄的第一個按鈕) */
+            .sponsor-title {
+                color: #31333F;
+                font-weight: 700;
+                font-size: 1.1rem;
+                display: block;
+            }
+
+            /* 咖啡按鈕 (黃色) - 鎖定側邊欄第一個 stButton */
             section[data-testid="stSidebar"] .stButton:nth-of-type(1) button {
                 background-color: #FFDD00 !important;
-                color: #000 !important;
+                color: #000000 !important;
                 border: none !important;
-                padding: 10px !important;
-                border-radius: 8px !important;
-                font-weight: bold !important;
-                font-size: 0.9rem !important;
+                font-weight: 700 !important;
+                padding: 12px 0 !important;
+                border-radius: 12px !important;
                 width: 100% !important;
-                transition: transform 0.2s;
+                font-size: 1rem !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+                transition: transform 0.1s, box-shadow 0.1s;
+                margin-top: 15px !important; /* 讓按鈕看起來像在框框內 */
             }
 
-            /* 米糕按鈕 (假設它是側邊欄的第二個按鈕) */
+            /* 米糕按鈕 (漸層綠) - 鎖定側邊欄第二個 stButton */
             section[data-testid="stSidebar"] .stButton:nth-of-type(2) button {
-                background: linear-gradient(90deg, #28C76F 0%, #81FBB8 100%) !important;
-                color: white !important;
+                background: linear-gradient(to right, #28C76F, #81FBB8) !important;
+                color: #FFFFFF !important;
                 border: none !important;
-                padding: 10px !important;
-                border-radius: 8px !important;
-                font-weight: bold !important;
-                font-size: 0.9rem !important;
+                font-weight: 700 !important;
+                padding: 12px 0 !important;
+                border-radius: 12px !important;
                 width: 100% !important;
-                transition: transform 0.2s;
+                font-size: 1rem !important;
+                box-shadow: 0 4px 12px rgba(40, 199, 111, 0.25) !important;
+                transition: transform 0.1s;
+                margin-top: 5px !important;
             }
 
-            /* 滑鼠懸停效果 */
-            section[data-testid="stSidebar"] .stButton button:hover {
-                transform: scale(1.02);
-                opacity: 0.9;
+            /* 按鈕點擊效果 */
+            section[data-testid="stSidebar"] .stButton button:active {
+                transform: scale(0.97) !important;
             }
+            
+            /* 移除 Streamlit 按鈕預設的邊框焦點 */
+            .stButton button:focus {
+                box-shadow: none !important;
+                border: none !important;
+            }
+
         </style>
     """, unsafe_allow_html=True)
-
 # ==========================================
 # 2. 工具函式
 # ==========================================
